@@ -1,0 +1,20 @@
+server:
+  port: 9000  # 게이트웨이 포트 지정
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/  # Eureka 서버의 URL 지정
+
+# 게이트웨이 라우팅 설정
+spring:
+  application:
+    name: apigateway-service  # Gateway 서비스의 이름
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/users/**  # /api/v1/users/** 경로로 들어오는 요청을 user-service로 라우팅
