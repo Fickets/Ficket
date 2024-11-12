@@ -11,7 +11,7 @@ def load_config_from_server():
         
         # 필요한 설정 정보 추출
         property_sources = config_data.get("propertySources", [])
-        config = {"mysql": {}, "encryption": {}, "rabbitmq": {}}
+        config = {"mysql": {}, "encryption": {}, "rabbitmq": {}, "aws":{}}
 
         for source in property_sources:
             source_data = source["source"]
@@ -34,6 +34,16 @@ def load_config_from_server():
                 config["rabbitmq"]["username"] = source_data["spring.rabbitmq.username"]
             if "spring.rabbitmq.password" in source_data:
                 config["rabbitmq"]["password"] = source_data["spring.rabbitmq.password"]
+            
+            # S3 설정
+            if "s3.aws.accesskey" in source_data:
+                config["aws"]["accesskey"] = source_data["s3.aws.accesskey"]
+            if "s3.aws.secretkey" in source_data:
+                config["aws"]["secretkey"] = source_data["s3.aws.secretkey"]
+            if "s3.aws.bucketname" in source_data:
+                config["aws"]["bucketname"] = source_data["s3.aws.bucketname"]
+            if "s3.aws.region" in source_data:
+                config["aws"]["region"] = source_data["s3.aws.region"]
 
         print("Configuration reloaded:", config)
         return config
