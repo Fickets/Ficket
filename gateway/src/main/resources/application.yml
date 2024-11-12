@@ -4,8 +4,10 @@ server:
 
 eureka:
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/  # Eureka 서버의 URL 지정
+      defaultZone: http://localhost:8761/eureka
 
 # 게이트웨이 라우팅 설정
 spring:
@@ -15,6 +17,29 @@ spring:
     gateway:
       routes:
         - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/users/login
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+        - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**  # /api/v1/users/** 경로로 들어오는 요청을 user-service로 라우팅
+
+# JWT
+jwt:
+  secret: fakejwtsecrettttttttttttttttttttttttttttttttt
+  access:
+    expiration: 10800000 # 3시간 (ms)
+    header: Authorization
+  refresh:
+    expiration: 1209600000 # 2주 (ms)
+    header: Authorization-refresh
+
+# For Cookie, Redis
+access-token-maxage: 10800 # 3시간 (sec)
+refresh-token-maxage: 1209600 # 2주 (sec)
