@@ -6,10 +6,12 @@ spec:
   selector:
     app: rabbitmq
   ports:
-    - protocol: TCP
+    - name: management-ui  # 포트 이름 추가
+      protocol: TCP
       port: 15672  # RabbitMQ Management UI
       targetPort: 15672
-    - protocol: TCP
+    - name: amqp-port  # 포트 이름 추가
+      protocol: TCP
       port: 5672  # RabbitMQ Default Port
       targetPort: 5672
   type: NodePort  # 외부에서 접근할 수 있도록 NodePort로 설정
