@@ -1,0 +1,30 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-service
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/Fickets/config.git
+          default-label: main
+          search-paths: ConfigFiles
+          username: ohy1023
+          password: git token
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans, busrefresh # cloud bus refresh
+
+logging:
+  level:
+    com.example.configservice: DEBUG

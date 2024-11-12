@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
+  profiles:
+    active: local
+  config:
+    import: optional:configserver:http://localhost:8888
 
 eureka:
   instance:
