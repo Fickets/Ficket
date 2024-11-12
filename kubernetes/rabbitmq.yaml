@@ -5,6 +5,11 @@ metadata:
   labels:
     app: rabbitmq
 spec:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+      
   containers:
     - name: rabbitmq
       image: rabbitmq:3-management
