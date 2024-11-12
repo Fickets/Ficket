@@ -49,6 +49,15 @@ dependencies {
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
     // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
+
+    // RabbitMQ
+    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+
+    // config
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+    // actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 dependencyManagement {

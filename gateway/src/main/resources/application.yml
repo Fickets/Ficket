@@ -1,7 +1,6 @@
 server:
   port: 9000  # 게이트웨이 포트 지정
 
-
 eureka:
   client:
     register-with-eureka: true
@@ -12,7 +11,11 @@ eureka:
 # 게이트웨이 라우팅 설정
 spring:
   application:
-    name: apigateway-service  # Gateway 서비스의 이름
+    name : apigateway-service
+  profiles:
+    active: local
+  config:
+    import: optional:configserver:http://localhost:8888
   cloud:
     gateway:
       routes:
@@ -29,17 +32,25 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**  # /api/v1/users/** 경로로 들어오는 요청을 user-service로 라우팅
-
-# JWT
-jwt:
-  secret: fakejwtsecrettttttttttttttttttttttttttttttttt
-  access:
-    expiration: 10800000 # 3시간 (ms)
-    header: Authorization
-  refresh:
-    expiration: 1209600000 # 2주 (ms)
-    header: Authorization-refresh
-
-# For Cookie, Redis
-access-token-maxage: 10800 # 3시간 (sec)
-refresh-token-maxage: 1209600 # 2주 (sec)
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/admins/**
+        - id: event-service
+          uri: lb://evnet-service
+          predicates:
+            - Path=/api/v1/events/**
+        - id: queue-service
+          uri: lb://queue-service
+          predicates:
+            - Path=/api/v1/queues/**
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
+            - Path=/api/v1/ticketing/**
+        - id: face-service
+          uri: lb://FACE-SERVICE
+          predicates:
+            - Path=/api/v1/faces/**
+#          filters:
+#            - AuthorizationHeaderFilter
