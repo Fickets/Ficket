@@ -5,6 +5,10 @@ metadata:
   labels:
     app: kafka1
 spec:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
   containers:
     - name: kafka
       image: wurstmeister/kafka:latest
