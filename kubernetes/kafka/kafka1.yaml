@@ -53,7 +53,7 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   awsElasticBlockStore:
-    volumeID: vol-095bac915e3428378  # EBS의 실제 Volume ID
+    volumeID: vol-07b4b9e91d18a8bb5  # EBS의 실제 Volume ID
     fsType: ext4  # EBS에 사용할 파일 시스템 유형 (일반적으로 ext4 사용)
 ---
 apiVersion: v1
