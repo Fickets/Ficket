@@ -27,13 +27,13 @@ spec:
           value: "true"  # Zookeeper 없이 KRaft 모드로 Kafka 실행
         - name: KAFKA_LOG_DIRS
           value: "/var/lib/kafka1/data"
-    resources:
-      requests:
-        memory: "2Gi"  # 요청 메모리 크기
-        cpu: "1"       # 요청 CPU 크기
-      limits:
-        memory: "4Gi"  # 제한 메모리 크기
-        cpu: "2"       # 제한 CPU 크기
+      resources:
+        requests:
+          memory: "2Gi"  # 요청 메모리 크기
+          cpu: "1"       # 요청 CPU 크기
+        limits:
+          memory: "4Gi"  # 제한 메모리 크기
+          cpu: "2"       # 제한 CPU 크기
       volumeMounts:
         - name: kafka1-storage
           mountPath: /var/lib/kafka1/data
