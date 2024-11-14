@@ -26,7 +26,7 @@ spec:
         - name: KAFKA_KRAFT_MODE
           value: "true"  # Zookeeper 없이 KRaft 모드로 Kafka 실행
         - name: KAFKA_LOG_DIRS
-          value: "/var/lib/kafka1/data" 
+          value: "/var/lib/kafka1/data"
     resources:
       requests:
         memory: "2Gi"  # 요청 메모리 크기
