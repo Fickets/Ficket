@@ -12,6 +12,7 @@ spec:
   awsElasticBlockStore:
     volumeID: vol-07b4b9e91d18a8bb5  # EBS의 실제 Volume ID
     fsType: ext4  # EBS에 사용할 파일 시스템 유형 (일반적으로 ext4 사용)
+    devicePath: /dev/xvda  # 실제 인식된 디바이스 경로로 변경
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
