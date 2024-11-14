@@ -25,6 +25,7 @@ spec:
   resources:
     requests:
       storage: 15Gi
+  storageClassName: kafka1-pv  # 여기 추가
   volumeName: kafka1-pv  # 여기서 PV의 이름을 명시적으로 지정
 ---
 apiVersion: v1
