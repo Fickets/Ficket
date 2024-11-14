@@ -80,3 +80,4 @@ spec:
       port: 9092  # Kafka가 사용하는 포트
       targetPort: 9092  # Kafka Pod의 9092 포트로 전달
       nodePort: 30092  # 외부에서 접근할 포트
+  type: NodePort
