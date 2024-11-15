@@ -39,13 +39,6 @@ spec:
     - key: "node-role.kubernetes.io/control-plane"
       operator: "Exists"
       effect: "NoSchedule"
-  initContainers:
-    - name: fix-permissions
-      image: busybox
-      command: [ "sh", "-c", "chmod -R 777 /var/lib/kafka1/data" ]
-      volumeMounts:
-        - name: kafka1-storage
-          mountPath: /var/lib/kafka1/data
   containers:
     - name: kafka
       image: wurstmeister/kafka:latest
