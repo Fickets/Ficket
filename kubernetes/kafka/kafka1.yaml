@@ -10,12 +10,12 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: kafka1-pv
-#  hostPath:
-#    path: /mnt/data/kafka/kafka1
   csi:
     driver: ebs.csi.aws.com
     volumeHandle: vol-0bcaadfd1f5bc89b2  # EBS 볼륨 ID
     fsType: ext4
+  hostPath:
+    path: /mnt/data/kafka/kafka1
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
