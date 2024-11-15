@@ -1,4 +1,4 @@
-package com.example.ficketevent.Entity;
+package com.example.ficketevent.global.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
@@ -18,13 +18,13 @@ import java.time.LocalDateTime;
 public class BaseEntity {
 
     @CreatedDate
-    @Column(updatable = false,name = "created_at")
+    @Column(updatable = false,name = "CREATED_AT")
     private LocalDateTime createdAt; // 생성일
 
     @LastModifiedDate
-    @Column(name = "last_modified_at")
+    @Column(name = "LAST_MODIFIED_AT")
     private LocalDateTime lastModifiedAt; // 수정일
 
-    @Column(name = "deleted_at")
+    @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt; // 삭제일
 }

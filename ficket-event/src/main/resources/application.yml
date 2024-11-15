@@ -6,6 +6,7 @@ spring:
     name: event-service
   profiles:
     active: local
+#    active: prod
   config:
     import: optional:configserver:http://localhost:8888
   jpa:
@@ -15,12 +16,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
-#  data:
-#    redis:
-#      auth:
-#        host: localhost     # Redis 서버 호스트
-#        port: 6379               # Redis 서버 포트
 
 eureka:
   instance:
