@@ -37,7 +37,7 @@ spring:
           predicates:
             - Path=/api/v1/admins/**
         - id: event-service
-          uri: lb://evnet-service
+          uri: lb://event-service
           predicates:
             - Path=/api/v1/events/**
         - id: queue-service

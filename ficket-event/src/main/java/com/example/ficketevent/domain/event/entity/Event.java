@@ -1,19 +1,18 @@
-package com.example.ficketevent.Entity;
+package com.example.ficketevent.domain.event.entity;
 
-import com.example.ficketevent.enums.Age;
-import com.example.ficketevent.enums.Genre;
+import com.example.ficketevent.global.common.BaseEntity;
+import com.example.ficketevent.domain.event.enums.Age;
+import com.example.ficketevent.domain.event.enums.Genre;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-
+@Builder
 @Entity
 @Getter
 @AllArgsConstructor
@@ -30,13 +29,12 @@ public class Event extends BaseEntity {
     @Column(name = "ADMIN_ID", nullable = false)
     private Long adminId; // 관리자 ID
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "COMPANY_ID", nullable = false)
-    private Company company; // 회사
+    @Column(name = "COMPANY_ID", nullable = false)
+    private Long companyId; // 회사 ID
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "STAGE_ID", nullable = false)
-    private EventStage stage; // 공연장
+    private EventStage eventStage; // 공연장
 
     @ElementCollection(targetClass = Genre.class)
     @CollectionTable(name = "event_genre", joinColumns = @JoinColumn(name = "EVENT_ID"))
@@ -64,5 +62,38 @@ public class Event extends BaseEntity {
     private Integer runningTime; // 상영 시간
 
     @Column(name = "RESERVATION_LIMIT", nullable = false)
-    private Integer reservationLimit; // 1인당 예약 제한 인원
+    private Integer reservationLimit; // 1인당 티켓 매수 제한
+
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private EventImage eventImage;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventSchedule> eventSchedules = new ArrayList<>(); // 행사 날짜 관리
+
+    @Builder.Default
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StagePartition> stagePartitions = new ArrayList<>(); // 행사 좌석 구분
+
+    // 연관 관계 설정 메서드
+    public void addEventImage(EventImage eventImage) {
+        this.eventImage = eventImage;
+        eventImage.setEvent(this);
+    }
+
+    public void addEventSchedule(EventSchedule eventSchedule) {
+        eventSchedules.add(eventSchedule);
+        eventSchedule.setEvent(this);
+    }
+
+    public void addStagePartition(StagePartition stagePartition) {
+        stagePartitions.add(stagePartition);
+        stagePartition.setEvent(this);
+    }
+
+    public void addEventStage(EventStage eventStage) {
+        this.eventStage = eventStage;
+        eventStage.getEvents().add(this);
+    }
+
 }
