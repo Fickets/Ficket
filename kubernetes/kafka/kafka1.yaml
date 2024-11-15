@@ -12,7 +12,7 @@ spec:
   storageClassName: kafka1-pv
   csi:
     driver: ebs.csi.aws.com
-    volumeHandle: vol-07b4b9e91d18a8bb5  # EBS 볼륨 ID
+    volumeHandle: vol-0bcaadfd1f5bc89b2  # EBS 볼륨 ID
     fsType: ext4
 ---
 apiVersion: v1
