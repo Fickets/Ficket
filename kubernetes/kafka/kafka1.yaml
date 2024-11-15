@@ -66,9 +66,7 @@ spec:
         limits:
           memory: "4Gi"  # 제한 메모리 크기
           cpu: "2"       # 제한 CPU 크기
-      volumeMounts:
-        - name: kafka1-storage
-          mountPath: /mnt/data/kafka/kafka1
+
   volumes:
     - name: kafka1-storage
       persistentVolumeClaim:
