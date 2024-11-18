@@ -1,0 +1,21 @@
+
+spring:
+  config:
+    activate:
+      on-profile: rabbitmq-local
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+
+---
+spring:
+  config:
+    activate:
+      on-profile: rabbitmq-server
+  rabbitmq:
+    host: ${rabbitmq.host}
+    port: ${rabbitmq.port}
+    username: ${rabbitmq.username}
+    password: ${rabbitmq.password}
