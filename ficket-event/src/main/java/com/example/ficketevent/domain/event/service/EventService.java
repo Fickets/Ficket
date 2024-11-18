@@ -1,6 +1,7 @@
 package com.example.ficketevent.domain.event.service;
 
 import com.example.ficketevent.domain.event.client.AdminServiceClient;
+import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
 import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.mapper.EventMapper;
@@ -29,7 +30,7 @@ import static com.example.ficketevent.global.config.awsS3.AwsConstants.*;
 @RequiredArgsConstructor
 public class EventService {
 
-    //    private final AdminServiceClient adminServiceClient;
+    private final AdminServiceClient adminServiceClient;
     private final EventMapper eventMapper;
     private final EventRepository eventRepository;
     private final EventStageRepository eventStageRepository;
@@ -48,15 +49,16 @@ public class EventService {
     public void createEvent(EventCreateReq req, MultipartFile poster, MultipartFile banner) {
         try {
 
-            // 추후 Feign Client를 통해 Admin과 Company 정보를 가져올 수 있도록 주석 처리
+            // 추후 Feign Client를 통해 Admin 정보를 가져올 수 있도록 주석 처리
 //            AdminDto adminDto = adminServiceClient.getAdmin(req.getAdminId());
-//            CompanyDto companyDto = adminServiceClient.getCompany(req.getCompanyId());
+            // 회사 정보 조회
+            CompanyResponse companyResponse = adminServiceClient.getCompany(req.getCompanyId());
 
             // 스테이지 정보 조회
             EventStage eventStage = findEventStageByStageId(req.getStageId());
 
             // Event 생성
-            Event newEvent = createNewEvent(req, eventStage);
+            Event newEvent = createNewEvent(req, companyResponse, eventStage);
 
             // 이벤트 일정 생성
             List<EventSchedule> eventSchedules = createEventSchedules(req, newEvent);
@@ -82,9 +84,8 @@ public class EventService {
     /**
      * 새로운 이벤트 객체를 생성합니다.
      */
-    private Event createNewEvent(EventCreateReq req, EventStage eventStage) {
-        Event event = eventMapper.eventDtoToEvent(req, eventStage);
-//        Event event = eventMapper.eventDtoToEvent(req, adminDto.getAdminId(), companyDto.getCompanyId(), eventStage);
+    private Event createNewEvent(EventCreateReq req, CompanyResponse companyResponse, EventStage eventStage) {
+        Event event = eventMapper.eventDtoToEvent(req, companyResponse.getCompanyId(), eventStage);
         event.addEventStage(eventStage);
         return event;
     }

@@ -17,7 +17,7 @@ public interface EventMapper {
             @Mapping(target = "eventSchedules", ignore = true),
             @Mapping(target = "stagePartitions", ignore = true)
     })
-    Event eventDtoToEvent(EventCreateReq eventCreateReq, EventStage eventStage);
+    Event eventDtoToEvent(EventCreateReq eventCreateReq, Long companyId, EventStage eventStage);
 
     @Mappings({
             @Mapping(source = "grade", target = "partitionName"),
