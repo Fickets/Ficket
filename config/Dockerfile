@@ -2,8 +2,10 @@ FROM openjdk:17
 
 WORKDIR /app
 
-COPY build/libs/*.jar back_application.jar
+COPY build/libs/config-0.0.1-SNAPSHOT.jar config-0.0.1-SNAPSHOT.jar
 
 EXPOSE 8888
 
-CMD ["java", "-Duser.timezone=Asia/Seoul", "-jar", "-Dspring.profiles.active=server", "back_application.jar"]
+ENV SPRING_PROFILES_ACTIVE=server
+
+CMD ["java", "-Duser.timezone=Asia/Seoul", "-jar", "config-0.0.1-SNAPSHOT.jar"]
