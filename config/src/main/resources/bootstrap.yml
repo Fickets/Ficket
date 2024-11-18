@@ -1,5 +1,27 @@
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
 encrypt:
   key-store:
-    location: file:///${user.home}/Desktop/Ficket/keystore/apiEncryptionKey.jks
     password: test1234
     alias: apiEncryptionKey
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+encrypt:
+  key-store:
+    location: file:///${user.home}/Ficket/keystore/apiEncryptionKey.jks
+
+# 서버 환경 설정
+---
+spring:
+  config:
+    activate:
+      on-profile: server
+encrypt:
+  key-store:
+    location: classpath:/apiEncryptionKey-server.jks
