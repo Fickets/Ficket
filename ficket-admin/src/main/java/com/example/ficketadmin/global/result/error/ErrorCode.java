@@ -1,4 +1,4 @@
-package com.example.ficketevent.global.result.error;
+package com.example.ficketadmin.global.result.error;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,12 +17,8 @@ public enum ErrorCode {
     FORBIDDEN_ERROR(403, "작업을 수행하기 위한 권한이 없습니다."),
     IS_NOT_IMAGE(400, "이미지가 아닙니다."),
 
-    // COMPANY
-    COMPANY_NOT_FOUND(404, "해당 회사가 존재하지 않습니다."),
-
     // Event
-    STAGE_NOT_FOUND(404, "해당 행사장이 존재하지 않습니다."),
-    SEAT_NOT_FOUND(404, "해당 좌석이 존재하지 않습니다."),
+    COMPANY_NOT_FOUND(404, "해당 회사가 존재하지 않습니다."),
     ;
 
     private final int status;

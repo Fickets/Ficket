@@ -1,9 +1,10 @@
 package com.example.ficketevent.domain.event.dto.common;
 
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
-public class CompanyDto {
+@Data
+public class CompanyResponse {
+
     private Long companyId;
     private String companyName;
 }

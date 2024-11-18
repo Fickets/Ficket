@@ -22,6 +22,7 @@ public class EventController {
      * 작업 날짜: 2024-11-14
      * 변경 이력:
      * - 2024-11-14 오형상: 초기 작성
+     * - 2024-11-18 오형상: company feign client 적용
      */
     @PostMapping
     public ResponseEntity<String> registerEvent(@RequestPart EventCreateReq req, @RequestPart MultipartFile poster, @RequestPart MultipartFile banner) {
