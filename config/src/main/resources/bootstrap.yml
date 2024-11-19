@@ -24,4 +24,4 @@ spring:
       on-profile: server
 encrypt:
   key-store:
-    location: classpath:/apiEncryptionKey-server.jks
+    location: classpath:/apiEncryptionKey.jks
