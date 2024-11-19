@@ -3,15 +3,15 @@ server:
 
 spring:
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:local}
+    active: server
     group:
       local:
         - rabbitmq-local
       server:
         - rabbitmq-server
     include:
-      - key
       - rabbitmq
+      - key
   application:
     name: config-service
   cloud:
