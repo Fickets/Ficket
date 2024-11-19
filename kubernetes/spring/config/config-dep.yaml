@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-config
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-config
+  template:
+    metadata:
+      labels:
+        app: spring-config
+    spec:
+      containers:
+        - name: spring-config
+          image: spring-config:latest
+          ports:
+            - containerPort: 8888
+
