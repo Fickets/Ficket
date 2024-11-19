@@ -14,8 +14,7 @@ spec:
     spec:
       containers:
         - name: spring-config
-          image: spring-config:latest
-          imagePullPolicy: IfNotPresent
+          image: choissu/ficket:springconfig-latest
           ports:
             - containerPort: 8888
       tolerations:
