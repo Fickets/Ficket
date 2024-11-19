@@ -15,11 +15,16 @@ spec:
       containers:
         - name: spring-config
           image: choissu/ficket:springconfig-latest
-          volumeMounts:
-            - mountPath: /springdocker/Ficket/config
-              name: config-volume
           ports:
             - containerPort: 8888
+          volumeMounts:
+            - mountPath: /springdocker/Ficket/config  # 컨테이너 내에서 마운트될 위치
+              name: config-volume
+      volumes:
+        - name: config-volume
+          hostPath:
+            path: /springdocker  # 실제 xvda1이 마운트된 경로
+            type: Directory
       tolerations:
         - key: "node-role.kubernetes.io/control-plane"
           operator: "Exists"
