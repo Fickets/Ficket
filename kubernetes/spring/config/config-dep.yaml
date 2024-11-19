@@ -15,6 +15,9 @@ spec:
       containers:
         - name: spring-config
           image: choissu/ficket:springconfig-latest
+          volumeMounts:
+            - mountPath: /springdocker/Ficket/config
+              name: config-volume
           ports:
             - containerPort: 8888
       tolerations:
