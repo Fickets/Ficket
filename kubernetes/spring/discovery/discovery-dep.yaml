@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-discovery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-discovery
+  template:
+    metadata:
+      labels:
+        app: spring-discovery
+    spec:
+      containers:
+        - name: spring-discovery
+          image: choissu/ficket:springdiscovery-latest
+          ports:
+            - containerPort: 8761
+          volumeMounts:
+            - mountPath: /springdocker/Ficket/discovery  # 컨테이너 내에서 마운트될 위치
+              name: discovery-volume
+      volumes:
+        - name: discovery-volume
+          hostPath:
+            path: /springdocker  # 실제 xvda1이 마운트된 경로
+            type: Directory
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
