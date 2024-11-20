@@ -81,6 +81,11 @@ public class EventService {
         }
     }
 
+    @Transactional
+    public String convertImageToUrl(MultipartFile image) {
+        return awsS3Service.upload(image, CONTENT_BUCKET_NAME, ORIGIN_CONTENT_FOLDER);
+    }
+
     /**
      * 새로운 이벤트 객체를 생성합니다.
      */

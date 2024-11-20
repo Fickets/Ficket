@@ -32,4 +32,17 @@ public class EventController {
         return ResponseEntity.ok("행사 등록에 성공했습니다.");
     }
 
+    /**
+     * 행사 내용 이미지 URL 변환 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-11-20
+     * 변경 이력:
+     * - 2024-11-20 오형상: 초기 작성
+     */
+    @PostMapping("/content/image")
+    public ResponseEntity<String> converterContentImage(@RequestPart MultipartFile image) {
+        return ResponseEntity.ok(eventService.convertImageToUrl(image));
+    }
+
 }
