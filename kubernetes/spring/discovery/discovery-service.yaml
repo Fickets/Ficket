@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: spring-config-service
+  name: spring-discovery-service
 spec:
   selector:
-    app: spring-config
+    app: spring-discovery
   ports:
     - protocol: TCP
       port: 8761
