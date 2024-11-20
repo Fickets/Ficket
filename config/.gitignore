@@ -18,6 +18,7 @@ bin/
 !**/src/test/**/bin/
 application-key.yml
 
+**/src/main/resources/apiEncryptionKey.jks
 ### IntelliJ IDEA ###
 .idea
 *.iws
