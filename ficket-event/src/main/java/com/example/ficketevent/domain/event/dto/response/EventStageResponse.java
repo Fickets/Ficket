@@ -9,4 +9,6 @@ public class EventStageResponse {
 
     private String stageName; // 공연장 이름
 
+    private String eventStageImg; // 공연장 좌석도
+
 }

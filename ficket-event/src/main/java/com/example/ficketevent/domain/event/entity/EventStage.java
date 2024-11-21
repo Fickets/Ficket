@@ -38,6 +38,9 @@ public class EventStage extends BaseEntity {
     @Column(name = "STREET", nullable = false)
     private String street; // 상세 주소
 
+    @Column(name = "EVENT_STAGE_IMG")
+    private String eventStageImg;
+
     @Builder.Default
     @OneToMany(mappedBy = "eventStage", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Event> events = new ArrayList<>(); // 공연 목록

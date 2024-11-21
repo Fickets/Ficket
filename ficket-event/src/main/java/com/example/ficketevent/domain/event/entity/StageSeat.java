@@ -17,10 +17,10 @@ public class StageSeat extends BaseEntity {
     private Long seatId; // 좌석 ID
 
     @Column(name = "x", nullable = false)
-    private Integer x; // 좌표 x
+    private Double x; // 좌표 x
 
     @Column(name = "y", nullable = false)
-    private Integer y; // 좌표 y
+    private Double y; // 좌표 y
 
     @Column(name = "seat_col", nullable = false)
     private String seatCol; // 열번호
