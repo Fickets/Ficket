@@ -19,4 +19,8 @@ public class AwsConstants {
     public static final String RESIZED_PC_BANNER = "pc_banner/banner";
     public static final String RESIZED_MOBILE_BANNER = "mobile_banner/banner";
 
+    // Content
+    public static final String CONTENT_BUCKET_NAME = "ficket-event-content";
+    public static final String ORIGIN_CONTENT_FOLDER = "content";
+
 }
