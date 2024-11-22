@@ -1,0 +1,82 @@
+export interface EventDate {
+  date: string;
+  sessions: {
+    round: number;
+    time: string;
+  }[];
+}
+
+export interface EventData {
+  adminId: number;
+  companyId: number;
+  stageId: number;
+  genre: string[];
+  age: string;
+  content: string;
+  title: string;
+  subTitle: string;
+  runningTime: number;
+  ticketingTime: string;
+  reservationLimit: number;
+  eventDate: EventDate[];
+  seats: SeatGrade[];
+}
+
+export interface GenreOption {
+  label: string;
+  value: string;
+}
+
+export interface EventFormProps {
+  onChange: (data: Partial<EventData>) => void;
+}
+
+export interface CalendarWithScheduleProps {
+  onChange: (data: { eventDate: EventDate[] }) => void;
+}
+
+export interface SeatGrade {
+  grade: string;
+  price: number;
+  seats: number[];
+}
+
+export interface SeatInfo {
+  seatId: number;
+  x: number;
+  y: number;
+  seatCol: string;
+  seatRow: string;
+}
+
+export interface SeatSettingProps {
+  stageId: number | null; // 현재 선택된 행사장의 ID (없을 경우 null)
+  onChange: (data: { seats: SeatGrade[] }) => void; // 변경된 좌석 데이터를 상위 컴포넌트로 전달
+}
+
+export interface SeatSettingPopupProps {
+  stageId: number;
+  onClose: () => void;
+  onSaveGrade: (data: {
+    grade: string;
+    price: number;
+    seats: number[];
+  }) => void;
+}
+
+export type BlobInfo = {
+  blob: () => Blob;
+  filename: () => string;
+  base64: () => string;
+  blobUri: () => string;
+};
+
+export type TinyEditorProps = {
+  onChange: (content: string) => void;
+};
+
+// export type UploadHandler = (
+//   blobInfo: any,
+//   success: (url: string) => void,
+//   failure: (message: string) => void
+// ) => void;
