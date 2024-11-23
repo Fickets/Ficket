@@ -3,3 +3,10 @@ encrypt:
     password: test1234
     alias: apiEncryptionKey
     location: classpath:/apiEncryptionKey.jks
+
+spring:
+  cloud:
+    config:
+      server:
+        encrypt:
+          enabled: false

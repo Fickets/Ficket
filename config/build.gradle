@@ -40,7 +40,8 @@ dependencies {
     // config monitor
     implementation 'org.springframework.cloud:spring-cloud-config-monitor'
 
-
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 }
 
 dependencyManagement {
