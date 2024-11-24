@@ -1,7 +1,7 @@
 encrypt:
   key-store:
     password: test1234
-    alias: trust_publicKey
+    alias: trustServer
     location: classpath:/publicKey.jks
 
 spring:
