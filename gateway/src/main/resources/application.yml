@@ -68,3 +68,9 @@ spring:
             - Path=/api/v1/faces/**
 #          filters:
 #            - AuthorizationHeaderFilter
+
+encrypt:
+  key-store:
+    password: test1234
+    alias: apiEncryptionKey
+    location: classpath:/apiEncryptionKey.jks

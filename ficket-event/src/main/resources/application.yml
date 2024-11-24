@@ -31,3 +31,9 @@ logging:
   level:
     org.hibernate.SQL:
     org.hibernate.type.descriptor.sql: TRACE
+
+encrypt:
+  key-store:
+    password: test1234
+    alias: apiEncryptionKey
+    location: classpath:/apiEncryptionKey.jks

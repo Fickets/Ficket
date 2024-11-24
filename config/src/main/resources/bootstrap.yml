@@ -1,8 +1,8 @@
 encrypt:
   key-store:
     password: test1234
-    alias: apiEncryptionKey
-    location: classpath:/apiEncryptionKey.jks
+    alias: trust_publicKey
+    location: classpath:/publicKey.jks
 
 spring:
   cloud:

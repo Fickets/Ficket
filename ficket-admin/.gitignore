@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Key ###
+/src/main/resources/apiEncryptionKey.jks
