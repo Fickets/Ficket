@@ -65,8 +65,20 @@ public class AwsS3Service {
         delete(ORIGIN_POSTER_FOLDER + "/" + originFileName, ORIGINAL_BUCKET_NAME);
     }
 
+    public void deleteResizedPosterImage(String posterMobileFileName, String posterPcFileName, String posterPcMain1FileName, String posterPcMain2FileName) {
+        delete(RESIZED_MOBILE_POSTER + "/" + posterMobileFileName, RESIZED_BUCKET_NAME);
+        delete(RESIZED_PC_POSTER + "/" + posterPcFileName, RESIZED_BUCKET_NAME);
+        delete(RESIZED_PC_POSTER_MAIN1 + "/" + posterPcMain1FileName, RESIZED_BUCKET_NAME);
+        delete(RESIZED_PC_POSTER_MAIN2 + "/" + posterPcMain2FileName, RESIZED_BUCKET_NAME);
+    }
+
     public void deleteBannerImage(String originFileName) {
         delete(ORIGIN_BANNER_FOLDER + "/" + originFileName, ORIGINAL_BUCKET_NAME);
+    }
+
+    public void deleteResizedBannerImage(String bannerMobileFileName, String bannerPcFileName) {
+        delete(RESIZED_MOBILE_BANNER + "/" + bannerMobileFileName, RESIZED_BUCKET_NAME);
+        delete(RESIZED_PC_BANNER + "/" + bannerPcFileName, RESIZED_BUCKET_NAME);
     }
 
     public void delete(String filePath, String bucket) {

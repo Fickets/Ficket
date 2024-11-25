@@ -9,6 +9,7 @@ import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDateTime;
 
 
+@Getter
 @Entity
 @Builder
 @AllArgsConstructor
