@@ -24,10 +24,7 @@ import java.util.stream.Collectors;
 public class EventDetail {
     private Long adminId; // 관리자 ID
     private Long companyId; // 회사 ID
-    private String companyName; // 회사 이름
     private Long stageId; // 공연장 ID
-    private String stageName; // 공연장 이름
-    private String stageImg; // 공연장 좌석 배치도
     private List<Genre> genre; // 장르 목록
     private Age age; // 관람 연령
     private String content; // 공연 상세 내용
@@ -36,12 +33,10 @@ public class EventDetail {
     private Integer runningTime; // 상영 시간
     private LocalDateTime ticketingTime; // 티켓팅 시작 시간
     private Integer reservationLimit; // 1인당 티켓 매수 제한
-    private String poster;
-    private String banner;
     private List<EventDateDto> eventSchedules; // 행사 날짜 정보
     private List<SeatDto> stageSeats; // 좌석 정보
 
-    public static EventDetail toEventDetail(Event event, String companyName) {
+    public static EventDetail toEventDetail(Event event) {
         // 날짜별 그룹화 및 변환
         List<EventDateDto> eventSchedules = event.getEventSchedules().stream()
                 .collect(Collectors.groupingBy(schedule -> schedule.getEventDate().toLocalDate()))
@@ -72,10 +67,7 @@ public class EventDetail {
         return EventDetail.builder()
                 .adminId(event.getAdminId())
                 .companyId(event.getCompanyId())
-                .companyName(companyName)
                 .stageId(event.getEventStage().getStageId())
-                .stageName(event.getEventStage().getStageName())
-                .stageImg(event.getEventStage().getEventStageImg())
                 .genre(event.getGenre())
                 .age(event.getAge())
                 .content(event.getContent())
@@ -84,8 +76,6 @@ public class EventDetail {
                 .runningTime(event.getRunningTime())
                 .ticketingTime(event.getTicketingTime())
                 .reservationLimit(event.getReservationLimit())
-                .poster(event.getEventImage().getPosterOriginUrl())
-                .banner(event.getEventImage().getBannerOriginUrl())
                 .eventSchedules(eventSchedules)
                 .stageSeats(stageSeats)
                 .build();
