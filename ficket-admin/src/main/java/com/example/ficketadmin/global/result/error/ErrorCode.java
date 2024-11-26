@@ -19,6 +19,14 @@ public enum ErrorCode {
 
     // Event
     COMPANY_NOT_FOUND(404, "해당 회사가 존재하지 않습니다."),
+
+    // Admin
+    NOT_ADMIN_FOUND(404, "해당 관리자가 존재하지 않습니다."),
+    DIFFERENT_PASSWORD(401, "틀린 비밀번호 입니다."),
+    REFRESH_TOKEN_NULL(404, "REFRESH_TOKEN이 없습니다."),
+    DIFFERENT_BOTH_TOKEN_ID(400, "양쪽 토큰 ID값이 다릅니다."),
+    REFRESH_TOKEN_EXPIRED(400, "토큰이 만료되었습니다."),
+    DIFFERENT_REFRESH_TOKEN(400, "등록되지 않은 REFRESH_TOKEN 입니다."),
     ;
 
     private final int status;
