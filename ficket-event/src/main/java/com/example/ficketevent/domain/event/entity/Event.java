@@ -1,6 +1,5 @@
 package com.example.ficketevent.domain.event.entity;
 
-import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
 import com.example.ficketevent.global.common.BaseEntity;
 import com.example.ficketevent.domain.event.enums.Age;
 import com.example.ficketevent.domain.event.enums.Genre;
@@ -30,11 +29,9 @@ public class Event extends BaseEntity {
     @Column(name = "ADMIN_ID", nullable = false)
     private Long adminId; // 관리자 ID
 
-    @Setter
     @Column(name = "COMPANY_ID", nullable = false)
     private Long companyId; // 회사 ID
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "STAGE_ID", nullable = false)
     private EventStage eventStage; // 공연장
@@ -98,37 +95,5 @@ public class Event extends BaseEntity {
         this.eventStage = eventStage;
         eventStage.getEvents().add(this);
     }
-
-
-    public void updatedEvent(EventUpdateReq req) {
-        if (req.getAdminId() != null) {
-            this.adminId = req.getAdminId();
-        }
-        if (req.getGenre() != null) {
-            this.genre = req.getGenre();
-        }
-        if (req.getAge() != null) {
-            this.age = req.getAge();
-        }
-        if (req.getContent() != null) {
-            this.content = req.getContent();
-        }
-        if (req.getTitle() != null) {
-            this.title = req.getTitle();
-        }
-        if (req.getSubTitle() != null) {
-            this.subTitle = req.getSubTitle();
-        }
-        if (req.getTicketingTime() != null) {
-            this.ticketingTime = req.getTicketingTime();
-        }
-        if (req.getRunningTime() != null) {
-            this.runningTime = req.getRunningTime();
-        }
-        if (req.getReservationLimit() != null) {
-            this.reservationLimit = req.getReservationLimit();
-        }
-    }
-
 
 }

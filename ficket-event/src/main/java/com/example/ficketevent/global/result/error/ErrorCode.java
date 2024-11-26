@@ -23,7 +23,6 @@ public enum ErrorCode {
     // Event
     STAGE_NOT_FOUND(404, "해당 행사장이 존재하지 않습니다."),
     SEAT_NOT_FOUND(404, "해당 좌석이 존재하지 않습니다."),
-    EVENT_NOT_FOUND(404, "해당 공연이 존재하지 않습니다."),
     ;
 
     private final int status;

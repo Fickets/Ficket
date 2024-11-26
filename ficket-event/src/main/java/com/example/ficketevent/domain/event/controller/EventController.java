@@ -1,9 +1,6 @@
 package com.example.ficketevent.domain.event.controller;
 
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
-import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
-import com.example.ficketevent.domain.event.dto.response.EventDetail;
-import com.example.ficketevent.domain.event.entity.Event;
 import com.example.ficketevent.domain.event.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -33,35 +30,6 @@ public class EventController {
         eventService.createEvent(req, poster, banner);
 
         return ResponseEntity.ok("행사 등록에 성공했습니다.");
-    }
-
-    /**
-     * 행사 수정 API
-     * <p>
-     * 작업자: 오형상
-     * 작업 날짜: 2024-11-25
-     * 변경 이력:
-     * - 2024-11-25 오형상: 초기 작성
-     */
-    @PatchMapping("/{eventId}")
-    public ResponseEntity<String> modifyEvent(@PathVariable Long eventId, @RequestPart EventUpdateReq req, @RequestPart(required = false) MultipartFile poster, @RequestPart(required = false) MultipartFile banner) {
-
-        eventService.updateEvent(eventId, req, poster, banner);
-
-        return ResponseEntity.ok("행사 정보 수정에 성공했습니다.");
-    }
-
-    /**
-     * 행사 단건 조회 API (행사 수정 용)
-     * <p>
-     * 작업자: 오형상
-     * 작업 날짜: 2024-11-25
-     * 변경 이력:
-     * - 2024-11-25 오형상: 초기 작성
-     */
-    @GetMapping("/{eventId}/detail")
-    public ResponseEntity<EventDetail> retrieveEvent(@PathVariable Long eventId) {
-        return ResponseEntity.ok(eventService.getEventById(eventId));
     }
 
     /**

@@ -2,11 +2,13 @@ package com.example.ficketevent.domain.event.entity;
 
 import com.example.ficketevent.global.common.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-@Getter
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -47,20 +49,5 @@ public class EventImage extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "EVENT_ID", nullable = false)
     private Event event; // 관련 이벤트
-
-
-    public void updateBanner(String bannerOriginUrl, String bannerPcUrl, String bannerMobileUrl) {
-        this.bannerOriginUrl = bannerOriginUrl;
-        this.bannerPcUrl = bannerPcUrl;
-        this.bannerMobileUrl = bannerMobileUrl;
-    }
-
-    public void updatePoster(String posterOriginUrl, String posterMobileUrl, String posterPcUrl, String posterPcMain1Url, String posterPcMain2Url) {
-        this.posterOriginUrl = posterOriginUrl;
-        this.posterMobileUrl = posterMobileUrl;
-        this.posterPcUrl = posterPcUrl;
-        this.posterPcMain1Url = posterPcMain1Url;
-        this.posterPcMain2Url = posterPcMain2Url;
-    }
 
 }

@@ -29,8 +29,8 @@ spring:
         include: refresh, health, beans, busrefresh # cloud bus refresh
   security:
     user:
-      name: ${SECURITY_USER_NAME} # 환경 변수로 값 설정
-      password: ${SECURITY_USER_PASSWORD} # 환경 변수로 값 설정
+      name: ${security.SECURITY_USER_NAME} # 환경 변수로 값 설정
+      password: ${security.SECURITY_USER_PASSWORD} # 환경 변수로 값 설정
 
 logging:
   level:
