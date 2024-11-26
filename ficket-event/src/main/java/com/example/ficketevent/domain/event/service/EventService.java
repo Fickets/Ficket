@@ -139,7 +139,9 @@ public class EventService {
     public EventDetail getEventById(Long eventId) {
         Event findEvent = findEventByEventId(eventId);
 
-        return EventDetail.toEventDetail(findEvent);
+        CompanyResponse company = adminServiceClient.getCompany(findEvent.getCompanyId());
+
+        return EventDetail.toEventDetail(findEvent, company.getCompanyName());
     }
 
     @Transactional

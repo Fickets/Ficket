@@ -29,6 +29,7 @@ spring:
               - POST
               - PUT
               - DELETE
+              - PATCH
             allowedHeaders:
               - "*" # 모든 헤더 허용
             allowCredentials: true # 쿠키 또는 인증 정보 허용
