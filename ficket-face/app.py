@@ -93,4 +93,8 @@ def match_face():
 if __name__ == '__main__':
     start_rabbitmq_listener_thread(config, app)
     initialize_eureka_client()
+
+    with app.app_context():
+        db.create_all()  # 테이블 생성
+
     app.run(host='127.0.0.1', port=5000, debug=True)
