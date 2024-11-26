@@ -291,7 +291,7 @@ const SeatSetting = ({
 
             <button
               onClick={handleSaveGrades}
-              className="w-full mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+              className="w-full mt-4 bg-green-500 text-white px-4 py-2 rounded"
             >
               저장
             </button>
