@@ -54,16 +54,6 @@ export interface SeatSettingProps {
   onChange: (data: { seats: SeatGrade[] }) => void; // 변경된 좌석 데이터를 상위 컴포넌트로 전달
 }
 
-export interface SeatSettingPopupProps {
-  stageId: number;
-  onClose: () => void;
-  onSaveGrade: (data: {
-    grade: string;
-    price: number;
-    seats: number[];
-  }) => void;
-}
-
 export type BlobInfo = {
   blob: () => Blob;
   filename: () => string;
@@ -74,9 +64,3 @@ export type BlobInfo = {
 export type TinyEditorProps = {
   onChange: (content: string) => void;
 };
-
-// export type UploadHandler = (
-//   blobInfo: any,
-//   success: (url: string) => void,
-//   failure: (message: string) => void
-// ) => void;
