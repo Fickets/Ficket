@@ -24,14 +24,14 @@ public class Event extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "EVENT_ID", nullable = false)
+    @Column(nullable = false)
     private Long eventId; // 이벤트 ID
 
-    @Column(name = "ADMIN_ID", nullable = false)
+    @Column(nullable = false)
     private Long adminId; // 관리자 ID
 
     @Setter
-    @Column(name = "COMPANY_ID", nullable = false)
+    @Column(nullable = false)
     private Long companyId; // 회사 ID
 
     @Setter
@@ -42,29 +42,29 @@ public class Event extends BaseEntity {
     @ElementCollection(targetClass = Genre.class)
     @CollectionTable(name = "event_genre", joinColumns = @JoinColumn(name = "EVENT_ID"))
     @Enumerated(EnumType.STRING)
-    @Column(name = "GENRE", nullable = false)
+    @Column(nullable = false)
     private List<Genre> genre; // 장르 목록
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "AGE", nullable = false)
+    @Column(nullable = false)
     private Age age; // 관람 연령
 
-    @Column(name = "CONTENT", nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content; // 공연 상세 내용
 
-    @Column(name = "TITLE", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String title; // 제목
 
-    @Column(name = "SUBTITLE", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String subTitle; // 부제목
 
-    @Column(name = "TICKETING_TIME", nullable = false, columnDefinition = "TIMESTAMP")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime ticketingTime; // 티켓팅 시작 시간
 
-    @Column(name = "RUNNING_TIME", nullable = false)
+    @Column(nullable = false)
     private Integer runningTime; // 상영 시간
 
-    @Column(name = "RESERVATION_LIMIT", nullable = false)
+    @Column(nullable = false)
     private Integer reservationLimit; // 1인당 티켓 매수 제한
 
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)

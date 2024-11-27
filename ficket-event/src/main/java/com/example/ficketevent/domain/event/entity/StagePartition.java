@@ -21,18 +21,18 @@ public class StagePartition extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "PARTITION_ID", nullable = false)
+    @Column(nullable = false)
     private Long partitionId;
 
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "EVENT_ID", nullable = false)
+    @JoinColumn(name = "event_id", nullable = false)
     private Event event; // Reference to Event entity
 
-    @Column(name = "PARTITION_NAME", nullable = false)
+    @Column(nullable = false)
     private String partitionName;
 
-    @Column(name = "PARTITION_PRICE", nullable = false)
+    @Column(nullable = false)
     private BigDecimal partitionPrice;
 
     @Builder.Default
