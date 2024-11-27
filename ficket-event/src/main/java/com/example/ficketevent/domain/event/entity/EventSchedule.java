@@ -7,6 +7,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -20,18 +22,27 @@ public class EventSchedule extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "EVENT_SCHEDULE_ID", nullable = false)
+    @Column( nullable = false)
     private Long eventScheduleId; // 행사 날짜 ID
 
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "EVENT_ID", nullable = false)
+    @JoinColumn(name = "event_id", nullable = false)
     private Event event; // 이벤트 ID 참조
 
-    @Column(name = "Round", nullable = false)
+    @Column( nullable = false)
     private Integer round; // 회차
 
-    @Column(name = "Event_Date", nullable = false, columnDefinition = "TIMESTAMP")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime eventDate; // 행사 날짜 및 시간
 
+    @Builder.Default
+    @OneToMany(mappedBy = "eventSchedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SeatMapping> seatMappingList = new ArrayList<>();
+
+    // 연관 관계 편의 메서드
+    public void addSeatMapping(SeatMapping seatMapping) {
+        seatMappingList.add(seatMapping);
+        seatMapping.setEventSchedule(this);
+    }
 }

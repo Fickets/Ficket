@@ -14,7 +14,6 @@ import com.example.ficketevent.global.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.example.ficketevent.global.config.awsS3.AwsConstants.*;
@@ -43,114 +43,33 @@ public class EventService {
 
     /**
      * 이벤트 생성 메서드
-     *
-     * @param req    이벤트 생성 요청 DTO
-     * @param poster 포스터 이미지 파일
-     * @param banner 배너 이미지 파일
-     * @throws BusinessException 잘못된 데이터가 있을 경우 예외 발생
      */
     @Transactional
     public void createEvent(EventCreateReq req, MultipartFile poster, MultipartFile banner) {
-        try {
+        // 1. 회사 및 공연장 정보 조회
+        CompanyResponse companyResponse = adminServiceClient.getCompany(req.getCompanyId());
+        EventStage eventStage = findEventStageByStageId(req.getStageId());
 
-            // 추후 Feign Client를 통해 Admin 정보를 가져올 수 있도록 주석 처리
-//            AdminDto adminDto = adminServiceClient.getAdmin(req.getAdminId());
-            // 회사 정보 조회
-            CompanyResponse companyResponse = adminServiceClient.getCompany(req.getCompanyId());
+        // 2. 이벤트 생성
+        Event newEvent = createNewEvent(req, companyResponse, eventStage);
 
-            // 스테이지 정보 조회
-            EventStage eventStage = findEventStageByStageId(req.getStageId());
+        // 3. 파티션 생성
+        Map<String, StagePartition> partitionMap = createPartitions(req, newEvent);
 
-            // Event 생성
-            Event newEvent = createNewEvent(req, companyResponse, eventStage);
+        // 4. 스케줄 및 좌석 매핑 생성
+        createSchedulesAndMappings(req, newEvent, partitionMap);
 
-            // 이벤트 일정 생성
-            List<EventSchedule> eventSchedules = createEventSchedules(req, newEvent);
-            eventSchedules.forEach(newEvent::addEventSchedule);
+        // 5. 이미지 생성 및 추가
+        EventImage eventImage = createEventImage(poster, banner);
+        newEvent.addEventImage(eventImage);
 
-            // 스테이지 파티션 및 좌석 매핑 생성
-            List<StagePartition> stagePartitions = createStagePartitions(req, newEvent, eventStage);
-            stagePartitions.forEach(newEvent::addStagePartition);
-
-            // S3에 포스터 및 배너 업로드 후, EventImage 생성
-            EventImage eventImage = createEventImage(poster, banner);
-            newEvent.addEventImage(eventImage);
-
-            // 이벤트 저장
-            eventRepository.save(newEvent);
-
-        } catch (Exception e) {
-            log.error("Event creation failed: {}", e.getMessage());
-            throw e; // 트랜잭션 롤백을 위해 예외 다시 던짐
-        }
+        // 6. 공연장과 이벤트 연결
+        eventStage.getEvents().add(newEvent);
     }
 
-    @CacheEvict(
-            cacheNames = "events",  // 캐시 이름
-            key = "#eventId"        // 캐시 키
-    )
-    @Transactional
-    public void updateEvent(Long eventId, EventUpdateReq req, MultipartFile poster, MultipartFile banner) {
-
-        // 기존 이벤트 조회
-        Event findEvent = findEventByEventId(eventId);
-
-        // 회사 정보 조회 (필요한 경우만)
-        if (req.getCompanyId() != null) {
-            CompanyResponse companyResponse = adminServiceClient.getCompany(req.getCompanyId());
-            findEvent.setCompanyId(companyResponse.getCompanyId());
-        }
-
-        // 스테이지 정보 조회 (필요한 경우만)
-        if (req.getStageId() != null) {
-            EventStage findEventStage = findEventStageByStageId(req.getStageId());
-            findEvent.setEventStage(findEventStage);
-        }
-
-        // 기존 이벤트 정보 일부 수정
-        findEvent.updatedEvent(req);
-
-        // 일정 업데이트
-        if (req.getEventDate() != null) {
-            eventScheduleRepository.deleteByEvent(findEvent);
-            List<EventSchedule> updatedSchedules = createUpdateEventSchedules(req, findEvent);
-            updatedSchedules.forEach(findEvent::addEventSchedule);
-        }
-
-        // 스테이지 파티션 업데이트
-        if (req.getSeats() != null) {
-            stagePartitionRepository.deleteByEvent(findEvent);
-            List<StagePartition> updatedPartitions = createUpdateStagePartitions(req, findEvent, findEvent.getEventStage());
-            updatedPartitions.forEach(findEvent::addStagePartition);
-        }
-
-        // 포스터 업데이트
-        if (poster != null) {
-            updatePoster(findEvent, poster);
-        }
-
-        // 배너 업데이트
-        if (banner != null) {
-            updateBanner(findEvent, banner);
-        }
-
-    }
-
-    public EventDetail getEventById(Long eventId) {
-        Event findEvent = findEventByEventId(eventId);
-
-        CompanyResponse company = adminServiceClient.getCompany(findEvent.getCompanyId());
-
-        return EventDetail.toEventDetail(findEvent, company.getCompanyName());
-    }
-
-    @Transactional
-    public String convertImageToUrl(MultipartFile image) {
-        return awsS3Service.upload(image, CONTENT_BUCKET_NAME, ORIGIN_CONTENT_FOLDER);
-    }
 
     /**
-     * 새로운 이벤트 객체를 생성합니다.
+     * 새로운 이벤트 생성
      */
     private Event createNewEvent(EventCreateReq req, CompanyResponse companyResponse, EventStage eventStage) {
         Event event = eventMapper.eventDtoToEvent(req, companyResponse.getCompanyId(), eventStage);
@@ -158,70 +77,70 @@ public class EventService {
         return event;
     }
 
-
-    /**
-     * 이벤트 일정을 생성합니다.
-     */
-    private List<EventSchedule> createEventSchedules(EventCreateReq req, Event event) {
-        return req.getEventDate().stream()
-                .flatMap(eventDate -> eventDate.getSessions().stream()
-                        .map(session -> EventSchedule.builder()
-                                .event(event)
-                                .round(session.getRound()) // 회차 정보 설정
-                                .eventDate(LocalDateTime.of(eventDate.getDate(), LocalTime.parse(session.getTime()))) // 날짜 및 시간 설정
-                                .build()))
-                .collect(Collectors.toList());
+    // 파티션 생성
+    private Map<String, StagePartition> createPartitions(EventCreateReq req, Event newEvent) {
+        Map<String, StagePartition> partitionMap = req.getSeats().stream()
+                .collect(Collectors.toMap(
+                        SeatDto::getGrade,
+                        seatDto -> StagePartition.builder()
+                                .event(newEvent)
+                                .partitionName(seatDto.getGrade())
+                                .partitionPrice(seatDto.getPrice())
+                                .build()
+                ));
+        partitionMap.values().forEach(newEvent::addStagePartition);
+        return partitionMap;
     }
 
-    /**
-     * 스테이지 파티션 및 좌석 매핑을 생성합니다.
-     */
-    private List<StagePartition> createStagePartitions(EventCreateReq req, Event newEvent, EventStage eventStage) {
-        return req.getSeats().stream()
-                .map(seatDto -> {
-                    StagePartition stagePartition = eventMapper.toStagePartition(seatDto); // 스테이지 파티션 생성
-                    stagePartition.setEvent(newEvent);
+    // 스케줄 및 좌석 매핑 생성
+    private void createSchedulesAndMappings(EventCreateReq req, Event newEvent, Map<String, StagePartition> partitionMap) {
+        req.getEventDate().forEach(eventDateDto -> {
+            eventDateDto.getSessions().forEach(sessionDto -> {
+                EventSchedule eventSchedule = EventSchedule.builder()
+                        .event(newEvent)
+                        .round(sessionDto.getRound())
+                        .eventDate(LocalDateTime.of(eventDateDto.getDate(), LocalTime.parse(sessionDto.getTime())))
+                        .build();
 
-                    // SeatMapping 생성
-                    List<SeatMapping> seatMappings = seatDto.getSeats().stream()
-                            .map(seatId -> createSeatMapping(seatId, stagePartition, eventStage))
-                            .collect(Collectors.toList());
-
-                    stagePartition.setSeatMappings(seatMappings); // 파티션에 SeatMapping 추가
-                    return stagePartition;
-                })
-                .toList();
+                createSeatMappings(req, eventSchedule, partitionMap);
+                newEvent.addEventSchedule(eventSchedule);
+            });
+        });
     }
 
-    /**
-     * 좌석 매핑을 생성합니다.
-     */
-    private SeatMapping createSeatMapping(Long seatId, StagePartition stagePartition, EventStage eventStage) {
-        StageSeat stageSeat = stageSeatRepository.findById(seatId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
+    // 좌석 매핑 생성
+    private void createSeatMappings(EventCreateReq req, EventSchedule eventSchedule, Map<String, StagePartition> partitionMap) {
+        req.getSeats().forEach(seatDto -> {
+            StagePartition stagePartition = partitionMap.get(seatDto.getGrade());
+            seatDto.getSeats().forEach(seatId -> {
+                StageSeat stageSeat = stageSeatRepository.findById(seatId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
 
-        return SeatMapping.builder()
-                .stageSeat(stageSeat)
-                .stagePartition(stagePartition)
-                .ticketId(null) // 초기값은 null
-                .build();
+                SeatMapping seatMapping = SeatMapping.builder()
+                        .eventSchedule(eventSchedule)
+                        .stagePartition(stagePartition)
+                        .stageSeat(stageSeat)
+                        .build();
+
+                stagePartition.addSeatMapping(seatMapping);
+                eventSchedule.addSeatMapping(seatMapping);
+            });
+        });
     }
+
 
     /**
      * 이벤트 이미지를 생성합니다.
      */
     private EventImage createEventImage(MultipartFile poster, MultipartFile banner) {
-        // 원본 포스터와 배너 업로드
         String posterOriginUrl = awsS3Service.uploadPosterOriginImage(poster);
         String bannerOriginUrl = awsS3Service.uploadBannerOriginImage(banner);
 
-        // 리사이즈된 포스터 이미지 URL 생성
         String posterMobileUrl = awsS3Service.getResizedImageUrl(RESIZED_BUCKET_NAME, RESIZED_MOBILE_POSTER, FileUtils.extractFileName(posterOriginUrl));
         String posterPcUrl = awsS3Service.getResizedImageUrl(RESIZED_BUCKET_NAME, RESIZED_PC_POSTER, FileUtils.extractFileName(posterOriginUrl));
         String posterPcMain1Url = awsS3Service.getResizedImageUrl(RESIZED_BUCKET_NAME, RESIZED_PC_POSTER_MAIN1, FileUtils.extractFileName(posterOriginUrl));
         String posterPcMain2Url = awsS3Service.getResizedImageUrl(RESIZED_BUCKET_NAME, RESIZED_PC_POSTER_MAIN2, FileUtils.extractFileName(posterOriginUrl));
 
-        // 리사이즈된 배너 이미지 URL 생성
         String bannerPcUrl = awsS3Service.getResizedImageUrl(RESIZED_BUCKET_NAME, RESIZED_PC_BANNER, FileUtils.extractFileName(bannerOriginUrl));
         String bannerMobileUrl = awsS3Service.getResizedImageUrl(RESIZED_BUCKET_NAME, RESIZED_MOBILE_BANNER, FileUtils.extractFileName(bannerOriginUrl));
 
@@ -237,57 +156,142 @@ public class EventService {
         );
     }
 
+
     /**
-     * 스테이지 ID로 스테이지 정보를 조회합니다.
+     * 이벤트 업데이트 메서드
      */
-    private EventStage findEventStageByStageId(Long stageId) {
-        return eventStageRepository.findById(stageId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.STAGE_NOT_FOUND));
+    @CacheEvict(cacheNames = "events", key = "#eventId")
+    @Transactional
+    public void updateEvent(Long eventId, EventUpdateReq req, MultipartFile poster, MultipartFile banner) {
+        Event findEvent = findEventByEventId(eventId);
+
+        // 1. 회사 정보 업데이트
+        updateCompanyInfo(req, findEvent);
+
+        // 2. 스테이지 정보 업데이트
+        updateStageInfo(req, findEvent);
+
+        // 3. 이벤트 정보 업데이트
+        findEvent.updatedEvent(req);
+
+        // 4. 스케줄 및 좌석 매핑 업데이트
+        if (req.getEventDate() != null) {
+            updateEventSchedulesAndSeatMappings(req, findEvent);
+        }
+
+        // 5. 좌석 파티션 업데이트
+        if (req.getSeats() != null) {
+            updateStagePartitions(req, findEvent);
+        }
+
+        // 6. 이미지 업데이트
+        updateEventImages(req, findEvent, poster, banner);
     }
 
-    /**
-     * 이벤트 ID로 이벤트 정보를 조회합니다.
-     */
-    private Event findEventByEventId(Long eventId) {
-        return eventRepository.findById(eventId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+    // 회사 정보 업데이트
+    private void updateCompanyInfo(EventUpdateReq req, Event findEvent) {
+        if (req.getCompanyId() != null) {
+            CompanyResponse companyResponse = adminServiceClient.getCompany(req.getCompanyId());
+            findEvent.setCompanyId(companyResponse.getCompanyId());
+        }
     }
 
-    /**
-     * 이벤트 일정을 업데이트하거나 생성합니다.
-     */
-    private List<EventSchedule> createUpdateEventSchedules(EventUpdateReq req, Event event) {
-
-        return req.getEventDate().stream()
-                .flatMap(eventDate -> eventDate.getSessions().stream()
-                        .map(session -> EventSchedule.builder()
-                                .event(event)
-                                .round(session.getRound()) // 회차 정보 설정
-                                .eventDate(LocalDateTime.of(eventDate.getDate(), LocalTime.parse(session.getTime()))) // 날짜 및 시간 설정
-                                .build()))
-                .collect(Collectors.toList());
+    // 스테이지 정보 업데이트
+    private void updateStageInfo(EventUpdateReq req, Event findEvent) {
+        if (req.getStageId() != null) {
+            EventStage eventStage = findEventStageByStageId(req.getStageId());
+            findEvent.setEventStage(eventStage);
+        }
     }
 
-    /**
-     * 스테이지 파티션 및 좌석 매핑을 업데이트하거나 생성합니다.
-     */
-    private List<StagePartition> createUpdateStagePartitions(EventUpdateReq req, Event event, EventStage eventStage) {
+    // 스케줄 및 좌석 매핑 업데이트
+    private void updateEventSchedulesAndSeatMappings(EventUpdateReq req, Event findEvent) {
+        // 기존 스케줄 삭제
+        eventScheduleRepository.deleteByEvent(findEvent);
 
-        // 요청 데이터 기반으로 파티션 생성
-        return req.getSeats().stream()
+        // 새로운 스케줄 및 좌석 매핑 생성
+        List<EventSchedule> updatedSchedules = req.getEventDate().stream()
+                .flatMap(eventDateDto -> eventDateDto.getSessions().stream().map(sessionDto -> {
+                    EventSchedule eventSchedule = EventSchedule.builder()
+                            .event(findEvent)
+                            .round(sessionDto.getRound())
+                            .eventDate(LocalDateTime.of(eventDateDto.getDate(), LocalTime.parse(sessionDto.getTime())))
+                            .build();
+
+                    // 좌석 매핑 생성
+                    createSeatMappings(req, eventSchedule);
+                    return eventSchedule;
+                }))
+                .toList();
+
+        updatedSchedules.forEach(findEvent::addEventSchedule); // 스케줄 추가
+    }
+
+    // 좌석 매핑 생성
+    private void createSeatMappings(EventUpdateReq req, EventSchedule eventSchedule) {
+        Map<String, StagePartition> partitionMap = getPartitionsByEvent(eventSchedule.getEvent()); // 파티션 조회
+
+        req.getSeats().forEach(seatDto -> {
+            StagePartition stagePartition = partitionMap.get(seatDto.getGrade());
+            seatDto.getSeats().forEach(seatId -> {
+                StageSeat stageSeat = stageSeatRepository.findById(seatId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
+
+                SeatMapping seatMapping = SeatMapping.builder()
+                        .eventSchedule(eventSchedule)
+                        .stagePartition(stagePartition)
+                        .stageSeat(stageSeat)
+                        .build();
+
+                stagePartition.addSeatMapping(seatMapping);
+                eventSchedule.addSeatMapping(seatMapping);
+            });
+        });
+    }
+
+    // 좌석 파티션 업데이트
+    private void updateStagePartitions(EventUpdateReq req, Event findEvent) {
+        // 기존 파티션 삭제
+        stagePartitionRepository.deleteByEvent(findEvent);
+
+        // 새로운 파티션 생성
+        List<StagePartition> updatedPartitions = req.getSeats().stream()
                 .map(seatDto -> {
-                    StagePartition stagePartition = eventMapper.toStagePartition(seatDto); // 스테이지 파티션 생성
-                    stagePartition.setEvent(event);
+                    StagePartition stagePartition = StagePartition.builder()
+                            .event(findEvent)
+                            .partitionName(seatDto.getGrade())
+                            .partitionPrice(seatDto.getPrice())
+                            .build();
 
-                    // SeatMapping 생성
-                    List<SeatMapping> seatMappings = seatDto.getSeats().stream()
-                            .map(seatId -> createSeatMapping(seatId, stagePartition, eventStage))
-                            .collect(Collectors.toList());
+                    seatDto.getSeats().forEach(seatId -> {
+                        StageSeat stageSeat = stageSeatRepository.findById(seatId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
 
-                    stagePartition.setSeatMappings(seatMappings); // 파티션에 SeatMapping 추가
+                        SeatMapping seatMapping = SeatMapping.builder()
+                                .stagePartition(stagePartition)
+                                .stageSeat(stageSeat)
+                                .build();
+
+                        stagePartition.addSeatMapping(seatMapping);
+                    });
+
                     return stagePartition;
                 })
                 .toList();
+
+        updatedPartitions.forEach(findEvent::addStagePartition); // 파티션 추가
+    }
+
+    // 좌석 파티션 조회
+    private Map<String, StagePartition> getPartitionsByEvent(Event event) {
+        return event.getStagePartitions().stream()
+                .collect(Collectors.toMap(StagePartition::getPartitionName, partition -> partition));
+    }
+
+    // 이미지 업데이트
+    private void updateEventImages(EventUpdateReq req, Event findEvent, MultipartFile poster, MultipartFile banner) {
+        if (poster != null) updatePoster(findEvent, poster);
+        if (banner != null) updateBanner(findEvent, banner);
     }
 
     private void updateBanner(Event event, MultipartFile banner) {
@@ -336,6 +340,76 @@ public class EventService {
         String posterPcMain2Url = awsS3Service.getResizedImageUrl(RESIZED_BUCKET_NAME, RESIZED_PC_POSTER_MAIN2, FileUtils.extractFileName(newPosterOriginUrl));
 
         event.getEventImage().updatePoster(newPosterOriginUrl, posterMobileUrl, posterPcUrl, posterPcMain1Url, posterPcMain2Url);
+    }
+
+    /**
+     * 단일 이벤트 조회
+     */
+    public EventDetail getEventById(Long eventId) {
+        Event findEvent = findEventByEventId(eventId);
+        CompanyResponse companyResponse = adminServiceClient.getCompany(findEvent.getCompanyId());
+        return EventDetail.toEventDetail(findEvent, companyResponse.getCompanyName());
+    }
+
+    @Transactional
+    public void deleteEvent(Long eventId) {
+        Event findEvent = findEventByEventId(eventId);
+        EventImage eventImage = findEvent.getEventImage();
+
+        // 이미지 삭제 처리
+        deleteEventImages(eventImage);
+
+        // 이벤트 삭제
+        eventRepository.delete(findEvent);
+    }
+
+    // 이벤트 이미지 삭제 처리
+    private void deleteEventImages(EventImage eventImage) {
+        if (eventImage == null) return;
+
+        // 포스터 이미지 파일명 추출
+        String posterOrigin = FileUtils.extractFileName(eventImage.getPosterOriginUrl());
+        String posterMobile = FileUtils.extractFileName(eventImage.getPosterMobileUrl());
+        String posterPc = FileUtils.extractFileName(eventImage.getPosterPcUrl());
+        String posterMain1 = FileUtils.extractFileName(eventImage.getPosterPcMain1Url());
+        String posterMain2 = FileUtils.extractFileName(eventImage.getPosterPcMain2Url());
+
+        // 배너 이미지 파일명 추출
+        String bannerOrigin = FileUtils.extractFileName(eventImage.getBannerOriginUrl());
+        String bannerMobile = FileUtils.extractFileName(eventImage.getBannerMobileUrl());
+        String bannerPc = FileUtils.extractFileName(eventImage.getBannerPcUrl());
+
+        // AWS S3 이미지 삭제
+        deletePosterImages(posterOrigin, posterMobile, posterPc, posterMain1, posterMain2);
+        deleteBannerImages(bannerOrigin, bannerMobile, bannerPc);
+    }
+
+    // 포스터 이미지 삭제
+    private void deletePosterImages(String origin, String mobile, String pc, String main1, String main2) {
+        awsS3Service.deletePosterImage(origin);
+        awsS3Service.deleteResizedPosterImage(mobile, pc, main1, main2);
+    }
+
+    // 배너 이미지 삭제
+    private void deleteBannerImages(String origin, String mobile, String pc) {
+        awsS3Service.deleteBannerImage(origin);
+        awsS3Service.deleteResizedBannerImage(mobile, pc);
+    }
+
+    @Transactional
+    public String convertImageToUrl(MultipartFile image) {
+        return awsS3Service.upload(image, CONTENT_BUCKET_NAME, ORIGIN_CONTENT_FOLDER);
+    }
+
+
+    private Event findEventByEventId(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+    }
+
+    private EventStage findEventStageByStageId(Long stageId) {
+        return eventStageRepository.findById(stageId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STAGE_NOT_FOUND));
     }
 
 }
