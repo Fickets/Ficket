@@ -4,6 +4,8 @@ import com.example.ficketevent.domain.event.client.AdminServiceClient;
 import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
 import com.example.ficketevent.domain.event.dto.request.*;
 import com.example.ficketevent.domain.event.dto.response.EventDetail;
+import com.example.ficketevent.domain.event.dto.response.EventSeatSummary;
+import com.example.ficketevent.domain.event.dto.response.SeatGradeInfo;
 import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.mapper.EventMapper;
 import com.example.ficketevent.domain.event.repository.*;
@@ -14,6 +16,7 @@ import com.example.ficketevent.global.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +42,7 @@ public class EventService {
     private final EventScheduleRepository eventScheduleRepository;
     private final StagePartitionRepository stagePartitionRepository;
     private final StageSeatRepository stageSeatRepository;
+    private final SeatMappingRepository seatMappingRepository;
     private final AwsS3Service awsS3Service;
 
     /**
@@ -410,6 +414,26 @@ public class EventService {
     private EventStage findEventStageByStageId(Long stageId) {
         return eventStageRepository.findById(stageId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STAGE_NOT_FOUND));
+    }
+
+    @Cacheable(
+            cacheNames = "events", // 캐시 이름 설정
+            key = "#eventScheduleId"    // 고정된 키 값 사용
+    )
+    public EventSeatSummary getEventByScheduleId(Long eventScheduleId) {
+        EventSchedule eventSchedule = eventScheduleRepository.findById(eventScheduleId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_SESSION_NOT_FOUND));
+
+        Event event = eventSchedule.getEvent();
+
+        String posterPcUrl = event.getEventImage().getPosterPcUrl();
+        Integer reservationLimit = event.getReservationLimit();
+        String eventStageImg = event.getEventStage().getEventStageImg();
+        List<SeatGradeInfo> seatGradeInfoList = event.getStagePartitions().stream()
+                .map(stagePartition -> new SeatGradeInfo(stagePartition.getPartitionName(), stagePartition.getPartitionPrice()))
+                .toList();
+
+        return new EventSeatSummary(posterPcUrl, reservationLimit, eventStageImg, seatGradeInfoList);
     }
 
 }

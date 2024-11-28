@@ -2,8 +2,12 @@ package com.example.ficketevent.domain.event.controller;
 
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
 import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
+import com.example.ficketevent.domain.event.dto.request.SelectSeat;
+import com.example.ficketevent.domain.event.dto.request.UnSelectSeat;
 import com.example.ficketevent.domain.event.dto.response.EventDetail;
+import com.example.ficketevent.domain.event.dto.response.EventSeatSummary;
 import com.example.ficketevent.domain.event.service.EventService;
+import com.example.ficketevent.domain.event.service.PreoccupyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class EventController {
 
     private final EventService eventService;
+    private final PreoccupyService preoccupyService;
 
     /**
      * 행사 등록 API
@@ -89,6 +94,48 @@ public class EventController {
     @PostMapping("/content/image")
     public ResponseEntity<String> converterContentImage(@RequestPart MultipartFile image) {
         return ResponseEntity.ok(eventService.convertImageToUrl(image));
+    }
+
+    /**
+     * 행사 정보 조회 API (좌석 선택용)
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-11-27
+     * 변경 이력:
+     * - 2024-11-27 오형상: 초기 작성
+     */
+    @GetMapping("/event-simple/{eventScheduleId}")
+    public ResponseEntity<EventSeatSummary> getEventSeatSummary(@PathVariable Long eventScheduleId) {
+        return ResponseEntity.ok(eventService.getEventByScheduleId(eventScheduleId));
+    }
+
+
+    /**
+     * 좌석 선점 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-11-28
+     * 변경 이력:
+     * - 2024-11-28 오형상: 초기 작성
+     */
+    @PostMapping("/seat")
+    public ResponseEntity<Void> lockSeats (@RequestBody SelectSeat req, @RequestHeader("X-User-Id") Long userId) {
+        preoccupyService.preoccupySeat(req, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 좌석 선점 해제 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-11-28
+     * 변경 이력:
+     * - 2024-11-28 오형상: 초기 작성
+     */
+    @DeleteMapping("/seat")
+    public ResponseEntity<Void> releaseLockedSeats (@RequestBody UnSelectSeat req, @RequestHeader("X-User-Id") Long userId) {
+        preoccupyService.releaseSeat(req.getEventScheduleId(), req.getSeatMappingIds(), userId);
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -29,9 +29,7 @@ public class EventStageService {
      */
     @Cacheable(
             cacheNames = "stages", // 캐시 이름 설정
-            key = "'all'",         // 고정된 키 값 사용
-            cacheManager = "cacheManager", // 사용할 캐시 매니저 지정
-            unless = "#result == null"     // 결과가 null이면 캐싱하지 않음
+            key = "'all'"         // 고정된 키 값 사용
     )
     public EventStageListResponse getEventStages() {
         List<EventStageResponse> eventStageResponses = mapEventStagesToDto();
