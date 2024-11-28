@@ -16,6 +16,7 @@ public enum ErrorCode {
     ENTITY_NOT_FOUNT(500, "존재하지 않는 Entity입니다."),
     FORBIDDEN_ERROR(403, "작업을 수행하기 위한 권한이 없습니다."),
     IS_NOT_IMAGE(400, "이미지가 아닙니다."),
+    FAILED_DURING_TRANSACTION(409, "트랜잭션 실패"),
 
     // COMPANY
     COMPANY_NOT_FOUND(404, "해당 회사가 존재하지 않습니다."),
@@ -24,6 +25,18 @@ public enum ErrorCode {
     STAGE_NOT_FOUND(404, "해당 행사장이 존재하지 않습니다."),
     SEAT_NOT_FOUND(404, "해당 좌석이 존재하지 않습니다."),
     EVENT_NOT_FOUND(404, "해당 공연이 존재하지 않습니다."),
+    EVENT_SESSION_NOT_FOUND(404, "해당 회차 공연이 존재하지 않습니다."),
+    PARTITION_NOT_FOUND(404, "해당 좌석 등급 구분이 존재하지 않습니다."),
+
+    //SEAT
+    FAILED_TRY_ROCK(409,"락에 실패했습니다."),
+    SEAT_ALREADY_RESERVED(409, "이미 선점된 좌석입니다."),
+    EMPTY_SEATS_EXCEPTION(400,"선택된 좌석이 없습니다. 요청을 확인해주세요."),
+    EXCEED_SEAT_RESERVATION_LIMIT(409,"1인당 예매 제한을 초과했습니다."),
+    USER_ALREADY_HAS_RESERVED_SEATS(409, "사용자는 해당 이벤트에서 이미 좌석을 예약했습니다."),
+    SEAT_RESERVED_BY_ANOTHER_USER(409, "해당 좌석은 다른 고객에 의해 선점됐습니다."),
+    SEAT_NOT_RESERVED(409, "해당 좌석은 선점 상태가 아닙니다."),
+
     ;
 
     private final int status;
