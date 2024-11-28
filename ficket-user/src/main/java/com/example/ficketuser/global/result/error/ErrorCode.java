@@ -1,4 +1,4 @@
-package com.example.ficketadmin.global.result.error;
+package com.example.ficketuser.global.result.error;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,13 +17,10 @@ public enum ErrorCode {
     FORBIDDEN_ERROR(403, "작업을 수행하기 위한 권한이 없습니다."),
     IS_NOT_IMAGE(400, "이미지가 아닙니다."),
 
-    // Event
-    COMPANY_NOT_FOUND(404, "해당 회사가 존재하지 않습니다."),
-
-    // Admin
-    NOT_ADMIN_FOUND(404, "해당 관리자가 존재하지 않습니다."),
-    DIFFERENT_PASSWORD(401, "틀린 비밀번호 입니다."),
-    REFRESH_TOKEN_NULL(404, "REFRESH_TOKEN이 없습니다."),
+    // User
+    NOT_USER_FOUND(404, "유저를 찾을 수 없습니다."),
+    NOT_REDIS_TOKEN_FOUND(404, "유저의 REDIS 토큰을 찾을 수 없습니다."),
+    REFRESH_TOKEN_NULL(404, "REFRESH TOKEN이 없습니다."),
     DIFFERENT_BOTH_TOKEN_ID(400, "양쪽 토큰 ID값이 다릅니다."),
     TOKEN_EXPIRED(400, "토큰이 만료되었습니다."),
     DIFFERENT_REFRESH_TOKEN(400, "등록되지 않은 REFRESH_TOKEN 입니다."),

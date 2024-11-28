@@ -1,6 +1,7 @@
 package com.example.ficketadmin.domain.admin.mapper;
 
 
+import com.example.ficketadmin.domain.admin.dto.common.AdminDto;
 import com.example.ficketadmin.domain.admin.dto.common.AdminInfoDto;
 import com.example.ficketadmin.domain.admin.entity.Admin;
 import org.mapstruct.Mapper;
@@ -10,4 +11,6 @@ import org.mapstruct.ReportingPolicy;
 public interface AdminMapper {
 
     AdminInfoDto toAdminInfoDto(Admin admin);
+
+    AdminDto toAdminDto(Admin admin);
 }

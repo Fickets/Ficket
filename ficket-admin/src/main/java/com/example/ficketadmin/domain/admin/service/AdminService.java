@@ -1,5 +1,6 @@
 package com.example.ficketadmin.domain.admin.service;
 
+import com.example.ficketadmin.domain.admin.dto.common.AdminDto;
 import com.example.ficketadmin.domain.admin.dto.common.AdminInfoDto;
 import com.example.ficketadmin.domain.admin.dto.request.AdminLoginReq;
 import com.example.ficketadmin.domain.admin.entity.Admin;
@@ -20,8 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -82,7 +81,7 @@ public class AdminService {
 
         // Header에 Access TOKEN 추가
         response.setHeader(ACCESS_HEADER, "Bearer " + accessToken);
-        response.setHeader("Access-Control-Allow-Origin", "Authorization");
+        response.setHeader("Access-Control-Allow-Origin", ACCESS_HEADER);
 
     }
 
@@ -130,6 +129,8 @@ public class AdminService {
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
+        //TODO 로그아웃시 홈으로 보내버리기
+        // response.redirect("HOME_ADDRESS") 이거 좋을듯
     }
 
     /**
@@ -155,7 +156,7 @@ public class AdminService {
         try {
             jwtUtils.validateToken(refresh);
         } catch (ExpiredJwtException e) {
-            throw new BusinessException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+            throw new BusinessException(ErrorCode.TOKEN_EXPIRED);
         }
         
         // Redis에 refresh 토큰 가져와서 비교
@@ -175,6 +176,14 @@ public class AdminService {
         String newAccessToken = jwtUtils.createAccessToken(adminInfo);
 
         response.setHeader(ACCESS_HEADER, "Bearer " + newAccessToken);
-        response.addHeader("Access-Control-Expose-Headers", "authorization");
+        response.addHeader("Access-Control-Expose-Headers", "ACCESS_HEADER");
+    }
+
+
+    public AdminDto getAdmin(Long adminId){
+        Admin admin = adminRepository.findByAdminId(adminId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_ADMIN_FOUND));
+
+        return adminMapper.toAdminDto(admin);
     }
 }

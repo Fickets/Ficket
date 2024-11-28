@@ -1,13 +1,40 @@
 server:
-  port: 0 # # 사용 가능한 임의의 포트 할당합니다.
+  port: 8777 # # 사용 가능한 임의의 포트 할당합니다.
 
 spring:
   application:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
   profiles:
-    active: local
+    active: prod
   config:
     import: optional:configserver:http://localhost:8888
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: a9f59c7ed287df6830de6012385df82d
+            client-secret: rGRRKr9tdoOxHNOQEUvT2QmdgFUDAWiq
+            redirect-uri: http://localhost:8777/login/oauth2/code/kakao
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: Kakao
+            scope:
+              - profile_nickname
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
 
 eureka:
   instance:
@@ -17,3 +44,10 @@ eureka:
       defaultZone: http://localhost:8761/eureka/  # Eureka 서버의 URL을 지정합니다.
       register-with-eureka: true  # 이 서비스가 Eureka 서버에 등록되도록 설정합니다.
       fetch-registry: true  # Eureka 서버로부터 다른 서비스 정보를 받아오도록 설정합니다.
+
+encrypt:
+  key-store:
+    password: test1234
+    alias: apiEncryptionKey
+    location: classpath:/apiEncryptionKey.jks
+
