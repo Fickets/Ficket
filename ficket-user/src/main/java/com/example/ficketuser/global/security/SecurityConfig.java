@@ -1,18 +1,19 @@
-package com.example.ficketadmin.global.config;
+package com.example.ficketuser.global.security;
 
-import com.example.ficketadmin.domain.admin.service.CustomAdminDetailsService;
-import com.example.ficketadmin.global.jwt.JwtAdminFilter;
-import com.example.ficketadmin.global.jwt.JwtUtils;
+
+import com.example.ficketuser.global.jwt.CustomSuccessHandler;
+import com.example.ficketuser.global.jwt.JwtFilter;
+import com.example.ficketuser.global.jwt.JwtUtils;
+import com.example.ficketuser.service.OAuth2UserService;
 import lombok.AllArgsConstructor;
+import lombok.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -21,12 +22,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @AllArgsConstructor
 public class SecurityConfig {
 
-    private final CustomAdminDetailsService customAdminDetailsService;
+    private final OAuth2UserService oAuth2UserService;
+    private final CustomSuccessHandler customSuccessHandler;
     private final JwtUtils jwtUtils;
 
-    private static final String[] WHITELIST = {
-        "/api/v1/admins/login"
-    };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -37,7 +36,7 @@ public class SecurityConfig {
         // 세션 관리 상태 없음으로 구성
         http.sessionManagement(sessionManagement -> sessionManagement
                 .sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS
+                        SessionCreationPolicy.STATELESS
                 )
         );
 
@@ -45,14 +44,24 @@ public class SecurityConfig {
         http.formLogin((form) -> form.disable());
         http.httpBasic(AbstractHttpConfigurer::disable);
 
-        // JWT 필터 UsernamePasswordAuthenticationFilter 앞에 추가
-        http.addFilterBefore(new JwtAdminFilter(customAdminDetailsService, jwtUtils), UsernamePasswordAuthenticationFilter.class);
+        // JWT 필터 추가
+        http
+            .addFilterBefore(new JwtFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class);
 
-        http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(WHITELIST).permitAll()
-                .anyRequest().permitAll()
-        );
+
+        // oauth2
+        http
+                .oauth2Login((oauth2) -> oauth2
+                        .userInfoEndpoint((userInfoEndpointConfig -> userInfoEndpointConfig
+                                .userService(oAuth2UserService)))
+                        .successHandler(customSuccessHandler));
+
+        http
+            .authorizeHttpRequests((auth) -> auth
+            .requestMatchers("/oauth2/**","/member/reissue","/swagger-ui/**").permitAll()
+                        .anyRequest().authenticated());
 
         return http.build();
     }
+
 }
