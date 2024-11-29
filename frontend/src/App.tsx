@@ -5,6 +5,8 @@ import EditEvent from './pages/edit/EditEvent';
 import NotFound from './pages/errorpage/NotFound';
 import RegisterFace from './pages/registerface/RegisterFace';
 import Order from './pages/order/Order';
+import SelectSeat from './pages/selectseat/SelectSeat';
+import SelectSession from './pages/selectsession/SelectSession';
 
 const router = createBrowserRouter([
   {
@@ -20,7 +22,15 @@ const router = createBrowserRouter([
     element: <EditEvent />,
   },
   {
-    path: 'ticketing/register-face/:eventScheduleId',
+    path: 'ticketing/select-session/:eventId',
+    element: <SelectSession />,
+  },
+  {
+    path: 'ticketing/select-seat/:eventScheduleId',
+    element: <SelectSeat />,
+  },
+  {
+    path: 'ticketing/register-face',
     element: <RegisterFace />,
   },
   {

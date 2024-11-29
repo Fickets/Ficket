@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import PictureBox from '../../components/registerface/PictureBox';
 import PolicyAgree from '../../components/registerface/PolicyAgree';
@@ -8,6 +8,8 @@ function RegisterFace() {
   const navigate = useNavigate();
   const [allAgreed, setAllAgreed] = useState<boolean>(false);
   const [faceImg, setFaceImg] = useState<File | null>(null);
+  const location = useLocation();
+  const { eventScheduleId } = location.state || {}; // 데이터 가져오기
 
   const handleNextStep = () => {
     if (allAgreed && faceImg) {
@@ -87,7 +89,7 @@ function RegisterFace() {
       <div className="w-full px-4 sm:px-8 py-3 mb-8 flex justify-between items-center border-gray-300 z-10">
         <button
           className="bg-[#666666] w-[45%] sm:w-auto px-4 py-2 text-white border border-black text-sm"
-          onClick={() => navigate('/previous-step')}
+          onClick={() => navigate(`/ticketing/select-seat/${eventScheduleId}`)}
         >
           이전단계
         </button>
