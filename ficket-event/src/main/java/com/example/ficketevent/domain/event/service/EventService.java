@@ -426,14 +426,14 @@ public class EventService {
 
         Event event = eventSchedule.getEvent();
 
-        String posterPcUrl = event.getEventImage().getPosterPcUrl();
+        String getPosterMobileUrl = event.getEventImage().getPosterMobileUrl();
         Integer reservationLimit = event.getReservationLimit();
         String eventStageImg = event.getEventStage().getEventStageImg();
         List<SeatGradeInfo> seatGradeInfoList = event.getStagePartitions().stream()
                 .map(stagePartition -> new SeatGradeInfo(stagePartition.getPartitionName(), stagePartition.getPartitionPrice()))
                 .toList();
 
-        return new EventSeatSummary(posterPcUrl, reservationLimit, eventStageImg, seatGradeInfoList);
+        return new EventSeatSummary(getPosterMobileUrl, reservationLimit, eventStageImg, seatGradeInfoList);
     }
 
 }
