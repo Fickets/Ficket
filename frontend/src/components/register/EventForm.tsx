@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
 import Select from 'react-select';
-import {
-  EventData,
-  GenreOption,
-  EventFormProps,
-  Company,
-  Stage,
-} from '../../types/register';
+import { EventData, GenreOption, EventFormProps } from '../../types/register';
 import { fetchCompanies, fetchStages } from '../../service/register/api';
 
 const genres: GenreOption[] = [
@@ -26,6 +20,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
     { value: number; label: string; img: string }[]
   >([]);
   const [formState, setFormState] = useState<EventData>({
+    adminId: 0,
     companyId: 0,
     stageId: 0,
     genre: [],
@@ -45,11 +40,11 @@ const EventForm = ({ onChange }: EventFormProps) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const companyData: Company[] = await fetchCompanies();
-        const stageData: Stage[] = await fetchStages();
+        const companyData = await fetchCompanies();
+        const stageData = await fetchStages();
 
         setCompanies(
-          companyData.map((c: Company) => ({
+          companyData.map((c: { companyId: number; companyName: string }) => ({
             value: c.companyId,
             label: c.companyName,
           }))

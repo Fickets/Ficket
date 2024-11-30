@@ -7,6 +7,7 @@ export interface EventDate {
 }
 
 export interface EventData {
+  adminId: number;
   companyId: number;
   stageId: number;
   genre: string[];
@@ -63,29 +64,3 @@ export type BlobInfo = {
 export type TinyEditorProps = {
   onChange: (content: string) => void;
 };
-
-// 각 회사의 데이터 구조
-export interface Company {
-  companyId: number;
-  companyName: string;
-}
-
-// API 응답의 구조
-export interface FetchCompaniesResponse {
-  companyList: Company[];
-}
-
-export interface Stage {
-  stageId: number;
-  stageName: string;
-  eventStageImg: string;
-}
-
-// API 응답의 구조
-export interface FetchStagesResponse {
-  eventStageDtoList: Stage[];
-}
-
-export interface FetchStageSeatsResponse {
-  stageSeats: SeatInfo[];
-}

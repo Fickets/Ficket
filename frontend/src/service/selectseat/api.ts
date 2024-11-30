@@ -1,17 +1,16 @@
-import { AxiosResponse } from 'axios';
+import axios from 'axios';
 import {
   EventSeatSummary,
   SeatCntGrade,
   SeatStatusResponse,
 } from '../../types/selectseat';
-import { privateApi } from '../../utils/http-common';
 
 // 등급별 남은 좌석 수 조회
 export const fetchSeatCntGrade = async (
   eventScheduleId: number
 ): Promise<SeatCntGrade[]> => {
-  const response: AxiosResponse<SeatCntGrade[]> = await privateApi.get(
-    `/events/grades/seats/${eventScheduleId}`
+  const response = await axios.get<SeatCntGrade[]>(
+    `http://localhost:9000/api/v1/events/grades/seats/${eventScheduleId}`
   );
   return response.data;
 };
@@ -20,8 +19,8 @@ export const fetchSeatCntGrade = async (
 export const fetchEventSeatSummary = async (
   eventScheduleId: number
 ): Promise<EventSeatSummary> => {
-  const response: AxiosResponse<EventSeatSummary> = await privateApi.get(
-    `/events/event-simple/${eventScheduleId}`
+  const response = await axios.get<EventSeatSummary>(
+    `http://localhost:9000/api/v1/events/event-simple/${eventScheduleId}`
   );
   return response.data;
 };
@@ -30,33 +29,49 @@ export const fetchEventSeatSummary = async (
 export const fetchAllSeatStatus = async (
   eventScheduleId: number
 ): Promise<SeatStatusResponse[]> => {
-  const response: AxiosResponse<SeatStatusResponse[]> = await privateApi.get(
-    `/events/${eventScheduleId}/seats`
+  const response = await axios.get<SeatStatusResponse[]>(
+    `http://localhost:9000/api/v1/events/${eventScheduleId}/seats`
   );
   return response.data;
 };
 
 // 선택 좌석들 선점
-export const lockSeats = async (payload: {
-  eventScheduleId: number;
-  reservationLimit: number;
-  seatMappingIds: number[];
-}): Promise<void> => {
-  await privateApi.post(`/events/seat/lock`, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export const lockSeats = async (
+  userId: number,
+  payload: {
+    eventScheduleId: number;
+    reservationLimit: number;
+    seatMappingIds: number[];
+  }
+): Promise<void> => {
+  await axios.post<void>(
+    `http://localhost:9000/api/v1/events/seat`, // 요청 URL
+    payload, // JSON 바디
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId, // 헤더에 사용자 ID 추가
+      },
+    }
+  );
 };
 
 // 좌석 선점 해제
-export const unLockSeats = async (payload: {
-  eventScheduleId: number;
-  seatMappingIds: number[];
-}): Promise<void> => {
-  await privateApi.post<void>(`/events/seat/unlock`, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export const unLockSeats = async (
+  userId: number,
+  payload: {
+    eventScheduleId: number;
+    seatMappingIds: number[];
+  }
+): Promise<void> => {
+  await axios.post<void>(
+    `http://localhost:9000/api/v1/events/seat/unlock`, // 요청 URL
+    payload, // JSON 바디
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId, // 헤더에 사용자 ID 추가
+      },
+    }
+  );
 };

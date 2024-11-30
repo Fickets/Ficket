@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import RightPanel from '../../components/selectseat/RightPanel';
 import SeatMap from '../../components/selectseat/SeatMap';
@@ -14,19 +14,13 @@ import {
   SeatCntGrade,
   SeatStatusResponse,
 } from '../../types/selectseat';
-import { useEventStore } from '../../types/StoreType/EventState';
 
 const SelectSeat = () => {
   const navigate = useNavigate();
-  const {
-    eventId,
-    eventScheduleId,
-    eventTitle,
-    eventDate,
-    eventTime,
-    eventStage,
-    setSelectedSeats, // Zustand에서 가져오기
-  } = useEventStore();
+  const location = useLocation();
+  const { eventScheduleId } = useParams(); // URL에서 eventScheduleId 추출
+  const { eventId, eventDate, eventTime, eventTitle, eventStage } =
+    location.state || {}; // 데이터 가져오기
   const [eventSummary, setEventSummary] = useState<EventSeatSummary | null>(
     null
   );
@@ -34,7 +28,7 @@ const SelectSeat = () => {
   const [seatStatusResponse, setSeatStatusResponse] = useState<
     SeatStatusResponse[] | null
   >(null);
-  const [selectedSeats, setLocalSelectedSeats] = useState<
+  const [selectedSeats, setSelectedSeats] = useState<
     { seatMappingId: number; grade: string; row: string; col: string }[]
   >([]);
   const [gradeColors, setGradeColors] = useState<{
@@ -58,11 +52,15 @@ const SelectSeat = () => {
     const loadEventData = async () => {
       if (eventScheduleId) {
         try {
-          const [summary, seatGrades, seatStatusList] = await Promise.all([
-            fetchEventSeatSummary(eventScheduleId),
-            fetchSeatCntGrade(eventScheduleId),
-            fetchAllSeatStatus(eventScheduleId),
-          ]);
+          const summary = await fetchEventSeatSummary(
+            parseInt(eventScheduleId, 10)
+          );
+          const seatGrades = await fetchSeatCntGrade(
+            parseInt(eventScheduleId, 10)
+          );
+          const seatStatusList = await fetchAllSeatStatus(
+            parseInt(eventScheduleId, 10)
+          );
 
           setEventSummary(summary);
           setSeatCntGrade(seatGrades);
@@ -90,8 +88,12 @@ const SelectSeat = () => {
   const refreshSeatsAndGrades = async () => {
     if (eventScheduleId) {
       try {
-        const seatGrades = await fetchSeatCntGrade(eventScheduleId);
-        const seatStatusList = await fetchAllSeatStatus(eventScheduleId);
+        const seatGrades = await fetchSeatCntGrade(
+          parseInt(eventScheduleId, 10)
+        );
+        const seatStatusList = await fetchAllSeatStatus(
+          parseInt(eventScheduleId, 10)
+        );
 
         setSeatCntGrade(seatGrades);
         setSeatStatusResponse(seatStatusList);
@@ -110,33 +112,33 @@ const SelectSeat = () => {
   };
 
   const handleNextStep = async () => {
-    if (selectedSeats.length === 0) {
+    if (selectedSeats.length == 0) {
       alert('좌석을 선택해주세요.');
     } else if (selectedSeats.length > eventSummary.reservationLimit) {
       alert('예매 한도를 초과했습니다.');
     } else {
       try {
         const payload = {
-          eventScheduleId: eventScheduleId,
+          eventScheduleId: parseInt(eventScheduleId || '0'),
           reservationLimit: eventSummary.reservationLimit,
           seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
         };
 
-        await lockSeats(payload); // 좌석 선점 API 호출
+        await lockSeats(1, payload);
 
-        setSelectedSeats(selectedSeats);
-
-        navigate('/ticketing/register-face');
+        navigate('/ticketing/register-face', {
+          state: {
+            eventScheduleId: eventScheduleId, // event_schedule_id 값
+          },
+        });
       } catch (error) {
         console.error('Error locking seats:', error);
-
-        // 실패 시 사용자에게 알림
-        alert('좌석 선점에 실패했습니다. 다시 시도해주세요.');
+        alert('좌석 선택 중 문제가 발생했습니다.');
       }
     }
   };
 
-  const handleBeforeStep = () => {
+  const handleBeforeStep = (eventId: number) => {
     navigate(`/ticketing/select-session/${eventId}`);
   };
 
@@ -181,10 +183,10 @@ const SelectSeat = () => {
       {/* 좌석배치도 & 우측 패널*/}
       <div className="relative -mt-8 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-8 px-4 z-10">
         <SeatMap
-          eventStageImg={eventSummary.eventStageImg}
+          eventStageImg={eventSummary.evnetStageImg}
           reservationLimit={eventSummary.reservationLimit}
           seatStatusResponse={seatStatusResponse}
-          onSeatSelect={setLocalSelectedSeats} // 좌석 선택 콜백
+          onSeatSelect={setSelectedSeats} // 좌석 선택 콜백
           selectedSeats={selectedSeats} // 선택된 좌석
           gradeColors={gradeColors} // 등급별 색상 전달
         />
@@ -192,18 +194,18 @@ const SelectSeat = () => {
         <div className="flex flex-col items-center">
           <RightPanel
             gradeColors={gradeColors} // 등급별 색상 전달
-            posterMobileUrl={eventSummary.posterMobileUrl}
+            posterPcUrl={eventSummary.posterPcUrl}
             seatGradeInfoList={eventSummary.seatGradeInfoList}
             seatCntGrade={seatCntGrade}
             eventTitle={eventTitle}
             eventStage={eventStage}
             eventDate={eventDate}
-            eventTime={eventTime}
+            evnetTime={eventTime}
             selectedSeats={selectedSeats}
           />
 
           {/* 버튼들 */}
-          <div className="w-[210px] -mt-7">
+          <div className="w-full">
             <button
               onClick={handleNextStep}
               className="bg-red-500 text-white w-full py-2 font-bold text-center"
@@ -212,7 +214,7 @@ const SelectSeat = () => {
             </button>
             <div className="flex justify-between items-center w-full mt-2 gap-1">
               <button
-                onClick={handleBeforeStep}
+                onClick={() => handleBeforeStep(eventId)}
                 className="bg-gray-300 text-black flex-1 py-1 text-center"
               >
                 이전 단계

@@ -9,10 +9,16 @@ export interface SeatGradeInfo {
 }
 
 export interface EventSeatSummary {
-  posterMobileUrl: string;
+  posterPcUrl: string;
   reservationLimit: number;
-  eventStageImg: string;
+  evnetStageImg: string;
   seatGradeInfoList: SeatGradeInfo[];
+}
+
+export enum SeatStatus {
+  AVAILABLE,
+  LOCKED,
+  PURCHASED,
 }
 
 export interface SeatStatusResponse {
@@ -22,7 +28,7 @@ export interface SeatStatusResponse {
   seatGrade: string;
   seatRow: string;
   seatCol: string;
-  status: string;
+  status: SeatStatus;
 }
 
 export interface RightPanelProps {
@@ -30,8 +36,8 @@ export interface RightPanelProps {
   eventTitle: string;
   eventStage: string;
   eventDate: string;
-  eventTime: string;
-  posterMobileUrl: string;
+  evnetTime: string;
+  posterPcUrl: string;
   seatGradeInfoList: {
     grade: string;
     price: number;

@@ -21,6 +21,7 @@ const EventForm = ({ onChange, initialData }: EventFormProps) => {
     { value: number; label: string; img: string }[]
   >([]);
   const [formState, setFormState] = useState<EventData>({
+    adminId: initialData.adminId,
     companyId: initialData.companyId,
     stageId: initialData.stageId,
     genre: initialData.genre,

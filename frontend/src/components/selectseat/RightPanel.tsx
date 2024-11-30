@@ -5,23 +5,19 @@ const RightPanel = ({
   eventTitle,
   eventStage,
   eventDate,
-  eventTime,
-  posterMobileUrl,
+  evnetTime,
+  posterPcUrl,
   seatGradeInfoList,
   seatCntGrade,
   selectedSeats,
 }: RightPanelProps) => {
   return (
-    <div className="w-[240px] h-[380px] flex flex-col mt-6 p-4 space-y-4">
+    <div className="w-[240px] h-[380px] flex flex-col mt-4 p-4 space-y-4">
       {/* 포스터와 정보 영역 */}
-      <div className="flex -mt-6">
+      <div className="flex">
         {/* 이미지 영역 */}
         <div className="w-[40%] flex items-center justify-center bg-gray-100">
-          <img
-            src={posterMobileUrl}
-            alt="Event Poster"
-            className="w-full h-auto"
-          />
+          <img src={posterPcUrl} alt="Event Poster" className="w-full h-auto" />
         </div>
 
         {/* 행사 정보 영역 */}
@@ -31,7 +27,7 @@ const RightPanel = ({
           </h3>
           <div className="text-xs text-gray-700 mt-2">
             <p>일시: {eventDate}</p>
-            <p>시간: {eventTime}</p>
+            <p>시간: {evnetTime}</p>
             <p>{eventStage}</p>
           </div>
         </div>
@@ -81,7 +77,9 @@ const RightPanel = ({
       <div>
         <h4 className="text-black font-bold text-sm mb-1">선택 좌석</h4>{' '}
         <div className="overflow-y-auto max-h-[80px] border border-gray-300">
+          {' '}
           <table className="table-auto w-full text-left text-xs text-gray-700">
+            {' '}
             <thead>
               <tr className="bg-gray-200">
                 <th className="px-1 py-1 border-b border-gray-300">등급</th>{' '}

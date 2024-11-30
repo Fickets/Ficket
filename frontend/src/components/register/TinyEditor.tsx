@@ -1,6 +1,6 @@
 import { Editor } from '@tinymce/tinymce-react';
 import { BlobInfo, TinyEditorProps } from '../../types/register';
-import { uploadImage } from '../../service/register/api';
+import axios from 'axios';
 
 const handleImageUpload = (
   blobInfo: BlobInfo,
@@ -10,15 +10,23 @@ const handleImageUpload = (
     const formData = new FormData();
     formData.append('image', blobInfo.blob(), blobInfo.filename());
 
-    uploadImage(formData, (event) => {
-      if (event.total) {
-        progress(Math.round((event.loaded / event.total) * 100)); // 업로드 진행률
-      }
-    })
-      .then(resolve)
+    axios
+      .post('http://localhost:9000/api/v1/events/content/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (event) => {
+          if (event.total) {
+            progress(Math.round((event.loaded / event.total) * 100)); // 업로드 진행률
+          }
+        },
+      })
+      .then((response) => {
+        resolve(response.data);
+      })
       .catch((error) => {
         console.error('Image upload failed:', error);
-        reject('Image upload failed');
+        reject('Image upload failed'); // 업로드 실패 시 에러 메시지 반환
       });
   });
 };

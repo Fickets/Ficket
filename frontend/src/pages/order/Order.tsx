@@ -1,8 +1,10 @@
-import { useEventStore } from '../../types/StoreType/EventState';
+import { useLocation } from 'react-router-dom';
 
 function Order() {
-  const { faceImg, eventScheduleId, selectedSeats } = useEventStore();
-  console.log('넘겨받은 데이터:', { faceImg, eventScheduleId, selectedSeats });
+  const location = useLocation();
+  const { faceImg, event_schedule_id } = location.state || {}; // 데이터 가져오기
+
+  console.log('넘겨받은 데이터:', { faceImg, event_schedule_id });
 
   return (
     <div>
