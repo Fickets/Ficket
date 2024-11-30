@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { fetchStageSeats } from '../../service/register/api';
 import { SeatInfo, SeatSettingProps } from '../../types/register';
 
@@ -32,9 +32,6 @@ const SeatSetting = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const imageRef = useRef<HTMLImageElement | null>(null);
-  const [scale, setScale] = useState({ x: 1, y: 1 });
-
   // Reset state when stageId changes
   useEffect(() => {
     setSeatCoordinates([]); // 좌석 좌표 초기화
@@ -43,23 +40,6 @@ const SeatSetting = ({
     setCurrentGrade(''); // 입력 중인 등급 초기화
     setCurrentPrice(''); // 입력 중인 가격 초기화
   }, [stageId]);
-
-  useEffect(() => {
-    const updateScale = () => {
-      if (imageRef.current) {
-        const { naturalWidth, naturalHeight, clientWidth, clientHeight } =
-          imageRef.current;
-        setScale({
-          x: clientWidth / naturalWidth,
-          y: clientHeight / naturalHeight,
-        });
-      }
-    };
-
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, [stageImg]);
 
   useEffect(() => {
     const loadSeatData = async () => {
@@ -138,6 +118,27 @@ const SeatSetting = ({
     setCurrentPrice('');
   };
 
+  // 원본 좌표 크기를 계산
+  const calculateOriginalSize = (seats: SeatInfo[]) => {
+    const maxX = Math.max(...seats.map((seat) => seat.x));
+    const maxY = Math.max(...seats.map((seat) => seat.y));
+    return { originalWidth: maxX, originalHeight: maxY };
+  };
+
+  const { originalWidth, originalHeight } =
+    calculateOriginalSize(seatCoordinates);
+
+  const containerWidth = 752; // 실제 컨테이너의 너비
+  const containerHeight = 598; // 실제 컨테이너의 높이
+
+  const calculatePosition = (x: number, y: number) => {
+    const xScaleFactor = 0.9; // X 축을 90% 축소
+    const yScaleFactor = 0.9; // Y 축을 90% 축소
+    const scaledX = (x / originalWidth) * containerWidth * xScaleFactor;
+    const scaledY = (y / originalHeight) * containerHeight * yScaleFactor;
+    return { scaledX, scaledY };
+  };
+
   const handleRemoveGrade = (grade: string) => {
     setGrades((prev) => prev.filter((g) => g.grade !== grade));
   };
@@ -186,10 +187,9 @@ const SeatSetting = ({
           {/* 좌석 맵 */}
           <div className="flex-1 relative border border-gray-300 h-[600px]">
             <img
-              ref={imageRef}
               src={stageImg}
               alt="Stage Map"
-              className="absolute top-0 left-0 w-full h-full object-contain"
+              className="top-0 left-0 w-full h-full"
               style={{ objectPosition: 'left top' }}
             />
             {seatCoordinates.map((seat) => {
@@ -198,9 +198,7 @@ const SeatSetting = ({
                 (selected) => selected.seatId === seat.seatId
               );
 
-              // 좌표 변환
-              const adjustedX = seat.x * scale.x;
-              const adjustedY = seat.y * scale.y;
+              const { scaledX, scaledY } = calculatePosition(seat.x, seat.y);
 
               return (
                 <button
@@ -211,9 +209,8 @@ const SeatSetting = ({
                   style={{
                     backgroundColor: seatGrade?.color || '',
                     borderColor: seatGrade?.color || 'gray',
-                    top: `${adjustedY}px`,
-                    left: `${adjustedX}px`,
-                    transform: 'translate(-50%, -50%)',
+                    top: `${scaledY}px`, // Y 좌표
+                    left: `${scaledX}px`, // X 좌표
                   }}
                   onMouseEnter={() => handleSeatHover(seat)}
                   onClick={() => toggleSeatSelection(seat)}
