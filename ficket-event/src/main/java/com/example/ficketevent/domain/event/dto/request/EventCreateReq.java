@@ -9,7 +9,6 @@ import java.util.List;
 
 @Getter
 public class EventCreateReq {
-    private Long adminId; // 관리자 ID
     private Long companyId; // 회사 ID
     private Long stageId; // 공연장 ID
     private List<Genre> genre; // 장르 목록
@@ -22,6 +21,5 @@ public class EventCreateReq {
     private Integer reservationLimit; // 1인당 티켓 매수 제한
     private List<EventDateDto> eventDate; // 행사 날짜 정보
     private List<SeatDto> seats; // 좌석 정보
-
 
 }

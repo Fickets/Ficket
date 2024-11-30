@@ -11,66 +11,132 @@ eureka:
 # 게이트웨이 라우팅 설정
 spring:
   application:
-    name : apigateway-service
+    name: apigateway-service
   profiles:
     active: local
   config:
     import: optional:configserver:http://localhost:8888
   cloud:
     gateway:
+      default-filters:
+        - name: GlobalFilter
+          args:
+            baseMessage: Spring Cloud Gateway Global Filter
+            preLogger: true
+            postLogger: true
       globalcors:
         cors-configurations:
-          '[/**]': # 모든 경로에 대해 CORS 허용
+          '[/**]':
             allowedOrigins:
-              - "http://localhost:5173" # React 앱 도메인
-              - "https://your-frontend-domain.com" # 프로덕션 도메인
+              - "http://localhost:5173"
+              - "https://your-frontend-domain.com"
             allowedMethods:
               - GET
               - POST
               - PUT
               - DELETE
+              - PATCH
             allowedHeaders:
-              - "*" # 모든 헤더 허용
-            allowCredentials: true # 쿠키 또는 인증 정보 허용
+              - "*"
+            allowCredentials: true
       routes:
-        - id: user-service
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/users/login
-            - Method=POST
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/api/v1/users/**  # /api/v1/users/** 경로로 들어오는 요청을 user-service로 라우팅
+            - Path=/api/v1/users/**
+          filters:
+            - RemoveRequestHeader=Cookie
+
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/admins/login
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
+
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/admins/reissue
+            - Method=POST
+          filters:
+            - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
+
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/admins/join
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
         - id: admin-service
           uri: lb://admin-service
           predicates:
             - Path=/api/v1/admins/**
+          filters:
+            - AdminRoleCheckFilter
+
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/api/v1/events/seat/{action}  # 좌석 선점 및 해제
+          filters:
+            - AuthorizationHeaderFilter
+            - UserTokenExtractionFilter
+            - RemoveRequestHeader=Cookie
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/api/v1/events/admin/**
+          filters:
+            - AdminRoleCheckFilter
+            - RewritePath=/api/v1/events/admin/(?<segment>.*), /api/v1/events/admin/${segment}
+            - RemoveRequestHeader=Cookie
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/api/v1/events/admins/**
+          filters:
+            - AdminRoleCheckFilter
+            - AdminTokenExtractionFilter
+            - RewritePath=/api/v1/events/admins/(?<segment>.*), /api/v1/events/admins/${segment}
+            - RemoveRequestHeader=Cookie
         - id: event-service
           uri: lb://event-service
           predicates:
             - Path=/api/v1/events/**
+          filters:
+            - AuthorizationHeaderFilter
+            - RewritePath=/api/v1/events/admin/(?<segment>.*), /api/v1/events/admin/${segment}
+            - RemoveRequestHeader=Cookie
+
+        - id: face-service
+          uri: lb://face-service
+          predicates:
+            - Path=/api/v1/faces/**
+          filters:
+            - name: AuthorizationHeaderFilter
+
         - id: queue-service
           uri: lb://queue-service
           predicates:
             - Path=/api/v1/queues/**
+
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
             - Path=/api/v1/ticketing/**
-        - id: face-service
-          uri: lb://FACE-SERVICE
-          predicates:
-            - Path=/api/v1/faces/**
-#          filters:
-#            - AuthorizationHeaderFilter
 
 encrypt:
   key-store:
     password: test1234
     alias: apiEncryptionKey
     location: classpath:/apiEncryptionKey.jks
+
+management:
+  endpoint:
+    gateway:
+      enabled: true

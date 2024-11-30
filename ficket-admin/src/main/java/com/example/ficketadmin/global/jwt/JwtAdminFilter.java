@@ -22,6 +22,7 @@ public class JwtAdminFilter extends OncePerRequestFilter {
 
     /**
      * JWT  토큰 검사
+     *
      * @param request
      * @param response
      * @param filterChain
@@ -30,19 +31,24 @@ public class JwtAdminFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        if (request.getRequestURI().equals("/api/v1/admins/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authorizationHeader = request.getHeader("Authorization");
 
         // JWT HEADER 검사
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
 
             // JWT 유효성 검사
-            if (jwtUtils.validateToken(token)){
-               Long adminId = jwtUtils.getAdminId(token);
-               // 해당 유저 adminDetails 생성
-               UserDetails adminDetails = customAdminDetailsService.loadUserByUsername(adminId.toString());
+            if (jwtUtils.validateToken(token)) {
+                Long adminId = jwtUtils.getAdminId(token);
+                // 해당 유저 adminDetails 생성
+                UserDetails adminDetails = customAdminDetailsService.loadUserByUsername(adminId.toString());
 
-                if (adminDetails != null){
+                if (adminDetails != null) {
                     // AdminDetails로 접근권한 인증 TOKEN 생성
                     UsernamePasswordAuthenticationToken adminAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(adminDetails, null, adminDetails.getAuthorities());

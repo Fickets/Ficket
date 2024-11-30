@@ -1,5 +1,7 @@
 package com.example.ficketevent.domain.event.service;
 
+import com.example.ficketevent.domain.event.client.UserServiceClient;
+import com.example.ficketevent.domain.event.dto.common.UserSimpleDto;
 import com.example.ficketevent.domain.event.dto.request.SelectSeat;
 import com.example.ficketevent.domain.event.dto.response.ReservedSeatInfo;
 import com.example.ficketevent.global.result.error.ErrorCode;
@@ -22,6 +24,7 @@ public class PreoccupyService {
 
     private static final String REDIS_SEAT_KEY_PREFIX = "Ficket_";
 
+    private final UserServiceClient userServiceClient;
     private final RedissonClient redissonClient;
     private final PreoccupyInternalService preoccupyInternalService;
 
@@ -33,11 +36,15 @@ public class PreoccupyService {
      */
     @Transactional
     public void preoccupySeat(SelectSeat request, Long userId) {
+        UserSimpleDto user = userServiceClient.getUser(userId);
+
+        log.info("요청한 유저의 ID: {}", user.getUserId());
+
         Set<Long> seatMappingIds = request.getSeatMappingIds();
         Long eventScheduleId = request.getEventScheduleId();
 
         // 사용자가 이미 좌석을 선택했는지 확인
-        ensureUserHasNoSelectedSeats(eventScheduleId, userId);
+        ensureUserHasNoSelectedSeats(eventScheduleId, user.getUserId());
 
         // 요청된 좌석 수와 예약 제한을 검증
         validateSeatCount(seatMappingIds, request.getReservationLimit());
@@ -46,7 +53,7 @@ public class PreoccupyService {
         validateSeatsAvailability(eventScheduleId, seatMappingIds);
 
         // 각 좌석을 사용자에 대해 잠금 처리
-        seatMappingIds.forEach(seatMappingId -> lockSeat(eventScheduleId, userId, seatMappingId));
+        seatMappingIds.forEach(seatMappingId -> lockSeat(eventScheduleId, user.getUserId(), seatMappingId));
     }
 
     /**

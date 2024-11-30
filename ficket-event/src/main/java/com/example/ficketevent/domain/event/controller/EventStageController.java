@@ -24,7 +24,7 @@ public class EventStageController {
      * 변경 이력:
      * - 2024-11-18 오형상: 초기 작성
      */
-    @GetMapping("/stages")
+    @GetMapping("/admin/stages")
     public ResponseEntity<EventStageListResponse> RetrieveStages() {
 
         EventStageListResponse response = eventStageService.getEventStages();

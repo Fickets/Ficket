@@ -27,6 +27,7 @@ public class Event extends BaseEntity {
     @Column(nullable = false)
     private Long eventId; // 이벤트 ID
 
+    @Setter
     @Column(nullable = false)
     private Long adminId; // 관리자 ID
 
@@ -101,9 +102,6 @@ public class Event extends BaseEntity {
 
 
     public void updatedEvent(EventUpdateReq req) {
-        if (req.getAdminId() != null) {
-            this.adminId = req.getAdminId();
-        }
         if (req.getGenre() != null) {
             this.genre = req.getGenre();
         }

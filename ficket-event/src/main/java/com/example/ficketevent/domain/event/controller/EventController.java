@@ -26,11 +26,12 @@ public class EventController {
      * - 2024-11-14 오형상: 초기 작성
      * - 2024-11-18 오형상: company feign client 적용
      * - 2024-11-27 오형상: seatMapping 연관 관계 적용
+     * - 2024-11-30 오형상: admin feign client 적용
      */
-    @PostMapping
-    public ResponseEntity<String> registerEvent(@RequestPart EventCreateReq req, @RequestPart MultipartFile poster, @RequestPart MultipartFile banner) {
+    @PostMapping("/admins/event")
+    public ResponseEntity<String> registerEvent(@RequestHeader("X-Admin-Id") String adminId, @RequestPart EventCreateReq req, @RequestPart MultipartFile poster, @RequestPart MultipartFile banner ) {
 
-        eventService.createEvent(req, poster, banner);
+        eventService.createEvent(Long.parseLong(adminId), req, poster, banner);
 
         return ResponseEntity.ok("행사 등록에 성공했습니다.");
     }
@@ -43,11 +44,12 @@ public class EventController {
      * 변경 이력:
      * - 2024-11-25 오형상: 초기 작성
      * - 2024-11-27 오형상: seatMapping 연관 관계 적용
+     * - 2024-11-30 오형상: admin feign client 적용
      */
-    @PatchMapping("/{eventId}")
-    public ResponseEntity<String> modifyEvent(@PathVariable Long eventId, @RequestPart EventUpdateReq req, @RequestPart(required = false) MultipartFile poster, @RequestPart(required = false) MultipartFile banner) {
+    @PatchMapping("/admins/event/{eventId}")
+    public ResponseEntity<String> modifyEvent(@RequestHeader("X-Admin-Id") String adminId, @PathVariable Long eventId, @RequestPart EventUpdateReq req, @RequestPart(required = false) MultipartFile poster, @RequestPart(required = false) MultipartFile banner) {
 
-        eventService.updateEvent(eventId, req, poster, banner);
+        eventService.updateEvent(eventId, Long.parseLong(adminId), req, poster, banner);
 
         return ResponseEntity.ok("행사 정보 수정에 성공했습니다.");
     }
@@ -60,7 +62,7 @@ public class EventController {
      * 변경 이력:
      * - 2024-11-25 오형상: 초기 작성
      */
-    @GetMapping("/{eventId}/detail")
+    @GetMapping("/admin/{eventId}/detail")
     public ResponseEntity<EventDetail> retrieveEvent(@PathVariable Long eventId) {
         return ResponseEntity.ok(eventService.getEventById(eventId));
     }
@@ -73,7 +75,7 @@ public class EventController {
      * 변경 이력:
      * - 2024-11-27 오형상: 초기 작성
      */
-    @DeleteMapping("/{eventId}")
+    @DeleteMapping("/admin/{eventId}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId) {
         eventService.deleteEvent(eventId);
         return ResponseEntity.noContent().build();
@@ -87,7 +89,7 @@ public class EventController {
      * 변경 이력:
      * - 2024-11-20 오형상: 초기 작성
      */
-    @PostMapping("/content/image")
+    @PostMapping("/admin/content/image")
     public ResponseEntity<String> converterContentImage(@RequestPart MultipartFile image) {
         return ResponseEntity.ok(eventService.convertImageToUrl(image));
     }

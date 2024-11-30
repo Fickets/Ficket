@@ -16,24 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    private final Environment env;
     private final UserService userService;
-
-    @GetMapping
-    public String test() {
-        return "user-test";
-    }
-
-    @GetMapping("/health_check")
-    public String status() {
-        return String.format("It's Working in User Service"
-                + ", port(local.server.port) = " + env.getProperty("local.server.port")
-                + ", port(server.port) = " + env.getProperty("server.port")
-                + ", token secret = " + env.getProperty("jwt.secret")
-                + ", token expiration time = " + env.getProperty("jwt.access.expiration")
-                + ", token refresh time = " + env.getProperty("jwt.refresh.expiration"));
-    }
-
 
     /**
      * 회원가입 추가 정보 입력 API
