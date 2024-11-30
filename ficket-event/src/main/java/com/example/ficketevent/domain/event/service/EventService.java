@@ -1,6 +1,7 @@
 package com.example.ficketevent.domain.event.service;
 
 import com.example.ficketevent.domain.event.client.AdminServiceClient;
+import com.example.ficketevent.domain.event.dto.common.AdminDto;
 import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
 import com.example.ficketevent.domain.event.dto.request.*;
 import com.example.ficketevent.domain.event.dto.response.EventDetail;
@@ -42,20 +43,21 @@ public class EventService {
     private final EventScheduleRepository eventScheduleRepository;
     private final StagePartitionRepository stagePartitionRepository;
     private final StageSeatRepository stageSeatRepository;
-    private final SeatMappingRepository seatMappingRepository;
     private final AwsS3Service awsS3Service;
 
     /**
      * 이벤트 생성 메서드
      */
     @Transactional
-    public void createEvent(EventCreateReq req, MultipartFile poster, MultipartFile banner) {
-        // 1. 회사 및 공연장 정보 조회
+    public void createEvent(Long adminId, EventCreateReq req, MultipartFile poster, MultipartFile banner) {
+
+        // 1. 회사 및 공연장, 관리자 정보 조회
         CompanyResponse companyResponse = adminServiceClient.getCompany(req.getCompanyId());
+        AdminDto adminResponse = adminServiceClient.getAdmin(adminId);
         EventStage eventStage = findEventStageByStageId(req.getStageId());
 
         // 2. 이벤트 생성
-        Event newEvent = createNewEvent(req, companyResponse, eventStage);
+        Event newEvent = createNewEvent(req, companyResponse, adminResponse, eventStage);
 
         // 3. 파티션 생성
         Map<String, StagePartition> partitionMap = createPartitions(req, newEvent);
@@ -75,8 +77,8 @@ public class EventService {
     /**
      * 새로운 이벤트 생성
      */
-    private Event createNewEvent(EventCreateReq req, CompanyResponse companyResponse, EventStage eventStage) {
-        Event event = eventMapper.eventDtoToEvent(req, companyResponse.getCompanyId(), eventStage);
+    private Event createNewEvent(EventCreateReq req, CompanyResponse companyResponse,AdminDto adminResponse, EventStage eventStage) {
+        Event event = eventMapper.eventDtoToEvent(req, companyResponse.getCompanyId(), adminResponse.getAdminId(),eventStage);
         event.addEventStage(eventStage);
         return event;
     }
@@ -166,11 +168,12 @@ public class EventService {
      */
     @CacheEvict(cacheNames = "events", key = "#eventId")
     @Transactional
-    public void updateEvent(Long eventId, EventUpdateReq req, MultipartFile poster, MultipartFile banner) {
+    public void updateEvent(Long eventId, Long adminId, EventUpdateReq req, MultipartFile poster, MultipartFile banner) {
         Event findEvent = findEventByEventId(eventId);
 
-        // 1. 회사 정보 업데이트
+        // 1. 회사 정보 및 관리자 정보 업데이트
         updateCompanyInfo(req, findEvent);
+        updateAdminInfo(findEvent, adminId);
 
         // 2. 스테이지 정보 업데이트
         updateStageInfo(req, findEvent);
@@ -197,6 +200,13 @@ public class EventService {
         if (req.getCompanyId() != null) {
             CompanyResponse companyResponse = adminServiceClient.getCompany(req.getCompanyId());
             findEvent.setCompanyId(companyResponse.getCompanyId());
+        }
+    }
+
+    private void updateAdminInfo(Event findEvent, Long adminId) {
+        if (!findEvent.getAdminId().equals(adminId)) {
+            AdminDto adminResponse = adminServiceClient.getAdmin(adminId);
+            findEvent.setAdminId(adminResponse.getAdminId());
         }
     }
 
@@ -426,14 +436,14 @@ public class EventService {
 
         Event event = eventSchedule.getEvent();
 
-        String getPosterMobileUrl = event.getEventImage().getPosterMobileUrl();
+        String posterMobileUrl = event.getEventImage().getPosterMobileUrl();
         Integer reservationLimit = event.getReservationLimit();
         String eventStageImg = event.getEventStage().getEventStageImg();
         List<SeatGradeInfo> seatGradeInfoList = event.getStagePartitions().stream()
                 .map(stagePartition -> new SeatGradeInfo(stagePartition.getPartitionName(), stagePartition.getPartitionPrice()))
                 .toList();
 
-        return new EventSeatSummary(getPosterMobileUrl, reservationLimit, eventStageImg, seatGradeInfoList);
+        return new EventSeatSummary(posterMobileUrl, reservationLimit, eventStageImg, seatGradeInfoList);
     }
 
 }

@@ -1,10 +1,6 @@
 package com.example.gateway.filter;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +23,7 @@ import java.security.Key;
  */
 @Slf4j
 @Component
-public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
+public class AdminRoleCheckFilter extends AbstractGatewayFilterFactory<AdminRoleCheckFilter.Config> {
 
   private static final String BEARER_TYPE = "Bearer "; // 토큰 타입 (Bearer)
   private final Key key; // JWT 서명을 위한 키
@@ -37,7 +33,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
    *
    * @param secretKey 환경 설정에서 가져온 JWT 비밀 키
    */
-  public AuthorizationHeaderFilter(@Value("${jwt.secret}") String secretKey) {
+  public AdminRoleCheckFilter(@Value("${jwt.secret}") String secretKey) {
     super(Config.class);
     byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
     this.key = Keys.hmacShaKeyFor(keyBytes);
@@ -99,8 +95,9 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
    */
   public boolean validateToken(String token) {
     try {
-      Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-      return true;
+      Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+      String role = claims.get("role").toString();
+      return role.equals("MANAGER");
     } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
       log.info("유효하지 않은 JWT 토큰입니다.", e);
     } catch (ExpiredJwtException e) {

@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventSeatSummary {
-    private String getPosterMobileUrl;
+    private String posterMobileUrl;
     private Integer reservationLimit;
     private String eventStageImg;
     private List<SeatGradeInfo> seatGradeInfoList;

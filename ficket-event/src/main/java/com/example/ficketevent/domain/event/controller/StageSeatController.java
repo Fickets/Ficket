@@ -29,7 +29,7 @@ public class StageSeatController {
      * 변경 이력:
      * - 2024-11-18 오형상: 초기 작성
      */
-    @GetMapping("/stage/{stageId}")
+    @GetMapping("/admin/stage/{stageId}")
     public ResponseEntity<StageSeatResponse> RetrieveSeatByStage(@PathVariable Long stageId) {
         StageSeatResponse response = stageSeatService.getSeats(stageId);
 
@@ -71,8 +71,8 @@ public class StageSeatController {
      * - 2024-11-28 오형상: 초기 작성
      */
     @PostMapping("/seat/lock")
-    public ResponseEntity<Void> lockSeats (@RequestBody SelectSeat req, @RequestHeader("X-User-Id") Long userId) {
-        preoccupyService.preoccupySeat(req, userId);
+    public ResponseEntity<Void> lockSeats (@RequestBody SelectSeat req, @RequestHeader("X-User-Id") String userId) {
+        preoccupyService.preoccupySeat(req, Long.parseLong(userId));
         return ResponseEntity.ok().build();
     }
 
@@ -85,8 +85,8 @@ public class StageSeatController {
      * - 2024-11-28 오형상: 초기 작성
      */
     @PostMapping("/seat/unlock")
-    public ResponseEntity<Void> releaseLockedSeats (@RequestBody UnSelectSeat req, @RequestHeader("X-User-Id") Long userId) {
-        preoccupyService.releaseSeat(req.getEventScheduleId(), req.getSeatMappingIds(), userId);
+    public ResponseEntity<Void> releaseLockedSeats(@RequestBody UnSelectSeat req, @RequestHeader("X-User-Id") String userId) {
+        preoccupyService.releaseSeat(req.getEventScheduleId(), req.getSeatMappingIds(), Long.parseLong(userId));
         return ResponseEntity.ok().build();
     }
 }

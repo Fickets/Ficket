@@ -9,7 +9,6 @@ import java.util.List;
 
 @Getter
 public class EventUpdateReq {
-    private Long adminId; // 관리자 ID
     private Long companyId; // 회사 ID
     private Long stageId; // 공연장 ID
     private List<Genre> genre; // 장르 목록

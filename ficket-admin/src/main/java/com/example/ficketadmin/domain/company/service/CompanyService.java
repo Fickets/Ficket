@@ -41,7 +41,7 @@ public class CompanyService {
     }
 
     public CompanyResponse getCompany(Long companyId) {
-        Company company = companyRepository.findById(companyId).orElseThrow(() -> new BusinessException(COMPANY_NOT_FOUND));
+        Company company = companyRepository.findByCompanyId(companyId).orElseThrow(() -> new BusinessException(COMPANY_NOT_FOUND));
         return companyMapper.toCompanyResponse(company);
     }
 
