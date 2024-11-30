@@ -134,21 +134,35 @@ public class StageSeatService {
     private Set<Long> getLockedSeatFromRedis(Long eventScheduleId) {
         Set<Long> lockedSeatSet = new HashSet<>();
 
-        // Redis에서 이벤트 스케줄과 관련된 모든 좌석 키를 검색
-        String pattern = REDIS_SEAT_KEY_PREFIX + eventScheduleId + "_*";
-        Iterable<String> keys = redissonClient.getKeys().getKeysByPattern(pattern);
+        try {
+            // 좌석 상태를 관리하는 해시 키: ficket:seats:<eventScheduleId>
+            String seatKey = "ficket:seats:" + eventScheduleId;
 
-        for (String key : keys) {
-            // 좌석 ID 추출 (예: Ficket_1_5 -> 5)
-            String seatIdStr = key.substring((REDIS_SEAT_KEY_PREFIX + eventScheduleId + "_").length());
-            Long seatId = Long.valueOf(seatIdStr);
+            // Redis 해시에서 모든 좌석 상태를 가져옴
+            RMap<String, String> seatStates = redissonClient.getMap(seatKey);
 
-            lockedSeatSet.add(seatId);
+            // 해시의 모든 필드 이름(좌석 ID 추출)을 순회
+            for (String seatField : seatStates.keySet()) {
+                try {
+                    // 좌석 필드명에서 ID 추출 (예: seat_5 -> 5)
+                    String seatIdStr = seatField.replace("seat_", "");
+                    Long seatId = Long.parseLong(seatIdStr);
+
+                    lockedSeatSet.add(seatId);
+                } catch (NumberFormatException e) {
+                    // 좌석 ID 추출 실패 시 경고 로그 출력
+                    log.warn("Redis 해시 필드 '{}'에서 좌석 ID를 파싱하는 중 오류가 발생했습니다. 필드를 건너뜁니다.", seatField, e);
+                }
+            }
+        } catch (Exception e) {
+            // Redis 작업 중 오류 발생 시 로그 출력
+            log.error("Redis에서 해시 기반 잠금된 좌석 데이터를 가져오는 중 오류가 발생했습니다. EventScheduleId: {}", eventScheduleId, e);
+            throw new RuntimeException("잠금된 좌석 데이터를 가져오는 중 오류가 발생했습니다.", e);
         }
 
+        log.info("EventScheduleId {}와 관련된 해시 기반 잠금된 좌석 수: {}", eventScheduleId, lockedSeatSet.size());
         return lockedSeatSet;
     }
-
     /**
      * 좌석 상태 결정
      *

@@ -9,11 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -38,18 +35,24 @@ class PreoccupyServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Redis 상태 초기화 - 테스트 키 삭제
-        redissonClient.getKeys().deleteByPattern("Ficket_*");
-        redissonClient.getKeys().deleteByPattern("seatLock:*");
-        log.info("Redis 상태 초기화 완료");
+        try {
+            // Redis 전체 데이터 삭제
+            redissonClient.getKeys().flushdb();
+            System.out.println("Redis 초기화 완료");
+        } catch (Exception e) {
+            throw new IllegalStateException("Redis 초기화 실패", e);
+        }
     }
 
     @AfterEach
     void tearDown() {
-        // 테스트 후 Redis 상태 정리
-        redissonClient.getKeys().deleteByPattern("Ficket_*");
-        redissonClient.getKeys().deleteByPattern("seatLock:*");
-        log.info("Redis 상태 정리 완료");
+        try {
+            // Redis 전체 데이터 삭제
+            redissonClient.getKeys().flushdb();
+            System.out.println("Redis 정리 완료");
+        } catch (Exception e) {
+            throw new IllegalStateException("Redis 정리 실패", e);
+        }
     }
 
     @Test
@@ -62,7 +65,7 @@ class PreoccupyServiceTest {
 
         ExecutorService executorService = Executors.newFixedThreadPool(threadNum); // 스레드 풀 생성
 
-        for (Long i = 0L; i < threadNum; i++) {
+        for (long i = 1L; i <= threadNum; i++) {
             Long userId = i; // 각 사용자 고유 ID
             executorService.submit(() -> {
                 try {
@@ -141,6 +144,83 @@ class PreoccupyServiceTest {
         assertTrue(lockedAfterDelete, "락 해제 후에는 다시 락이 가능해야 합니다.");
     }
 
+//    @Test
+//    @DisplayName("사용자가 1~4개의 좌석 랜덤 선택 - 모든 좌석이 다 팔릴 때까지 진행 - 동시성 테스트")
+//    void testUntilAllSeatsSoldWithRandomSeatsPerUser() throws InterruptedException {
+//        int threadNum = 1000; // 동시 요청 스레드 수
+//        int totalSeats = 100; // 시스템에 존재하는 좌석 수
+//        AtomicInteger successCounter = new AtomicInteger(0); // 성공 카운터
+//        AtomicInteger failureCounter = new AtomicInteger(0); // 실패 카운터
+//
+//        // 사용 가능한 좌석 목록
+//        Set<Long> allSeatIds = Collections.synchronizedSet(new HashSet<>());
+//        for (long i = 1L; i <= totalSeats; i++) {
+//            allSeatIds.add(i);
+//        }
+//
+//        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+//        java.util.Random random = new java.util.Random();
+//
+//        while (successCounter.get() < totalSeats) {
+//            CountDownLatch latch = new CountDownLatch(threadNum); // 각 반복에서 새로운 CountDownLatch 생성
+//
+//            for (long i = 1L; i <= threadNum; i++) {
+//                Long userId = i; // 각 사용자 고유 ID
+//                executorService.submit(() -> {
+//                    Set<Long> selectedSeats = new HashSet<>();
+//
+//                    try {
+//                        int seatsToSelect;
+//
+//                        synchronized (allSeatIds) {
+//                            if (allSeatIds.isEmpty()) {
+//                                return; // 모든 좌석이 팔린 경우
+//                            }
+//
+//                            // 랜덤하게 1~4개의 좌석 선택
+//                            seatsToSelect = random.nextInt(4) + 1;
+//
+//                            Iterator<Long> iterator = allSeatIds.iterator();
+//                            while (iterator.hasNext() && selectedSeats.size() < seatsToSelect) {
+//                                selectedSeats.add(iterator.next());
+//                                iterator.remove(); // 선택된 좌석 제거
+//                            }
+//                        }
+//
+//                        if (selectedSeats.isEmpty()) {
+//                            return; // 선택된 좌석이 없으면 종료
+//                        }
+//
+//                        // SelectSeat 객체 생성
+//                        SelectSeat request = new SelectSeat(EVENT_SCHEDULE_ID, seatsToSelect, selectedSeats);
+//
+//                        // 좌석 예약 시도
+//                        preoccupyService.preoccupySeat(request, userId);
+//                        successCounter.addAndGet(selectedSeats.size());
+//
+//                    } catch (Exception e) {
+//                        failureCounter.incrementAndGet(); // 실패 시 카운터 증가
+//                        synchronized (allSeatIds) {
+//                            allSeatIds.addAll(selectedSeats); // 실패한 좌석 다시 복구
+//                        }
+//                    } finally {
+//                        latch.countDown(); // latch 감소
+//                    }
+//                });
+//            }
+//
+//            latch.await(); // 모든 스레드가 완료될 때까지 대기
+//        }
+//
+//        executorService.shutdown();
+//
+//        log.info("총 성공 예약된 좌석 수 = {}", successCounter.get());
+//        log.info("예약에 실패한 사용자 수 = {}", failureCounter.get());
+//
+//        assertEquals(totalSeats, successCounter.get(), "총 성공 예약된 좌석 수는 시스템 좌석 수와 같아야 합니다.");
+//    }
+
+
     @Test
     @DisplayName("사용자가 1~4개의 좌석 랜덤 선택 - 모든 좌석이 다 팔릴 때까지 진행 - 동시성 테스트")
     void testUntilAllSeatsSoldWithRandomSeatsPerUser() throws InterruptedException {
@@ -149,7 +229,8 @@ class PreoccupyServiceTest {
         AtomicInteger successCounter = new AtomicInteger(0); // 성공 카운터
         AtomicInteger failureCounter = new AtomicInteger(0); // 실패 카운터
 
-        Set<Long> allSeatIds = new java.util.HashSet<>();
+        // 사용 가능한 좌석 목록 (BlockingQueue로 변경)
+        BlockingQueue<Long> allSeatIds = new LinkedBlockingQueue<>();
         for (long i = 1L; i <= totalSeats; i++) {
             allSeatIds.add(i);
         }
@@ -160,33 +241,30 @@ class PreoccupyServiceTest {
         while (successCounter.get() < totalSeats) {
             CountDownLatch latch = new CountDownLatch(threadNum); // 각 반복에서 새로운 CountDownLatch 생성
 
-            for (Long i = 0L; i < threadNum; i++) {
+            for (long i = 1L; i <= threadNum; i++) {
                 Long userId = i; // 각 사용자 고유 ID
                 executorService.submit(() -> {
-                    Set<Long> selectedSeats = new java.util.HashSet<>();
+                    List<Long> selectedSeats = new ArrayList<>();
 
                     try {
-                        // 랜덤하게 1~4개의 좌석 선택
-                        int seatsToSelect = random.nextInt(4) + 1;
+                        int seatsToSelect = random.nextInt(4) + 1; // 랜덤하게 1~4개의 좌석 선택
 
-                        synchronized (allSeatIds) {
-                            for (Long seatId : allSeatIds) {
-                                if (selectedSeats.size() < seatsToSelect) {
-                                    selectedSeats.add(seatId);
-                                } else {
-                                    break;
-                                }
+                        // 좌석 선택
+                        for (int j = 0; j < seatsToSelect; j++) {
+                            Long seat = allSeatIds.poll(); // 큐에서 좌석 하나 가져오기
+                            if (seat != null) {
+                                selectedSeats.add(seat);
+                            } else {
+                                break; // 좌석이 다 팔린 경우
                             }
+                        }
 
-                            if (selectedSeats.isEmpty()) {
-                                return; // 선택할 좌석이 없으면 종료
-                            }
-
-                            allSeatIds.removeAll(selectedSeats); // 선택된 좌석 제거
+                        if (selectedSeats.isEmpty()) {
+                            return; // 선택된 좌석이 없으면 종료
                         }
 
                         // SelectSeat 객체 생성
-                        SelectSeat request = new SelectSeat(EVENT_SCHEDULE_ID, seatsToSelect, selectedSeats);
+                        SelectSeat request = new SelectSeat(EVENT_SCHEDULE_ID, selectedSeats.size(), new HashSet<>(selectedSeats));
 
                         // 좌석 예약 시도
                         preoccupyService.preoccupySeat(request, userId);
@@ -194,10 +272,9 @@ class PreoccupyServiceTest {
 
                     } catch (Exception e) {
                         failureCounter.incrementAndGet(); // 실패 시 카운터 증가
+                        // 실패한 좌석 다시 복구
+                        allSeatIds.addAll(selectedSeats);
                     } finally {
-                        synchronized (allSeatIds) {
-                            allSeatIds.addAll(selectedSeats); // 실패한 좌석 다시 추가
-                        }
                         latch.countDown(); // latch 감소
                     }
                 });
