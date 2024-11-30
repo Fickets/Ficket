@@ -3,16 +3,16 @@ export interface UserStoreType {
     isLogin: boolean;
 
     accessToken: string;
-    userId: string;
+    userId: number;
     userName: string;
-    birth: string;
+    birth: number;
     gender: string;
 
     setIsLogin: (newBool: boolean) => void;
 
     setAccessToken: (newToken: string) => void;
-    setUserId: (newId: string) => void;
+    setUserId: (newId: number) => void;
     setUserName: (newName: string) => void;
-    setBirth: (newBirth: string) => void;
+    setBirth: (newBirth: number) => void;
     setGender: (newGender: string) => void;
 }

@@ -1,12 +1,12 @@
 import axios, { AxiosInstance } from "axios";
 import { httpStatusCode } from "./http-status";
-import { userTokenRefresh } from "../api/user";
+import { userTokenRefresh } from "../service/user/user";
 
 // 쿠키를 이용하려면 활성화 필수
 axios.defaults.withCredentials = true;
 
 // gateway서버 URL
-const baseURL: string = "http:localhost:9000/api/v1";
+const baseURL: string = "http://localhost:9000/api/v1";
 
 // 새 토큰 저장
 const newAccess = (header: string) => {

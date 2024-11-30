@@ -9,7 +9,7 @@ import EditEvent from "./pages/edit/EditEvent.tsx";
 import RegisterFace from "./pages/registerface/RegisterFace.tsx";
 import Order from "./pages/order/Order.tsx";
 import NotFound from "./pages/errorpage/NotFound.tsx";
-
+import UserAdditionalInfo from './pages/user/UserAdditionalInfo.tsx';
 
 import { userStore } from "./stores/UserStore";
 
@@ -32,8 +32,8 @@ export default function Router() {
             {/* MAIN HOME */}
             <Route path="/" element={<HomePage />} />
             {/* USER LOGIN */}
-            <Route path="/login" element={<UserLogin />} />
-
+            <Route path="/users/login" element={<UserLogin />} />
+            <Route path="/users/addition-info" element={<UserAdditionalInfo />} />
             {/* FICKET ADMIN */}
             <Route path="/admin/register-event" element={<RegisterEvent />} />
             <Route path="/admin/edit-event/:eventId" element={<EditEvent />} />

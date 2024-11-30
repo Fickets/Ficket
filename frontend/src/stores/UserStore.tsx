@@ -8,17 +8,17 @@ export const userStore = create(
 
         accessToken: "",
 
-        userId: "",
+        userId: 0,
         userName: "",
-        birth: "",
+        birth: 0,
         gender: "",
 
         setIsLogin: (newData: boolean) => set(() => ({ isLogin: newData })),
 
         setAccessToken: (newData: string) => set(() => ({ accessToken: newData })),
-        setUserId: (newData: string) => set(() => ({ userId: newData })),
-        setUserName: (newData: string) => (() => ({ gender: newData })),
-        setBirth: (newData: string) => set(() => ({ birth: newData })),
+        setUserId: (newData: number) => set(() => ({ userId: newData })),
+        setUserName: (newData: string) => set(() => ({ userName: newData })),
+        setBirth: (newData: number) => set(() => ({ birth: newData })),
         setGender: (newData: string) => set(() => ({ gender: newData })),
 
     }),
