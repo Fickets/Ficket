@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import RightPanel from '../../components/selectseat/RightPanel';
 import SeatMap from '../../components/selectseat/SeatMap';
@@ -14,13 +14,26 @@ import {
   SeatCntGrade,
   SeatStatusResponse,
 } from '../../types/selectseat';
+import { useEventStore } from '../../types/StoreType/EventState';
+import {
+  AiOutlineArrowLeft,
+  AiOutlineReload,
+  AiOutlineDown,
+  AiOutlineUp,
+} from 'react-icons/ai';
+import DraggableSeatMap from '../../components/selectseat/DraggableSeatMap';
 
 const SelectSeat = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { eventScheduleId } = useParams(); // URL에서 eventScheduleId 추출
-  const { eventId, eventDate, eventTime, eventTitle, eventStage } =
-    location.state || {}; // 데이터 가져오기
+  const {
+    eventId,
+    eventScheduleId,
+    eventTitle,
+    eventDate,
+    eventTime,
+    eventStage,
+    setSelectedSeats, // Zustand에서 가져오기
+  } = useEventStore();
   const [eventSummary, setEventSummary] = useState<EventSeatSummary | null>(
     null
   );
@@ -28,20 +41,22 @@ const SelectSeat = () => {
   const [seatStatusResponse, setSeatStatusResponse] = useState<
     SeatStatusResponse[] | null
   >(null);
-  const [selectedSeats, setSelectedSeats] = useState<
+  const [selectedSeats, setLocalSelectedSeats] = useState<
     { seatMappingId: number; grade: string; row: string; col: string }[]
   >([]);
   const [gradeColors, setGradeColors] = useState<{
     [key: string]: string;
   } | null>(null);
+  const [showPricePopup, setShowPricePopup] = useState(false);
+  const [detailsVisible, setDetailsVisible] = useState(true); // 상세 창 보이기 여부
 
   const generateDistinctColors = (totalGrades: number) => {
     const colors: string[] = [];
-    const step = 360 / totalGrades; // Hue 간격 계산
+    const step = 360 / totalGrades;
 
     for (let i = 0; i < totalGrades; i++) {
-      const hue = Math.round(i * step); // Hue 값
-      const color = `hsl(${hue}, 70%, 50%)`; // HSL 색상 (포화도 70%, 밝기 50%)
+      const hue = Math.round(i * step);
+      const color = `hsl(${hue}, 70%, 50%)`;
       colors.push(color);
     }
 
@@ -52,21 +67,16 @@ const SelectSeat = () => {
     const loadEventData = async () => {
       if (eventScheduleId) {
         try {
-          const summary = await fetchEventSeatSummary(
-            parseInt(eventScheduleId, 10)
-          );
-          const seatGrades = await fetchSeatCntGrade(
-            parseInt(eventScheduleId, 10)
-          );
-          const seatStatusList = await fetchAllSeatStatus(
-            parseInt(eventScheduleId, 10)
-          );
+          const [summary, seatGrades, seatStatusList] = await Promise.all([
+            fetchEventSeatSummary(eventScheduleId),
+            fetchSeatCntGrade(eventScheduleId),
+            fetchAllSeatStatus(eventScheduleId),
+          ]);
 
           setEventSummary(summary);
           setSeatCntGrade(seatGrades);
           setSeatStatusResponse(seatStatusList);
 
-          // gradeColors 생성
           const distinctColors = generateDistinctColors(seatGrades.length);
           const newGradeColors: { [key: string]: string } = {};
           seatGrades.forEach((grade, index) => {
@@ -83,22 +93,18 @@ const SelectSeat = () => {
   }, [eventScheduleId]);
 
   if (!eventSummary || !seatCntGrade || !seatStatusResponse || !gradeColors) {
-    return <div>Loading...</div>; // 로딩 상태 표시
+    return <div>Loading...</div>;
   }
+
   const refreshSeatsAndGrades = async () => {
     if (eventScheduleId) {
       try {
-        const seatGrades = await fetchSeatCntGrade(
-          parseInt(eventScheduleId, 10)
-        );
-        const seatStatusList = await fetchAllSeatStatus(
-          parseInt(eventScheduleId, 10)
-        );
+        const seatGrades = await fetchSeatCntGrade(eventScheduleId);
+        const seatStatusList = await fetchAllSeatStatus(eventScheduleId);
 
         setSeatCntGrade(seatGrades);
         setSeatStatusResponse(seatStatusList);
 
-        // gradeColors 갱신
         const distinctColors = generateDistinctColors(seatGrades.length);
         const newGradeColors: { [key: string]: string } = {};
         seatGrades.forEach((grade, index) => {
@@ -112,44 +118,42 @@ const SelectSeat = () => {
   };
 
   const handleNextStep = async () => {
-    if (selectedSeats.length == 0) {
+    if (selectedSeats.length === 0) {
       alert('좌석을 선택해주세요.');
     } else if (selectedSeats.length > eventSummary.reservationLimit) {
       alert('예매 한도를 초과했습니다.');
     } else {
       try {
         const payload = {
-          eventScheduleId: parseInt(eventScheduleId || '0'),
+          eventScheduleId: eventScheduleId,
           reservationLimit: eventSummary.reservationLimit,
           seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
         };
 
-        await lockSeats(1, payload);
+        await lockSeats(payload);
 
-        navigate('/ticketing/register-face', {
-          state: {
-            eventScheduleId: eventScheduleId, // event_schedule_id 값
-          },
-        });
+        setSelectedSeats(selectedSeats);
+
+        navigate('/ticketing/register-face');
       } catch (error) {
         console.error('Error locking seats:', error);
-        alert('좌석 선택 중 문제가 발생했습니다.');
+
+        alert('좌석 선점에 실패했습니다. 다시 시도해주세요.');
       }
     }
   };
 
-  const handleBeforeStep = (eventId: number) => {
+  const handleBeforeStep = () => {
     navigate(`/ticketing/select-session/${eventId}`);
   };
 
   const handleRefresh = async () => {
-    await refreshSeatsAndGrades(); // 필요한 데이터만 새로고침
+    await refreshSeatsAndGrades();
   };
+
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
-      {/* 상단 바 */}
-      <div className="relative z-10 h-[192px] bg-black text-white">
-        {/* 데스크탑: 로고와 텍스트 */}
+      <div className="relative z-10 h-[192px] bg-black text-white hidden sm:block">
         <div className="hidden sm:flex items-center justify-between px-4 sm:px-8 py-3">
           <div className="flex items-center">
             <img
@@ -162,8 +166,6 @@ const SelectSeat = () => {
             </h3>
           </div>
         </div>
-
-        {/* 데스크탑: 기존 단계 표시 */}
         <div className="hidden sm:flex justify-center py-4 -mt-4">
           <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#D9D9D9] border border-black font-bold flex items-center justify-center text-xs sm:text-base">
             <span>01 관람일 / 회차선택</span>
@@ -180,51 +182,176 @@ const SelectSeat = () => {
         </div>
       </div>
 
-      {/* 좌석배치도 & 우측 패널*/}
-      <div className="relative -mt-8 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-8 px-4 z-10">
-        <SeatMap
-          eventStageImg={eventSummary.evnetStageImg}
+      {/* 헤더 */}
+      <div className="fixed top-0 left-0 w-full h-12 bg-gray-800 shadow-md flex items-center justify-between px-4 sm:hidden z-50">
+        <button
+          onClick={handleBeforeStep}
+          className="text-white text-lg flex items-center"
+        >
+          <AiOutlineArrowLeft className="text-2xl" />
+        </button>
+
+        <div className="relative flex items-center justify-between">
+          <button
+            className="bg-gray-700 text-white text-sm px-3 py-1 rounded-full flex items-center mr-4"
+            onClick={() => setShowPricePopup(!showPricePopup)}
+          >
+            좌석가격
+          </button>
+
+          {showPricePopup && (
+            <div className="absolute top-12 right-0 bg-gray-800 text-white rounded-lg shadow-lg w-60 p-4 z-50">
+              <div className="flex flex-col space-y-2">
+                {eventSummary.seatGradeInfoList.map((seat) => (
+                  <div
+                    key={seat.grade}
+                    className="flex justify-between items-center border-b border-gray-700 pb-2 last:border-b-0"
+                  >
+                    <span
+                      style={{ color: gradeColors[seat.grade] }}
+                      className="font-semibold text-sm"
+                    >
+                      {seat.grade}
+                    </span>
+                    <span className="text-sm font-medium">
+                      {seat.price.toLocaleString()}원
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleRefresh}
+            className="text-white text-lg flex items-center"
+          >
+            <AiOutlineReload className="text-2xl" />
+          </button>
+        </div>
+      </div>
+
+      <div className="relative -mt-8 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-0 px-4 z-10">
+        {/* <SeatMap
+          eventStageImg={eventSummary.eventStageImg}
           reservationLimit={eventSummary.reservationLimit}
           seatStatusResponse={seatStatusResponse}
-          onSeatSelect={setSelectedSeats} // 좌석 선택 콜백
-          selectedSeats={selectedSeats} // 선택된 좌석
-          gradeColors={gradeColors} // 등급별 색상 전달
+          onSeatSelect={setLocalSelectedSeats}
+          selectedSeats={selectedSeats}
+          gradeColors={gradeColors}
+        /> */}
+        <DraggableSeatMap
+          eventStageImg={eventSummary.eventStageImg}
+          reservationLimit={eventSummary.reservationLimit}
+          seatStatusResponse={seatStatusResponse}
+          onSeatSelect={setLocalSelectedSeats}
+          selectedSeats={selectedSeats}
+          gradeColors={gradeColors}
         />
 
-        <div className="flex flex-col items-center">
-          <RightPanel
-            gradeColors={gradeColors} // 등급별 색상 전달
-            posterPcUrl={eventSummary.posterPcUrl}
-            seatGradeInfoList={eventSummary.seatGradeInfoList}
-            seatCntGrade={seatCntGrade}
-            eventTitle={eventTitle}
-            eventStage={eventStage}
-            eventDate={eventDate}
-            evnetTime={eventTime}
-            selectedSeats={selectedSeats}
-          />
+        <div className="flex flex-col items-center sm:w-auto w-full">
+          <div className="hidden sm:flex flex-col items-center">
+            <RightPanel
+              gradeColors={gradeColors}
+              posterMobileUrl={eventSummary.posterMobileUrl}
+              seatGradeInfoList={eventSummary.seatGradeInfoList}
+              seatCntGrade={seatCntGrade}
+              eventTitle={eventTitle}
+              eventStage={eventStage}
+              eventDate={eventDate}
+              eventTime={eventTime}
+              selectedSeats={selectedSeats}
+            />
+          </div>
+          <div className="w-[235px] -mt-[25px] relative">
+            <div className="hidden sm:block">
+              <div className="w-full mt-4">
+                <button
+                  onClick={handleNextStep}
+                  className="bg-red-500 text-white w-full py-2 text-center border border-black"
+                >
+                  다음
+                </button>
+              </div>
+              <div className="flex justify-between items-center w-full mt-2 gap-1">
+                <button
+                  onClick={handleBeforeStep}
+                  className="bg-gray-300 text-black flex-1 py-1 text-center"
+                >
+                  이전 단계
+                </button>
+                <button
+                  onClick={handleRefresh}
+                  className="bg-gray-300 text-black flex-1 py-1 text-center"
+                >
+                  새로고침
+                </button>
+              </div>
+            </div>
 
-          {/* 버튼들 */}
-          <div className="w-full">
-            <button
-              onClick={handleNextStep}
-              className="bg-red-500 text-white w-full py-2 font-bold text-center"
-            >
-              다음 단계
-            </button>
-            <div className="flex justify-between items-center w-full mt-2 gap-1">
-              <button
-                onClick={() => handleBeforeStep(eventId)}
-                className="bg-gray-300 text-black flex-1 py-1 text-center"
-              >
-                이전 단계
-              </button>
-              <button
-                onClick={handleRefresh}
-                className="bg-gray-300 text-black flex-1 py-1 text-center"
-              >
-                새로고침
-              </button>
+            <div className="sm:hidden fixed bottom-0 left-0 w-full bg-gray-900 text-white p-4 z-50">
+              <div className="flex justify-between items-center border-b border-gray-600 pb-2">
+                <span className="text-sm">
+                  {selectedSeats
+                    .reduce<{ grade: string; count: number }[]>(
+                      (summary, seat) => {
+                        const existing = summary.find(
+                          (item) => item.grade === seat.grade
+                        );
+                        if (existing) {
+                          existing.count++;
+                        } else {
+                          summary.push({ grade: seat.grade, count: 1 });
+                        }
+                        return summary;
+                      },
+                      []
+                    )
+                    .map((item) => `${item.grade}석 ${item.count}매`)
+                    .join(', ')}
+                </span>
+                <button
+                  className="text-lg flex items-center"
+                  onClick={() => setDetailsVisible(!detailsVisible)}
+                >
+                  {detailsVisible ? <AiOutlineDown /> : <AiOutlineUp />}
+                </button>
+              </div>
+
+              {detailsVisible && (
+                <>
+                  <div className="mt-4 space-y-2">
+                    {selectedSeats.map((seat, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center text-sm border-b border-gray-600 pb-2"
+                      >
+                        <span>
+                          {seat.grade}석{' '}
+                          <span className="text-red-300">{seat.row}열</span>{' '}
+                          <span className="text-red-300">{seat.col}번</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-gray-600 my-2"></div>
+                </>
+              )}
+
+              <div className="flex justify-between w-full p-4">
+                <button
+                  className="bg-red-500 text-white flex-1 py-2 text-center border border-black"
+                  disabled
+                >
+                  총 {selectedSeats.length}매
+                </button>
+                <button
+                  onClick={handleNextStep}
+                  className="bg-red-500 text-white flex-1 py-2 text-center border border-black ml-2"
+                >
+                  다음
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -6,7 +6,6 @@ export type BlobInfo = {
 };
 
 export interface EventDetailData {
-  adminId: number;
   companyId: number;
   companyName: string;
   stageId: number;

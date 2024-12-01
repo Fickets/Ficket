@@ -16,7 +16,6 @@ interface Stage {
 
 const RegisterEvent = () => {
   const [eventData, setEventData] = useState<EventData | null>({
-    adminId: 1,
     companyId: 0,
     stageId: 0, // 행사장 ID 초기값 설정
     genre: [],

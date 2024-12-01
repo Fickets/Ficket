@@ -3,6 +3,7 @@ import { useStore } from 'zustand';
 import { useEffect } from 'react';
 
 import HomePage from './pages/home/HomePage';
+
 import UserLogin from "./pages/login/UserLogin.tsx"
 import RegisterEvent from './pages/register/RegisterEvent';
 import EditEvent from "./pages/edit/EditEvent.tsx";
@@ -12,7 +13,9 @@ import NotFound from "./pages/errorpage/NotFound.tsx";
 import UserAdditionalInfo from './pages/login/UserAdditionalInfo.tsx';
 import AdminLogin from "./pages/login/AdminLogin.tsx";
 import { userStore } from "./stores/UserStore";
-
+import SelectSession from './pages/selectsession/SelectSession.tsx';
+import SelectSeat from './pages/selectseat/SelectSeat.tsx';
+        
 export default function Router() {
 
     const user = useStore(userStore);
@@ -42,6 +45,11 @@ export default function Router() {
 
 
             {/* FICKET USER TICKETING*/}
+            <Route
+              path="ticketing/select-session/:eventId"
+              element={<SelectSession />}
+            />
+            <Route path="ticketing/select-seat" element={<SelectSeat />} />
             <Route path="ticketing/register-face/:eventScheduleId" element={<RegisterFace />} />
             <Route path="ticketing/order" element={<Order />} />
 
@@ -55,5 +63,5 @@ export default function Router() {
         </Routes>
     );
 
-}
 
+}
