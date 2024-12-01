@@ -4,7 +4,7 @@ import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router';
 import { useStore } from 'zustand';
 import { userStore } from '../../stores/UserStore';
-import { userTokenRefresh, UserAdditionalInfo } from '../../service/user/user';
+import { userTokenRefresh, userAdditionalInfo } from '../../service/user/user';
 
 import FicketLogo from '../../assets/logo.png';
 import BangMark from '../../assets/bang.png';
@@ -59,7 +59,7 @@ const UserLoginRedirect: React.FC = () => {
             gender: gender,
         }
         console.log(requestData)
-        await UserAdditionalInfo(
+        await userAdditionalInfo(
             requestData,
             (response) => {
                 console.log("User Additional Success")
@@ -105,18 +105,22 @@ const UserLoginRedirect: React.FC = () => {
 
 
 
-                    <span className="block text-sm font-medium text-gray-700 mb-2">성별</span>
+                    <span className="mt-5 block text-sm font-medium text-gray-700 mb-2">성별</span>
                     <div className="flex items-center">
                         <label className="mr-4 flex items-center">
-                            <input type="radio" name="gender" value="MALE" onChange={(e) => setGender(e.target.value)} className="mr-2" defaultChecked /> 남자
+                            <input type="radio" name="gender" value="MALE"
+                                onChange={(e) => setGender(e.target.value)}
+                                className="mr-2" defaultChecked /> 남자
                         </label>
                         <label className="flex items-center">
-                            <input type="radio" name="gender" value="FEMALE" onChange={(e) => setGender(e.target.value)} className="mr-2" /> 여자
+                            <input type="radio" name="gender" value="FEMALE"
+                                onChange={(e) => setGender(e.target.value)}
+                                className="mr-2" /> 여자
                         </label>
                     </div>
 
 
-                    <button type="submit" className="w-full py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">저장하기</button>
+                    <button type="submit" className="mt-5 w-full py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">저장하기</button>
 
                 </form>
             </div>

@@ -15,7 +15,7 @@ export const userTokenRefresh = async (
 }
 
 // 유저 정보 넣기
-export const UserAdditionalInfo = async (
+export const userAdditionalInfo = async (
     params: UserAdditionalInfoReq,
     Response: (Response: AxiosResponse<UserAdditionalInfoRes>) => void,
     Error: (Error: AxiosResponse<ResponseData>) => void) => {
