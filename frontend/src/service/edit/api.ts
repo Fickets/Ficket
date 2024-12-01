@@ -1,16 +1,23 @@
-import axios from 'axios';
+import { AxiosResponse } from 'axios';
+import { privateApi } from '../../utils/http-common';
+import { EventDetailData } from '../../types/edit';
 
 // Fetch Event Detail
-export const fetchEventDetail = async (eventId: number) => {
-  const response = await axios.get(
-    `http://localhost:9000/api/v1/events/${eventId}/detail`
+export const fetchEventDetail = async (
+  eventId: number
+): Promise<EventDetailData> => {
+  const response: AxiosResponse<EventDetailData> = await privateApi.get(
+    `/events/admin/${eventId}/detail`
   );
   return response.data;
 };
 
-export const updateEvent = async (eventId: number, formData: FormData) => {
-  const response = await axios.patch(
-    `http://localhost:9000/api/v1/events/${eventId}`,
+export const updateEvent = async (
+  eventId: number,
+  formData: FormData
+): Promise<string> => {
+  const response: AxiosResponse<string> = await privateApi.patch(
+    `/events/admins/event/${eventId}`,
     formData,
     {
       headers: {
@@ -18,10 +25,5 @@ export const updateEvent = async (eventId: number, formData: FormData) => {
       },
     }
   );
-  for (const [key, value] of formData.entries()) {
-    if (value instanceof Blob) {
-      console.log(key, value, `Blob size: ${value.size}`);
-    }
-  }
   return response.data;
 };

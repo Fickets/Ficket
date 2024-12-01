@@ -1,26 +1,24 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useEventStore } from '../../types/StoreType/EventState';
 
 const SelectSession = () => {
   const navigate = useNavigate();
 
-  const [evnetScheduleId, setEventScheduleId] = useState(1);
+  const setEventInfo = useEventStore((state) => state.setEventInfo);
 
   const handleNextStep = () => {
-    if (true) {
-      navigate(`/ticketing/select-seat/${evnetScheduleId}`, {
-        state: {
-          eventId: 1,
-          evnetScheduleId: 1,
-          eventTitle: 'LOVE IN SEOUL - 엔플라잉',
-          eventDate: '2024-12-20',
-          eventTime: '18:00',
-          eventStage: '인터파크 유니버스',
-          eventPoster:
-            'https://ficketresizebucket.s3.ap-northeast-2.amazonaws.com/pc_poster/poster/5f9ab135-0e55-4da9-b523-71ebb2617d9f.jpg',
-        },
-      });
-    }
+    const eventInfo = {
+      eventId: 1,
+      eventScheduleId: 6,
+      eventTitle: 'LOVE IN SEOUL - 엔플라잉',
+      eventDate: '2024-12-20',
+      eventTime: '18:00',
+      eventStage: '인터파크 유니버스',
+    };
+
+    setEventInfo(eventInfo);
+
+    navigate(`/ticketing/select-seat`);
   };
 
   return (
