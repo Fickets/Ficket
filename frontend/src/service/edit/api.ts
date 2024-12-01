@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios';
+import { AxiosResponse, AxiosProgressEvent } from 'axios';
 import { privateApi } from '../../utils/http-common';
 import { EventDetailData } from '../../types/edit';
 
@@ -23,6 +23,23 @@ export const updateEvent = async (
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+    }
+  );
+  return response.data;
+};
+
+export const uploadImage = async (
+  formData: FormData,
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void
+): Promise<string> => {
+  const response: AxiosResponse<string> = await privateApi.post(
+    '/events/admin/content/image',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress,
     }
   );
   return response.data;
