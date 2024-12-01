@@ -78,7 +78,7 @@ const SeatMap = ({
           return (
             <div
               key={seat.seatMappingId}
-              className={`absolute w-[9px] h-[9px] flex items-center justify-center cursor-pointer border ${
+              className={`absolute w-[8px] h-[8px] flex items-center justify-center cursor-pointer border ${
                 seat.status === 'LOCKED' || seat.status === 'PURCHASED'
                   ? 'cursor-not-allowed'
                   : isSelected

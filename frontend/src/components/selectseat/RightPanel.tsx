@@ -12,7 +12,7 @@ const RightPanel = ({
   selectedSeats,
 }: RightPanelProps) => {
   return (
-    <div className="w-[240px] h-[380px] flex flex-col mt-6 p-4 space-y-4">
+    <div className="w-[270px] h-[380px] flex flex-col mt-2 p-4 space-y-4">
       {/* 포스터와 정보 영역 */}
       <div className="flex -mt-6">
         {/* 이미지 영역 */}
@@ -42,39 +42,50 @@ const RightPanel = ({
         <h4 className="text-black font-bold text-sm mb-2">
           좌석 정보 / 잔여석
         </h4>
-        <ul className="text-sm text-gray-700">
-          {seatCntGrade.map((grade, index) => {
-            const matchingGrade = seatGradeInfoList.find(
-              (info) => info.grade === grade.partitionName
-            );
+        <div className="overflow-y-auto max-h-[80px] border border-gray-300">
+          <table className="table-auto w-full text-left text-sm text-gray-700">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="px-2 py-1 border-b border-gray-300">등급</th>
+                <th className="px-2 py-1 border-b border-gray-300">잔여석</th>
+                <th className="px-2 py-1 border-b border-gray-300">가격</th>
+              </tr>
+            </thead>
+            <tbody>
+              {seatCntGrade.map((grade, index) => {
+                const matchingGrade = seatGradeInfoList.find(
+                  (info) => info.grade === grade.partitionName
+                );
 
-            return (
-              <li
-                key={index}
-                className="flex justify-between items-center py-1 border-b border-gray-300 bg-[#FFFFFF]"
-              >
-                {/* 등급 이름 (왼쪽) */}
-                <span className="flex items-center">
-                  <span
-                    className="w-4 h-4 rounded-full mr-2"
-                    style={{
-                      backgroundColor: gradeColors[grade.partitionName], // 고유 색상 매핑
-                    }}
-                  ></span>
-                  {grade.partitionName}
-                </span>
+                return (
+                  <tr key={index} className="border-b">
+                    {/* 등급 이름 */}
+                    <td className="px-2 py-1 flex items-center">
+                      <span
+                        className="w-4 h-4 rounded-full mr-2"
+                        style={{
+                          backgroundColor: gradeColors[grade.partitionName], // 등급 색상 매핑
+                        }}
+                      ></span>
+                      {grade.partitionName}
+                    </td>
 
-                {/* 잔여석 */}
-                <span className="text-red-500">{grade.count}석</span>
+                    {/* 잔여석 */}
+                    <td className="px-2 py-1 text-red-500">{grade.count}석</td>
 
-                {/* 가격 */}
-                <span>
-                  {matchingGrade ? matchingGrade.price.toLocaleString() : '-'}원
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+                    {/* 가격 */}
+                    <td className="px-2 py-1">
+                      {matchingGrade
+                        ? matchingGrade.price.toLocaleString()
+                        : '-'}
+                      원
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* 선택 좌석 테이블 (스크롤 가능) */}
