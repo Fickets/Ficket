@@ -50,7 +50,7 @@ export default function Router() {
               element={<SelectSession />}
             />
             <Route path="ticketing/select-seat" element={<SelectSeat />} />
-            <Route path="ticketing/register-face/:eventScheduleId" element={<RegisterFace />} />
+            <Route path="ticketing/register-face" element={<RegisterFace />} />
             <Route path="ticketing/order" element={<Order />} />
 
 
