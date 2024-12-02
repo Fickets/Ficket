@@ -9,28 +9,58 @@ spring:
 #    active: prod
   config:
     import: optional:configserver:http://localhost:8888
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
 
-eureka:
-  instance:
-    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://127.0.0.1:8761/eureka
-
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 80
+        slow-call-duration-threshold: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        max-wait-duration-in-half-open-state: 0
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 10
+        wait-duration-in-open-state: 10s
+    instances:
+      getCompanyCircuitBreaker:
+        base-config: default
+      getAdminCircuitBreaker:
+        base-config: default
+      getUserCircuitBreaker:
+        base-config: default
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 10         # 1초당 최대 5개의 요청
+        limit-refresh-period: 5s       # 요청 제한 새로고침 주기
+        timeout-duration: 0ms            # 제한 초과 시 즉시 실패
+    instances:
+      preoccupySeatLimiter:
+        base-config: default
+      UnoccupySeatLimiter:
+        base-config: default
 
 logging:
   level:
-    org.hibernate.SQL:
-    org.hibernate.type.descriptor.sql: TRACE
+    com.example.ficketevent.domain.event.client : DEBUG
+  pattern:
+    correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      consume: B3
+      produce: B3
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
 
 encrypt:
   key-store:

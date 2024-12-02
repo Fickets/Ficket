@@ -72,7 +72,7 @@ public class StageSeatController {
      */
     @PostMapping("/seat/lock")
     public ResponseEntity<Void> lockSeats (@RequestBody SelectSeat req, @RequestHeader("X-User-Id") String userId) {
-        preoccupyService.preoccupySeat(req, Long.parseLong(userId));
+        preoccupyService.lockSeat(req, Long.parseLong(userId));
         return ResponseEntity.ok().build();
     }
 

@@ -6,6 +6,12 @@ import com.example.ficketevent.domain.event.dto.request.SelectSeat;
 import com.example.ficketevent.domain.event.dto.response.ReservedSeatInfo;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
+import com.example.ficketevent.global.utils.CircuitBreakerUtils;
+import com.example.ficketevent.global.utils.RateLimiterUtils;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBucket;
@@ -17,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
+import static com.example.ficketevent.global.utils.RateLimiterUtils.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,10 +33,29 @@ public class PreoccupyService {
     private final UserServiceClient userServiceClient;
     private final RedissonClient redissonClient;
     private final PreoccupyInternalService preoccupyInternalService;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final RateLimiterRegistry rateLimiterRegistry;
 
     @Transactional
+    public void lockSeat(SelectSeat request, Long userId) {
+        String limiterName = "preoccupySeatLimiter";
+
+        executeWithRateLimiter(
+                rateLimiterRegistry,
+                limiterName,
+                () -> {
+                    preoccupySeat(request, userId);
+                    return null; // Supplier<T>이므로 Void를 처리하기 위해 null 반환
+                }
+        );
+    }
+
+
     public void preoccupySeat(SelectSeat request, Long userId) {
-        UserSimpleDto user = userServiceClient.getUser(userId);
+        UserSimpleDto user = CircuitBreakerUtils.executeWithCircuitBreaker(circuitBreakerRegistry,
+                "getUserCircuitBreaker",
+                () -> userServiceClient.getUser(userId)
+        );
 
         log.info("요청한 유저의 ID: {}", user.getUserId());
 

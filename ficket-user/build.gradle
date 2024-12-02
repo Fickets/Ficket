@@ -75,6 +75,19 @@ dependencies {
     // Feign Client
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2'
 
+    // Micrometer Observation and Tracing with Brave
+    implementation 'io.micrometer:micrometer-observation'
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+
+    // Brave Instrumentation for Spring Web
+    implementation 'io.zipkin.brave:brave-instrumentation-spring-web'
+
+    // Zipkin Reporter for Brave
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+    // Feign Micrometer integration
+    implementation 'io.github.openfeign:feign-micrometer'
+
 }
 
 dependencyManagement {

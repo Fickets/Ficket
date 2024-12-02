@@ -9,28 +9,27 @@ spring:
   #    active: prod
   config:
     import: optional:configserver:http://localhost:8888
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-
-eureka:
-  instance:
-    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://127.0.0.1:8761/eureka
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
 
 
 logging:
   level:
-    org.hibernate.SQL:
-    org.hibernate.type.descriptor.sql: TRACE
+    com.example.ficketevent.domain.event.client : DEBUG
+  pattern:
+    correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      consume: B3
+      produce: B3
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
 
 encrypt:
   key-store:

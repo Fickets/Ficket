@@ -44,8 +44,6 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**
-          filters:
-            - RemoveRequestHeader=Cookie
 
         - id: admin-service
           uri: lb://admin-service
