@@ -72,3 +72,51 @@ privateApi.interceptors.response.use(
         }
     }
 );
+
+
+// 토큰 O
+export const adminPrivateApi: AxiosInstance = axios.create({
+    baseURL: baseURL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+adminPrivateApi.interceptors.request.use(
+    (config) => {
+        const stored = localStorage.getItem("ADMIN_STORE");
+        if (stored) {
+            const obj = JSON.parse(stored)
+            if (obj.state.accessToken !== '') {
+                config.headers["Authorization"] = obj.state.accessToken;
+            }
+        }
+        return config;
+    },
+    (error) => {
+        return error;
+    }
+)
+adminPrivateApi.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        const { config, response: { status, data }, } = error;
+        if (status === 401 && data === "admin access token expired") {
+            const originRequest = config;
+            userTokenRefresh(
+                (res) => {
+                    if (res.status === httpStatusCode.OK && res.headers.Authorization) {
+                        newAccess(res.headers.Authorization);
+                        axios.defaults.headers.Authorization = `${res.headers.Authorization}`;
+                        originRequest.headers.Authorization = `${res.headers.Authorization}`;
+                        // 토큰 교환 재 시도
+                        return axios(originRequest);
+                    }
+                },
+                () => {
+                }
+            )
+        }
+    }
+);
