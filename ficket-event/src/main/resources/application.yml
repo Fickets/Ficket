@@ -67,3 +67,10 @@ encrypt:
     password: test1234
     alias: apiEncryptionKey
     location: classpath:/apiEncryptionKey.jks
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: "/event-swagger/v3/api-docs"
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json

@@ -1,9 +1,6 @@
-from flask import jsonify
-
-def make_response(status=200, message="", data=None):
-    """공통 JSON 응답 형식"""
-    return jsonify({
-        "status": status,
-        "message": message,
-        "data": data
-    }), status
+def make_response(status, message, data=None):
+    """응답 생성 헬퍼 함수"""
+    response_body = {"status": status, "message": message}
+    if data is not None:
+        response_body["data"] = data
+    return response_body, status

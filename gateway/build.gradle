@@ -32,6 +32,9 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 //    testImplementation 'io.projectreactor:reactor-test'
 
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0'
+
     // GateWay
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
 

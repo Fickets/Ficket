@@ -5,7 +5,7 @@ spring:
   application:
     name: admin-service
   profiles:
-    active: prod
+    active: local
   #    active: prod
   config:
     import: optional:configserver:http://localhost:8888
@@ -36,3 +36,10 @@ encrypt:
     password: test1234
     alias: apiEncryptionKey
     location: classpath:/apiEncryptionKey.jks
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: "/admin-swagger/v3/api-docs"
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
