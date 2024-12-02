@@ -1,5 +1,6 @@
 package com.example.ficketevent.global.result.error;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import jakarta.validation.ConstraintViolation;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,11 +53,11 @@ public class ErrorResponse {
         return new ErrorResponse(code, errors);
     }
 
-//    public static ErrorResponse of(MethodArgumentTypeMismatchException e) {
-//        final String value = e.getValue() == null ? "" : e.getValue().toString();
-//        final List<FieldError> errors = FieldError.of(e.getName(), value, e.getErrorCode());
-//        return new ErrorResponse(ErrorCode.INPUT_TYPE_INVALID, errors);
-//    }
+    public static ErrorResponse of(MethodArgumentTypeMismatchException e) {
+        final String value = e.getValue() == null ? "" : e.getValue().toString();
+        final List<FieldError> errors = FieldError.of(e.getName(), value, e.getErrorCode());
+        return new ErrorResponse(ErrorCode.INPUT_TYPE_INVALID, errors);
+    }
 
     @Getter
     @NoArgsConstructor(access = AccessLevel.PROTECTED)

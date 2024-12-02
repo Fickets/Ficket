@@ -58,7 +58,7 @@ public class SecurityConfig {
 
         http
             .authorizeHttpRequests((auth) -> auth
-            .requestMatchers("/oauth2/**","/api/v1/users/reissue","/swagger-ui/**").permitAll()
+            .requestMatchers("/oauth2/**","/api/v1/users/**","/swagger-ui/**").permitAll()
                         .anyRequest().authenticated());
 
         return http.build();

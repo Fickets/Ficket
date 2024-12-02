@@ -13,11 +13,15 @@ import com.example.ficketevent.domain.event.repository.*;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.AwsS3Service;
+import com.example.ficketevent.global.utils.CircuitBreakerUtils;
 import com.example.ficketevent.global.utils.FileUtils;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,6 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.example.ficketevent.global.config.awsS3.AwsConstants.*;
+import static com.example.ficketevent.global.utils.CircuitBreakerUtils.*;
 
 @Slf4j
 @Service
@@ -44,6 +49,7 @@ public class EventService {
     private final StagePartitionRepository stagePartitionRepository;
     private final StageSeatRepository stageSeatRepository;
     private final AwsS3Service awsS3Service;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     /**
      * 이벤트 생성 메서드
@@ -52,8 +58,16 @@ public class EventService {
     public void createEvent(Long adminId, EventCreateReq req, MultipartFile poster, MultipartFile banner) {
 
         // 1. 회사 및 공연장, 관리자 정보 조회
-        CompanyResponse companyResponse = adminServiceClient.getCompany(req.getCompanyId());
-        AdminDto adminResponse = adminServiceClient.getAdmin(adminId);
+        CompanyResponse companyResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
+                "getCompanyCircuitBreaker",
+                () -> adminServiceClient.getCompany(req.getCompanyId())
+        );
+
+        AdminDto adminResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
+                "getAdminCircuitBreaker",
+                () -> adminServiceClient.getAdmin(adminId)
+        );
+
         EventStage eventStage = findEventStageByStageId(req.getStageId());
 
         // 2. 이벤트 생성
@@ -77,8 +91,8 @@ public class EventService {
     /**
      * 새로운 이벤트 생성
      */
-    private Event createNewEvent(EventCreateReq req, CompanyResponse companyResponse,AdminDto adminResponse, EventStage eventStage) {
-        Event event = eventMapper.eventDtoToEvent(req, companyResponse.getCompanyId(), adminResponse.getAdminId(),eventStage);
+    private Event createNewEvent(EventCreateReq req, CompanyResponse companyResponse, AdminDto adminResponse, EventStage eventStage) {
+        Event event = eventMapper.eventDtoToEvent(req, companyResponse.getCompanyId(), adminResponse.getAdminId(), eventStage);
         event.addEventStage(eventStage);
         return event;
     }
