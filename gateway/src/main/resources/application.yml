@@ -29,6 +29,7 @@ spring:
           '[/**]':
             allowedOrigins:
               - "http://localhost:5173"
+              - "http://localhost:5000"
               - "https://your-frontend-domain.com"
             allowedMethods:
               - GET
@@ -44,7 +45,10 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**
-
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-swagger/v3/api-docs
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -53,7 +57,6 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
-
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -61,7 +64,6 @@ spring:
             - Method=POST
           filters:
             - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
-
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -76,7 +78,14 @@ spring:
             - Path=/api/v1/admins/**
           filters:
             - AdminRoleCheckFilter
-
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/admin-swagger/v3/api-docs
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/event-swagger/v3/api-docs
         - id: event-service
           uri: lb://event-service
           predicates:
@@ -117,16 +126,28 @@ spring:
             - Path=/api/v1/faces/**
           filters:
             - name: AuthorizationHeaderFilter
+        - id: face-service
+          uri: lb://face-service
+          predicates:
+            - Path=/face-swagger/v3/api-docs/**
 
         - id: queue-service
           uri: lb://queue-service
           predicates:
             - Path=/api/v1/queues/**
+        - id: queue-service
+          uri: lb://queue-service
+          predicates:
+            - Path=/queue-swagger/v3/api-docs
 
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
             - Path=/api/v1/ticketing/**
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
+            - Path=/ticketing-swagger/v3/api-docs
 
 encrypt:
   key-store:
@@ -138,3 +159,24 @@ management:
   endpoint:
     gateway:
       enabled: true
+
+springdoc:
+  swagger-ui:
+    csrf:
+      enabled: false
+    urls:
+      - name: user-service
+        url: http://localhost:9000/user-swagger/v3/api-docs
+      - name: admin-service
+        url: http://localhost:9000/admin-swagger/v3/api-docs
+      - name: event-service
+        url: http://localhost:9000/event-swagger/v3/api-docs
+      - name: ticketing-service
+        url: http://localhost:9000/ticketing-swagger/v3/api-docs
+      - name: queue-service
+        url: http://localhost:9000/queue-swagger/v3/api-docs
+      - name: face-service
+        url: http://localhost:5000/face-swagger/v3/api-docs/swagger.json
+    persistAuthorization: true
+    use-root-path: true
+

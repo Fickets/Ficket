@@ -17,3 +17,17 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://127.0.0.1:8761/eureka
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: "/queue-swagger/v3/api-docs"
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+encrypt:
+  key-store:
+    password: test1234
+    alias: apiEncryptionKey
+    location: classpath:/apiEncryptionKey.jks
+
