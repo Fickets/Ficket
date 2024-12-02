@@ -59,7 +59,7 @@ public class UserController {
     @GetMapping("/reissue")
     public ResponseEntity<Integer> reissue(HttpServletRequest request, HttpServletResponse response){
         userService.reissue(request, response);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 

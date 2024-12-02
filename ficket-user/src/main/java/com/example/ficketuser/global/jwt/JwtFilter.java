@@ -33,30 +33,33 @@ public class JwtFilter extends OncePerRequestFilter {
         String access = null;
         if (authorization != null && authorization.startsWith("Bearer ")){
             access = authorization.substring(7);
+            if (jwtUtils.validateToken(access)){
+                String name = jwtUtils.getUserName(access);
+                Long userId = jwtUtils.getUserId(access);
+                Long socialId = jwtUtils.getSocialId(access);
+                UserDto userDto = UserDto.builder()
+                        .userId(userId)
+                        .userName(name)
+                        .socialId(socialId)
+                        .build();
+                CustomUserDetails customUserDetails = new CustomUserDetails(userDto);
+                Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, null);
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+                filterChain.doFilter(request, response);
+            }else {
+
+                PrintWriter writer = response.getWriter();
+                writer.print("user access token expired");
+
+                //response status code 401
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+
+            }
         }else{
             log.info("ERROR NO ACCESS TOKEN");
             filterChain.doFilter(request, response);
         }
-
-        if (jwtUtils.validateToken(access)){
-            String name = jwtUtils.getUserName(access);
-            Long userId = jwtUtils.getUserId(access);
-            Long socialId = jwtUtils.getSocialId(access);
-            UserDto userDto = UserDto.builder()
-                    .userId(userId)
-                    .userName(name)
-                    .socialId(socialId)
-                    .build();
-            CustomUserDetails customUserDetails = new CustomUserDetails(userDto);
-            Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, null);
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-            filterChain.doFilter(request, response);
-        }else {
-            log.info("NO VALIDATE TOKEN");
-            return;
-        }
-
-
 
 
     }

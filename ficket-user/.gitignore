@@ -38,3 +38,6 @@ out/
 
 ### Key ###
 /src/main/resources/apiEncryptionKey.jks
+
+### Key ###
+/src/main/resources/apiEncryptionKey.jks

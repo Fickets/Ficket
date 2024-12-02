@@ -61,7 +61,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build();
         userTokenRedisRepository.save(userTokenRedis);
 
-        response.sendRedirect("http://localhost:8777");
+        response.sendRedirect("http://localhost:5173/users/addition-info");
 
     }
 

@@ -3,6 +3,7 @@ package com.example.ficketadmin.domain.admin.service;
 import com.example.ficketadmin.domain.admin.dto.common.AdminDto;
 import com.example.ficketadmin.domain.admin.dto.common.AdminInfoDto;
 import com.example.ficketadmin.domain.admin.dto.request.AdminLoginReq;
+import com.example.ficketadmin.domain.admin.dto.response.AdminLoginRes;
 import com.example.ficketadmin.domain.admin.entity.Admin;
 import com.example.ficketadmin.domain.admin.entity.AdminTokenRedis;
 import com.example.ficketadmin.domain.admin.mapper.AdminMapper;
@@ -48,7 +49,7 @@ public class AdminService {
      * @param adminLoginReq
      * @return access,refresh 토큰 반환
      */
-    public void login(AdminLoginReq adminLoginReq, HttpServletResponse response){
+    public AdminDto login(AdminLoginReq adminLoginReq, HttpServletResponse response){
 
 
         // ID로  Admin 찾기
@@ -81,8 +82,9 @@ public class AdminService {
 
         // Header에 Access TOKEN 추가
         response.setHeader(ACCESS_HEADER, "Bearer " + accessToken);
-        response.setHeader("Access-Control-Allow-Origin", ACCESS_HEADER);
-
+        response.setHeader("Access-Control-Expose-Headers", ACCESS_HEADER);
+        AdminDto res = adminMapper.toAdminDto(admin);
+        return res;
     }
 
     /**

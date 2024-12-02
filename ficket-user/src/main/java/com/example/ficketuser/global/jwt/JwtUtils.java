@@ -63,7 +63,8 @@ public class JwtUtils {
 
 
         ZonedDateTime now = ZonedDateTime.now();
-        ZonedDateTime tokenValidity = now.plusSeconds(exptime);
+        ZonedDateTime tokenValidity = now.plusSeconds(604800000);
+//        ZonedDateTime tokenValidity = now.plusSeconds(exptime);
 
         return Jwts.builder()
                 .setClaims(claims)

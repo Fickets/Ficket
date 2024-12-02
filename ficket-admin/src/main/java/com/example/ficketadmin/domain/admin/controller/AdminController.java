@@ -3,6 +3,7 @@ package com.example.ficketadmin.domain.admin.controller;
 
 import com.example.ficketadmin.domain.admin.dto.common.AdminDto;
 import com.example.ficketadmin.domain.admin.dto.request.AdminLoginReq;
+import com.example.ficketadmin.domain.admin.dto.response.AdminLoginRes;
 import com.example.ficketadmin.domain.admin.service.AdminService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,11 +30,11 @@ public class AdminController {
      * - 2024-11-25 최용수: 초기 작성
      */
     @PostMapping("/login")
-    public ResponseEntity<Integer> login(@RequestBody AdminLoginReq adminRoginReq, HttpServletResponse response){
+    public ResponseEntity<AdminDto> login(@RequestBody AdminLoginReq adminRoginReq, HttpServletResponse response){
 
-        adminService.login(adminRoginReq, response);
+        AdminDto res = adminService.login(adminRoginReq, response);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok(res);
     }
 
     /**
@@ -68,7 +69,7 @@ public class AdminController {
         // 토큰 재발급
         adminService.reissue(request, response);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.OK).build();
 
     }
 

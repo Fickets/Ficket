@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 @RequiredArgsConstructor
 public class JwtAdminFilter extends OncePerRequestFilter {
@@ -56,6 +57,13 @@ public class JwtAdminFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(adminAuthenticationToken);
                 }
 
+            }else {
+                PrintWriter writer = response.getWriter();
+                writer.print("admin access token expired");
+
+                //response status code 401
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
 
         }

@@ -174,7 +174,7 @@ public class UserService {
 
         String newAccess = jwtUtils.createAccessToken(oAuth2User);
         response.setHeader(ACCESS_HEADER, "Bearer " + newAccess);
-        response.addHeader("Access-Control-Expose-Headers", "ACCESS_HEADER");
+        response.addHeader("Access-Control-Expose-Headers", ACCESS_HEADER);
 
     }
 
