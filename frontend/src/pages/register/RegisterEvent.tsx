@@ -1,12 +1,13 @@
-import Sidebar from '../../components/@common/Sidebar';
-import EventForm from '../../components/register/EventForm';
-import CalendarWithSchedule from '../../components/register/CalendarWithSchedule';
-import SeatSetting from '../../components/register/SeatSetting';
-import { useState, useEffect } from 'react';
-import { EventData } from '../../types/register';
-import { registerEvent, fetchStages } from '../../service/register/api';
-import ImageUploader from '../../components/register/ImageUploader';
-import TinyEditor from '../../components/register/TinyEditor';
+import Sidebar from "../../components/@common/Sidebar";
+import EventForm from "../../components/register/EventForm";
+import CalendarWithSchedule from "../../components/register/CalendarWithSchedule";
+import SeatSetting from "../../components/register/SeatSetting";
+import { useState, useEffect } from "react";
+import { EventData } from "../../types/register";
+import { registerEvent, fetchStages } from "../../service/register/api";
+import ImageUploader from "../../components/register/ImageUploader";
+import TinyEditor from "../../components/register/TinyEditor";
+import { useNavigate } from "react-router-dom";
 
 interface Stage {
   stageId: number;
@@ -15,16 +16,17 @@ interface Stage {
 }
 
 const RegisterEvent = () => {
+  const navigate = useNavigate();
   const [eventData, setEventData] = useState<EventData | null>({
     companyId: 0,
     stageId: 0, // 행사장 ID 초기값 설정
     genre: [],
-    age: '',
-    content: '',
-    title: '',
-    subTitle: '',
+    age: "",
+    content: "",
+    title: "",
+    subTitle: "",
     runningTime: 0,
-    ticketingTime: '',
+    ticketingTime: "",
     reservationLimit: 0,
     eventDate: [],
     seats: [],
@@ -44,11 +46,11 @@ const RegisterEvent = () => {
       try {
         const stages: Stage[] = await fetchStages();
         const selectedStage = stages.find(
-          (stage) => stage.stageId === eventData.stageId
+          (stage) => stage.stageId === eventData.stageId,
         );
         setStageImg(selectedStage?.eventStageImg || null);
       } catch (error) {
-        console.error('Error fetching stage image:', error);
+        console.error("Error fetching stage image:", error);
       }
     };
 
@@ -57,7 +59,7 @@ const RegisterEvent = () => {
 
   const handleFormChange = (formData: Partial<EventData>) => {
     setEventData((prevData) =>
-      prevData ? { ...prevData, ...formData } : null
+      prevData ? { ...prevData, ...formData } : null,
     );
   };
 
@@ -71,29 +73,35 @@ const RegisterEvent = () => {
 
   const handleRegister = async () => {
     if (!eventData) {
-      alert('입력된 데이터가 없습니다.');
+      alert("입력된 데이터가 없습니다.");
       return;
     }
     const formData = new FormData();
     console.log(JSON.stringify(eventData));
     formData.append(
-      'req',
-      new Blob([JSON.stringify(eventData)], { type: 'application/json' })
+      "req",
+      new Blob([JSON.stringify(eventData)], { type: "application/json" }),
     );
     if (poster) {
-      formData.append('poster', poster);
+      formData.append("poster", poster);
     }
     if (banner) {
-      formData.append('banner', banner);
+      formData.append("banner", banner);
     }
-    const response = await registerEvent(formData);
-    alert(response);
+    try {
+      const response = await registerEvent(formData);
+      alert(response);
+      navigate("/admin/event-list"); // 성공 시 이동
+    } catch (error) {
+      console.error("공연 등록 실패:", error);
+      alert("공연 등록 중 오류가 발생했습니다."); // 실패 시 알림창 표시
+    }
   };
 
   return (
     <div className="flex h-screen bg-[#F0F2F5]">
       <div className="w-64 bg-[#5E6770] text-white h-full">
-        <Sidebar />
+        <Sidebar currentStep={"performance"} />
       </div>
 
       <div className="flex-1 p-8 overflow-auto">
@@ -119,7 +127,7 @@ const RegisterEvent = () => {
               <CalendarWithSchedule onChange={handleFormChange} />
               <SeatSetting
                 stageId={eventData?.stageId || 0}
-                stageImg={stageImg || ''}
+                stageImg={stageImg || ""}
                 onChange={handleFormChange}
               />
               <TinyEditor
