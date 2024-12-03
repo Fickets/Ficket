@@ -22,6 +22,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -188,4 +192,17 @@ public class AdminService {
 
         return adminMapper.toAdminDto(admin);
     }
+
+    public List<AdminDto> getAllAdmin() {
+        return adminRepository.findAll().stream()
+                .map(adminMapper::toAdminDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<AdminDto> getAdminsByIds(Set<Long> adminIds) {
+        return adminRepository.findByAdminIdIn(adminIds).stream()
+                .map(admin -> new AdminDto(admin.getAdminId(), admin.getName(), admin.getRole().name()))
+                .collect(Collectors.toList());
+    }
+
 }

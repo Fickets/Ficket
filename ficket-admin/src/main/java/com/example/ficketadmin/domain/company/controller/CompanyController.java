@@ -5,10 +5,10 @@ import com.example.ficketadmin.domain.company.dto.response.CompanyResponse;
 import com.example.ficketadmin.domain.company.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,5 +46,18 @@ public class CompanyController {
         CompanyResponse response = companyService.getCompany(companyId);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 회사 리스트 조회 By Set<id> API (공연 검색 용)
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-03
+     * 변경 이력:
+     * - 2024-12-03 오형상: 초기 작성
+     */
+    @PostMapping("/companies/batch")
+    public List<CompanyResponse> getCompaniesByIds(@RequestBody Set<Long> companyIds) {
+        return companyService.getCompaniesByIds(companyIds);
     }
 }
