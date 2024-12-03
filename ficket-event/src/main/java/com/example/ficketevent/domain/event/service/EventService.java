@@ -4,10 +4,7 @@ import com.example.ficketevent.domain.event.client.AdminServiceClient;
 import com.example.ficketevent.domain.event.dto.common.AdminDto;
 import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
 import com.example.ficketevent.domain.event.dto.request.*;
-import com.example.ficketevent.domain.event.dto.response.EventDetail;
-import com.example.ficketevent.domain.event.dto.response.EventDetailRes;
-import com.example.ficketevent.domain.event.dto.response.EventSeatSummary;
-import com.example.ficketevent.domain.event.dto.response.SeatGradeInfo;
+import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.mapper.EventMapper;
 import com.example.ficketevent.domain.event.repository.*;
@@ -23,14 +20,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.example.ficketevent.global.config.awsS3.AwsConstants.*;
@@ -461,7 +461,7 @@ public class EventService {
         return new EventSeatSummary(posterMobileUrl, reservationLimit, eventStageImg, seatGradeInfoList);
     }
 
-    public EventDetailRes getEventDetail(Long eventId){
+    public EventDetailRes getEventDetail(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
         EventDetailRes res = EventDetailRes.toEventDetailRes(event, "TEST");
@@ -469,4 +469,75 @@ public class EventService {
 
     }
 
+    public PagedResponse<EventSearchListRes> searchEvent(EventSearchCond eventSearchCond, Pageable pageable) {
+        // 이벤트 검색 결과 가져오기
+        List<EventSearchRes> eventSearchRes = eventRepository.searchEventByCond(eventSearchCond);
+
+        if (eventSearchRes.isEmpty()) {
+            return new PagedResponse<>(Collections.emptyList(), pageable.getPageNumber(), pageable.getPageSize(), 0, 0);
+        }
+
+        // adminId와 companyId를 수집
+        Set<Long> adminIds = eventSearchRes.stream()
+                .map(EventSearchRes::getAdminId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Long> companyIds = eventSearchRes.stream()
+                .map(EventSearchRes::getCompanyId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Admin 및 Company 정보 한 번에 조회
+        Map<Long, String> adminNameMap = adminIds.isEmpty() ? Map.of() :
+                executeWithCircuitBreaker(circuitBreakerRegistry,
+                        "getAdminsBatchCircuitBreaker",
+                        () -> adminServiceClient.getAdminsByIds(adminIds)
+                ).stream().collect(Collectors.toMap(AdminDto::getAdminId, AdminDto::getAdminName));
+
+        Map<Long, String> companyNameMap = companyIds.isEmpty() ? Map.of() :
+                executeWithCircuitBreaker(circuitBreakerRegistry,
+                        "getCompaniesBatchCircuitBreaker",
+                        () -> adminServiceClient.getCompaniesByIds(companyIds)
+                ).stream().collect(Collectors.toMap(CompanyResponse::getCompanyId, CompanyResponse::getCompanyName));
+
+        // 결과 변환
+        List<EventSearchListRes> results = eventSearchRes.stream()
+                .collect(Collectors.groupingBy(EventSearchRes::getEventId))
+                .entrySet().stream()
+                .map(entry -> {
+                    Long eventId = entry.getKey();
+                    List<EventSearchRes> groupedEvents = entry.getValue();
+                    EventSearchRes firstEvent = groupedEvents.get(0);
+
+                    return EventSearchListRes.builder()
+                            .eventId(eventId)
+                            .eventTitle(firstEvent.getEventTitle())
+                            .stageName(firstEvent.getStageName())
+                            .adminId(firstEvent.getAdminId())
+                            .companyName(companyNameMap.get(firstEvent.getCompanyId()))
+                            .adminName(adminNameMap.get(firstEvent.getAdminId()))
+                            .eventDates(groupedEvents.stream()
+                                    .map(EventSearchRes::getEventDate)
+                                    .sorted() // 날짜 정렬
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
+                .sorted(Comparator.comparing(EventSearchListRes::getEventId)) // 정렬 기준
+                .collect(Collectors.toList());
+
+        // 페이징 처리
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), results.size());
+        List<EventSearchListRes> pagedResults = results.subList(start, end);
+
+        // PagedResponse로 변환하여 반환
+        return new PagedResponse<>(
+                pagedResults,
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                results.size(),
+                (int) Math.ceil((double) results.size() / pageable.getPageSize())
+        );
+    }
 }

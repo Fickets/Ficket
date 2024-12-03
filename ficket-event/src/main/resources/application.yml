@@ -5,7 +5,7 @@ spring:
   application:
     name: event-service
   profiles:
-    active: prod
+    active: local
 #    active: prod
   config:
     import: optional:configserver:http://localhost:8888
@@ -32,6 +32,10 @@ resilience4j:
       getAdminCircuitBreaker:
         base-config: default
       getUserCircuitBreaker:
+        base-config: default
+      getCompaniesBatchCircuitBreaker:
+        base-config: default
+      getAdminsBatchCircuitBreaker:
         base-config: default
   ratelimiter:
     configs:

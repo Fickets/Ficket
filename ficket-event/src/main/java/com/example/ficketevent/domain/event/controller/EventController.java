@@ -1,16 +1,19 @@
 package com.example.ficketevent.domain.event.controller;
 
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
+import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
 import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
-import com.example.ficketevent.domain.event.dto.response.EventDetail;
-import com.example.ficketevent.domain.event.dto.response.EventDetailRes;
-import com.example.ficketevent.domain.event.dto.response.EventSeatSummary;
+import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.service.EventService;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,6 +70,19 @@ public class EventController {
     @GetMapping("/admin/{eventId}/detail")
     public ResponseEntity<EventDetail> retrieveEvent(@PathVariable Long eventId) {
         return ResponseEntity.ok(eventService.getEventById(eventId));
+    }
+
+    /**
+     * 공연 리스트 검색 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-03
+     * 변경 이력:
+     * - 2024-12-03 오형상: 초기 작성
+     */
+    @GetMapping("/admin")
+    public ResponseEntity<PagedResponse<EventSearchListRes>> searchEvent(EventSearchCond eventSearchCond, Pageable pageable) {
+        return ResponseEntity.ok(eventService.searchEvent(eventSearchCond,pageable));
     }
 
     /**

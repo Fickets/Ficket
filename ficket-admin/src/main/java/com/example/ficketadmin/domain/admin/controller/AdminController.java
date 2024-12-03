@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Set;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -86,6 +89,32 @@ public class AdminController {
     public AdminDto getAdmin(@PathVariable Long adminId){
 
         return adminService.getAdmin(adminId);
+    }
+
+    /**
+     * 관리자 리스트 조회 API (공연 검색 용)
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-03
+     * 변경 이력:
+     * - 2024-12-03 오형상: 초기 작성
+     */
+    @GetMapping
+    public List<AdminDto> getAllAdmin() {
+        return adminService.getAllAdmin();
+    }
+
+    /**
+     * 관리자 리스트 조회 By Set<id> API (공연 검색 용)
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-03
+     * 변경 이력:
+     * - 2024-12-03 오형상: 초기 작성
+     */
+    @PostMapping("/batch")
+    public List<AdminDto> getAdminsByIds(@RequestBody Set<Long> adminIds) {
+        return adminService.getAdminsByIds(adminIds);
     }
     
     

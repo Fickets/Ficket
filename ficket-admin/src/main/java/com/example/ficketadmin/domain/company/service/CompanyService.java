@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.example.ficketadmin.global.result.error.ErrorCode.*;
 
@@ -55,6 +57,13 @@ public class CompanyService {
                 .stream()
                 .map(companyMapper::toCompanyResponse) // Entity를 DTO로 변환
                 .toList();
+    }
+
+
+    public List<CompanyResponse> getCompaniesByIds(Set<Long> companyIds) {
+        return companyRepository.findByCompanyIdIn(companyIds).stream()
+                .map(company -> new CompanyResponse(company.getCompanyId(), company.getCompanyName()))
+                .collect(Collectors.toList());
     }
 
 }
