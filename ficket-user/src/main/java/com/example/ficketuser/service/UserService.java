@@ -143,7 +143,7 @@ public class UserService {
         Cookie[] cookies = request.getCookies();
         String refresh = null;
         for (Cookie cookie : cookies) {
-            if(cookie.getName().equals(REFRESH_HEADER)){
+            if(cookie != null && cookie.getName().equals(REFRESH_HEADER)){
                 refresh = cookie.getValue();
             }
         }

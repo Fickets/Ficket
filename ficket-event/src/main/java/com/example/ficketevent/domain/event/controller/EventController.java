@@ -3,8 +3,10 @@ package com.example.ficketevent.domain.event.controller;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
 import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
 import com.example.ficketevent.domain.event.dto.response.EventDetail;
+import com.example.ficketevent.domain.event.dto.response.EventDetailRes;
 import com.example.ficketevent.domain.event.dto.response.EventSeatSummary;
 import com.example.ficketevent.domain.event.service.EventService;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -105,6 +107,19 @@ public class EventController {
     @GetMapping("/event-simple/{eventScheduleId}")
     public ResponseEntity<EventSeatSummary> getEventSeatSummary(@PathVariable Long eventScheduleId) {
         return ResponseEntity.ok(eventService.getEventByScheduleId(eventScheduleId));
+    }
+
+
+    @GetMapping("detail/{eventId}")
+    public ResponseEntity<EventDetailRes> T(@PathVariable Long eventId){
+        EventDetailRes res = eventService.getEventDetail(eventId);
+        return ResponseEntity.ok(res);
+
+    }
+    @GetMapping("{eventId}/reservation")
+    public ResponseEntity<Integer> TT(){
+        return ResponseEntity.status(HttpResponseStatus.OK.code()).build();
+
     }
 
 }
