@@ -29,7 +29,6 @@ spring:
           '[/**]':
             allowedOrigins:
               - "http://localhost:5173"
-              - "http://localhost:5000"
               - "https://your-frontend-domain.com"
             allowedMethods:
               - GET
@@ -41,10 +40,14 @@ spring:
               - "*"
             allowCredentials: true
       routes:
+        # USER SERVICE
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**
+          filters:
+            - RemoveRequestHeader=Cookie
+        # ADMIN SERVICE
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -57,6 +60,7 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
+
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -64,6 +68,7 @@ spring:
             - Method=POST
           filters:
             - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
+
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -78,6 +83,7 @@ spring:
             - Path=/api/v1/admins/**
           filters:
             - AdminRoleCheckFilter
+        # EVENT-SERVICE
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -91,8 +97,8 @@ spring:
           predicates:
             - Path=/api/v1/events/seat/{action}  # 좌석 선점 및 해제
           filters:
-            - AuthorizationHeaderFilter
-            - UserTokenExtractionFilter
+            - AuthorizationHeaderFilter #
+            - UserTokenExtractionFilter # 토큰 pk 사용할떄 이거 넣으면 header에서 사용 가능
             - RemoveRequestHeader=Cookie
         - id: event-service
           uri: lb://event-service
@@ -107,10 +113,14 @@ spring:
           predicates:
             - Path=/api/v1/events/admins/**
           filters:
-            - AdminRoleCheckFilter
-            - AdminTokenExtractionFilter
+            - AdminRoleCheckFilter # 관리자가 쓰는 필터
+            - AdminTokenExtractionFilter # admin PK 필요하면
             - RewritePath=/api/v1/events/admins/(?<segment>.*), /api/v1/events/admins/${segment}
             - RemoveRequestHeader=Cookie
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/api/v1/events/detail/**
         - id: event-service
           uri: lb://event-service
           predicates:
@@ -120,6 +130,7 @@ spring:
             - RewritePath=/api/v1/events/admin/(?<segment>.*), /api/v1/events/admin/${segment}
             - RemoveRequestHeader=Cookie
 
+        # FACE-SERVICE
         - id: face-service
           uri: lb://face-service
           predicates:
@@ -131,6 +142,7 @@ spring:
           predicates:
             - Path=/face-swagger/v3/api-docs/**
 
+        # QUEUE-SERVICE
         - id: queue-service
           uri: lb://queue-service
           predicates:
@@ -140,6 +152,7 @@ spring:
           predicates:
             - Path=/queue-swagger/v3/api-docs
 
+        # TICKETING-SERVICE
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:

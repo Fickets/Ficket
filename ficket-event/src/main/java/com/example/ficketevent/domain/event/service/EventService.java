@@ -5,6 +5,7 @@ import com.example.ficketevent.domain.event.dto.common.AdminDto;
 import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
 import com.example.ficketevent.domain.event.dto.request.*;
 import com.example.ficketevent.domain.event.dto.response.EventDetail;
+import com.example.ficketevent.domain.event.dto.response.EventDetailRes;
 import com.example.ficketevent.domain.event.dto.response.EventSeatSummary;
 import com.example.ficketevent.domain.event.dto.response.SeatGradeInfo;
 import com.example.ficketevent.domain.event.entity.*;
@@ -458,6 +459,14 @@ public class EventService {
                 .toList();
 
         return new EventSeatSummary(posterMobileUrl, reservationLimit, eventStageImg, seatGradeInfoList);
+    }
+
+    public EventDetailRes getEventDetail(Long eventId){
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+        EventDetailRes res = EventDetailRes.toEventDetailRes(event, "TEST");
+        return res;
+
     }
 
 }
