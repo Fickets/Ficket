@@ -1,27 +1,26 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo.png';
-import RightPanel from '../../components/selectseat/RightPanel';
-import SeatMap from '../../components/selectseat/SeatMap';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import logo from "../../assets/logo.png";
+import RightPanel from "../../components/selectseat/RightPanel";
 import {
   fetchAllSeatStatus,
   fetchEventSeatSummary,
   fetchSeatCntGrade,
   lockSeats,
-} from '../../service/selectseat/api';
+} from "../../service/selectseat/api";
 import {
   EventSeatSummary,
   SeatCntGrade,
   SeatStatusResponse,
-} from '../../types/selectseat';
-import { useEventStore } from '../../types/StoreType/EventState';
+} from "../../types/selectseat";
+import { useEventStore } from "../../types/StoreType/EventState";
 import {
   AiOutlineArrowLeft,
   AiOutlineReload,
   AiOutlineDown,
   AiOutlineUp,
-} from 'react-icons/ai';
-import DraggableSeatMap from '../../components/selectseat/DraggableSeatMap';
+} from "react-icons/ai";
+import DraggableSeatMap from "../../components/selectseat/DraggableSeatMap";
 
 const SelectSeat = () => {
   const navigate = useNavigate();
@@ -35,7 +34,7 @@ const SelectSeat = () => {
     setSelectedSeats, // Zustand에서 가져오기
   } = useEventStore();
   const [eventSummary, setEventSummary] = useState<EventSeatSummary | null>(
-    null
+    null,
   );
   const [seatCntGrade, setSeatCntGrade] = useState<SeatCntGrade[] | null>(null);
   const [seatStatusResponse, setSeatStatusResponse] = useState<
@@ -84,7 +83,7 @@ const SelectSeat = () => {
           });
           setGradeColors(newGradeColors);
         } catch (error) {
-          console.error('Error loading event data:', error);
+          console.error("Error loading event data:", error);
         }
       }
     };
@@ -112,16 +111,16 @@ const SelectSeat = () => {
         });
         setGradeColors(newGradeColors);
       } catch (error) {
-        console.error('Error refreshing seats and grades:', error);
+        console.error("Error refreshing seats and grades:", error);
       }
     }
   };
 
   const handleNextStep = async () => {
     if (selectedSeats.length === 0) {
-      alert('좌석을 선택해주세요.');
+      alert("좌석을 선택해주세요.");
     } else if (selectedSeats.length > eventSummary.reservationLimit) {
-      alert('예매 한도를 초과했습니다.');
+      alert("예매 한도를 초과했습니다.");
     } else {
       try {
         const payload = {
@@ -134,11 +133,11 @@ const SelectSeat = () => {
 
         setSelectedSeats(selectedSeats);
 
-        navigate('/ticketing/register-face');
+        navigate("/ticketing/register-face");
       } catch (error) {
-        console.error('Error locking seats:', error);
+        console.error("Error locking seats:", error);
 
-        alert('좌석 선점에 실패했습니다. 다시 시도해주세요.');
+        alert("좌석 선점에 실패했습니다. 다시 시도해주세요.");
       }
     }
   };
@@ -296,7 +295,7 @@ const SelectSeat = () => {
                     .reduce<{ grade: string; count: number }[]>(
                       (summary, seat) => {
                         const existing = summary.find(
-                          (item) => item.grade === seat.grade
+                          (item) => item.grade === seat.grade,
                         );
                         if (existing) {
                           existing.count++;
@@ -305,10 +304,10 @@ const SelectSeat = () => {
                         }
                         return summary;
                       },
-                      []
+                      [],
                     )
                     .map((item) => `${item.grade}석 ${item.count}매`)
-                    .join(', ')}
+                    .join(", ")}
                 </span>
                 <button
                   className="text-lg flex items-center"
@@ -327,8 +326,8 @@ const SelectSeat = () => {
                         className="flex justify-between items-center text-sm border-b border-gray-600 pb-2"
                       >
                         <span>
-                          {seat.grade}석{' '}
-                          <span className="text-red-300">{seat.row}열</span>{' '}
+                          {seat.grade}석{" "}
+                          <span className="text-red-300">{seat.row}열</span>{" "}
                           <span className="text-red-300">{seat.col}번</span>
                         </span>
                       </div>

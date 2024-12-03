@@ -1,4 +1,4 @@
-import { RightPanelProps } from '../../types/selectseat';
+import { RightPanelProps } from "../../types/selectseat";
 
 const RightPanel = ({
   gradeColors,
@@ -26,7 +26,7 @@ const RightPanel = ({
 
         {/* 행사 정보 영역 */}
         <div className="w-[60%] pl-2">
-          <h3 className="text-white font-bold text-sm p-1 -mt-2 break-words">
+          <h3 className="text-white font-bold text-sm p-1 -mt-1 break-words">
             {eventTitle}
           </h3>
           <div className="text-xs text-gray-700 mt-2">
@@ -54,7 +54,7 @@ const RightPanel = ({
             <tbody>
               {seatCntGrade.map((grade, index) => {
                 const matchingGrade = seatGradeInfoList.find(
-                  (info) => info.grade === grade.partitionName
+                  (info) => info.grade === grade.partitionName,
                 );
 
                 return (
@@ -77,7 +77,7 @@ const RightPanel = ({
                     <td className="px-2 py-1">
                       {matchingGrade
                         ? matchingGrade.price.toLocaleString()
-                        : '-'}
+                        : "-"}
                       원
                     </td>
                   </tr>
@@ -90,12 +90,12 @@ const RightPanel = ({
 
       {/* 선택 좌석 테이블 (스크롤 가능) */}
       <div>
-        <h4 className="text-black font-bold text-sm mb-1">선택 좌석</h4>{' '}
+        <h4 className="text-black font-bold text-sm mb-1">선택 좌석</h4>{" "}
         <div className="overflow-y-auto max-h-[80px] border border-gray-300">
           <table className="table-auto w-full text-left text-xs text-gray-700">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-1 py-1 border-b border-gray-300">등급</th>{' '}
+                <th className="px-1 py-1 border-b border-gray-300">등급</th>{" "}
                 <th className="px-1 py-1 border-b border-gray-300">
                   좌석 번호
                 </th>
@@ -105,7 +105,7 @@ const RightPanel = ({
               {selectedSeats.length > 0 ? (
                 selectedSeats.map((seat, index) => (
                   <tr key={index} className="border-b">
-                    <td className="px-1 py-1">{seat.grade}</td>{' '}
+                    <td className="px-1 py-1">{seat.grade}</td>{" "}
                     <td className="px-1 py-1">
                       {seat.row}열-{seat.col}번
                     </td>
