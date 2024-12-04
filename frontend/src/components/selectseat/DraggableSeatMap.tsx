@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
-import { SeatStatusResponse, SeatMapProps } from '../../types/selectseat';
+import { useRef, useState, useEffect } from "react";
+import { SeatStatusResponse, SeatMapProps } from "../../types/selectseat";
 
 const DraggableSeatMap = ({
   eventStageImg,
@@ -100,7 +100,7 @@ const DraggableSeatMap = ({
     calculateOriginalSize(seatStatusResponse);
 
   const calculatePosition = (x: number, y: number) => {
-    const xScaleFactor = 0.85;
+    const xScaleFactor = 0.9;
     const yScaleFactor = 0.9;
     const scaledX = (x / originalWidth) * containerWidth * xScaleFactor;
     const scaledY = (y / originalHeight) * containerHeight * yScaleFactor;
@@ -109,12 +109,12 @@ const DraggableSeatMap = ({
 
   const handleSeatClick = (seat: SeatStatusResponse) => {
     const isSelected = selectedSeats.some(
-      (s) => s.seatMappingId === seat.seatMappingId
+      (s) => s.seatMappingId === seat.seatMappingId,
     );
 
     if (isSelected) {
       onSeatSelect(
-        selectedSeats.filter((s) => s.seatMappingId !== seat.seatMappingId)
+        selectedSeats.filter((s) => s.seatMappingId !== seat.seatMappingId),
       );
     } else {
       if (selectedSeats.length < reservationLimit) {
@@ -147,9 +147,9 @@ const DraggableSeatMap = ({
         onWheel={handleWheel}
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          transformOrigin: 'center center',
-          cursor: dragging ? 'grabbing' : 'grab',
-          position: 'absolute',
+          transformOrigin: "center center",
+          cursor: dragging ? "grabbing" : "grab",
+          position: "absolute",
           width: `${contentWidth}px`,
           height: `${contentHeight}px`,
         }}
@@ -165,36 +165,36 @@ const DraggableSeatMap = ({
           {seatStatusResponse.map((seat) => {
             const { scaledX, scaledY } = calculatePosition(
               seat.seatX,
-              seat.seatY
+              seat.seatY,
             );
 
             const isSelected = selectedSeats.some(
-              (s) => s.seatMappingId === seat.seatMappingId
+              (s) => s.seatMappingId === seat.seatMappingId,
             );
 
             return (
               <div
                 key={seat.seatMappingId}
                 className={`absolute w-[8px] h-[8px] flex items-center justify-center cursor-pointer border ${
-                  seat.status === 'LOCKED' || seat.status === 'PURCHASED'
-                    ? 'cursor-not-allowed'
+                  seat.status === "LOCKED" || seat.status === "PURCHASED"
+                    ? "cursor-not-allowed"
                     : isSelected
-                      ? 'border-black'
-                      : 'border-gray-300'
+                      ? "border-black"
+                      : "border-gray-300"
                 }`}
                 style={{
                   backgroundColor:
-                    seat.status === 'LOCKED' || seat.status === 'PURCHASED'
-                      ? '#FFF'
+                    seat.status === "LOCKED" || seat.status === "PURCHASED"
+                      ? "#FFF"
                       : isSelected
-                        ? '#000'
+                        ? "#000"
                         : gradeColors[seat.seatGrade],
                   top: `${scaledY}px`,
                   left: `${scaledX}px`,
                   pointerEvents:
-                    seat.status === 'LOCKED' || seat.status === 'PURCHASED'
-                      ? 'none'
-                      : 'auto',
+                    seat.status === "LOCKED" || seat.status === "PURCHASED"
+                      ? "none"
+                      : "auto",
                 }}
                 onClick={() => handleSeatClick(seat)}
               ></div>
