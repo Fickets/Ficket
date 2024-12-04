@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { httpStatusCode } from "./http-status";
-import { userTokenRefresh } from "../service/user/user";
+import { userTokenRefresh } from "../service/user/userApi";
 
 // 쿠키를 이용하려면 활성화 필수
 axios.defaults.withCredentials = true;

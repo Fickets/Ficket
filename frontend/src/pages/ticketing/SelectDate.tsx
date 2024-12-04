@@ -1,10 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import SelectDateComponent from '../../components/ticketing/SelectDateComponent';
 import TicketingHeader from '../../components/ticketing/TicketingHeader';
 import BackgroundImg from '../../assets/ticketing/FicketingBg.png';
-const AdminLogin: React.FC = () => {
 
+import { useEventStore } from '../../types/StoreType/EventState';
+const AdminLogin: React.FC = () => {
+    const {
+        eventId,
+        eventScheduleId,
+        eventTitle,
+        eventDate,
+        eventTime,
+        eventStage,
+        
+    } = useEventStore();
+
+    useEffect(()=> {
+        console.log(eventId + " " + eventScheduleId + " " + eventTitle, eventDate, eventTime, eventStage)
+    })
 
     return (
         <div className="w-[900px] h-[600px] min-w-[900px] min-h-[600px] "

@@ -16,7 +16,7 @@ import { userStore } from "./stores/UserStore";
 import SelectSession from './pages/selectsession/SelectSession.tsx';
 import SelectSeat from './pages/selectseat/SelectSeat.tsx';
 import SeleteDate from './pages/ticketing/SelectDate.tsx';
-
+import EventDetailPage from './pages/event/EventDetail.tsx'
 
 export default function Router() {
 
@@ -57,6 +57,8 @@ export default function Router() {
             <Route path="ticketing/order" element={<Order />} />
 
 
+            {/* FICKET USER EVENT  */}
+            <Route path="events/detail/:eventId" element={<EventDetailPage />} />
 
             {/* */}
             {/* */}
