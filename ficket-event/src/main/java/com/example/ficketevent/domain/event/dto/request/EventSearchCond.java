@@ -3,6 +3,7 @@ package com.example.ficketevent.domain.event.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -22,9 +23,9 @@ public class EventSearchCond {
     @Schema(description = "공연장 ID", example = "202")
     private Long eventStageId;
 
-    @Schema(description = "검색 시작 날짜", example = "2024-12-16T00:00:00")
-    private LocalDateTime startDate;
+    @Schema(description = "검색 시작 날짜", example = "2024-12-16")
+    private LocalDate startDate;
 
-    @Schema(description = "검색 종료 날짜", example = "2024-12-31T00:00:00")
-    private LocalDateTime endDate;
+    @Schema(description = "검색 종료 날짜", example = "2024-12-31")
+    private LocalDate endDate;
 }

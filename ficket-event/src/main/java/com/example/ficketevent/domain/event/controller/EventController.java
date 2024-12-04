@@ -7,6 +7,8 @@ import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.service.EventService;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +36,7 @@ public class EventController {
      * - 2024-11-30 오형상: admin feign client 적용
      */
     @PostMapping("/admins/event")
-    public ResponseEntity<String> registerEvent(@RequestHeader("X-Admin-Id") String adminId, @RequestPart EventCreateReq req, @RequestPart MultipartFile poster, @RequestPart MultipartFile banner ) {
+    public ResponseEntity<String> registerEvent(@RequestHeader("X-Admin-Id") String adminId, @RequestPart EventCreateReq req, @RequestPart MultipartFile poster, @RequestPart MultipartFile banner) {
 
         eventService.createEvent(Long.parseLong(adminId), req, poster, banner);
 
@@ -81,8 +83,10 @@ public class EventController {
      * - 2024-12-03 오형상: 초기 작성
      */
     @GetMapping("/admin")
-    public ResponseEntity<PagedResponse<EventSearchListRes>> searchEvent(EventSearchCond eventSearchCond, Pageable pageable) {
-        return ResponseEntity.ok(eventService.searchEvent(eventSearchCond,pageable));
+    public ResponseEntity<PagedResponse<EventSearchListRes>> searchEvent(
+            EventSearchCond eventSearchCond,
+            Pageable pageable) {
+        return ResponseEntity.ok(eventService.searchEvent(eventSearchCond, pageable));
     }
 
     /**
@@ -127,13 +131,14 @@ public class EventController {
 
 
     @GetMapping("detail/{eventId}")
-    public ResponseEntity<EventDetailRes> T(@PathVariable Long eventId){
+    public ResponseEntity<EventDetailRes> T(@PathVariable Long eventId) {
         EventDetailRes res = eventService.getEventDetail(eventId);
         return ResponseEntity.ok(res);
 
     }
+
     @GetMapping("{eventId}/reservation")
-    public ResponseEntity<Integer> TT(){
+    public ResponseEntity<Integer> TT() {
         return ResponseEntity.status(HttpResponseStatus.OK.code()).build();
 
     }

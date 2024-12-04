@@ -4,9 +4,11 @@ import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
 import com.example.ficketevent.domain.event.dto.response.EventSearchRes;
 import com.example.ficketevent.domain.event.dto.response.QEventSearchRes;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,7 +28,8 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                         event.eventStage.stageName,
                         event.companyId,
                         event.adminId,
-                        eventSchedule.eventDate))
+                        eventSchedule.eventDate.min()
+                ))
                 .from(event)
                 .join(event.eventSchedules, eventSchedule)
                 .where(
@@ -37,6 +40,14 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                         eqEventStageId(cond.getEventStageId()),
                         goeStartDate(cond.getStartDate()),
                         loeEndDate(cond.getEndDate())
+                )
+                .groupBy(
+                        event.eventId,
+                        event.title,
+                        event.eventStage.stageName,
+                        event.companyId,
+                        event.adminId,
+                        Expressions.dateTemplate(LocalDate.class, "DATE({0})", eventSchedule.eventDate)
                 )
                 .fetch();
     }
@@ -61,12 +72,16 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
         return eventStageId != null ? event.eventStage.stageId.eq(eventStageId) : null;
     }
 
-    private BooleanExpression goeStartDate(LocalDateTime startDate) {
-        return startDate != null ? eventSchedule.eventDate.goe(startDate) : null;
+    private BooleanExpression goeStartDate(LocalDate startDate) {
+        return startDate != null
+                ? Expressions.dateTemplate(LocalDate.class, "DATE({0})", eventSchedule.eventDate).goe(startDate)
+                : null;
     }
 
-    private BooleanExpression loeEndDate(LocalDateTime endDate) {
-        return endDate != null ? eventSchedule.eventDate.loe(endDate) : null;
+    private BooleanExpression loeEndDate(LocalDate endDate) {
+        return endDate != null
+                ? Expressions.dateTemplate(LocalDate.class, "DATE({0})", eventSchedule.eventDate).loe(endDate)
+                : null;
     }
 
 }
