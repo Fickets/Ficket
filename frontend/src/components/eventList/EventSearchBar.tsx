@@ -1,35 +1,73 @@
 import { FaDatabase } from "react-icons/fa";
-import { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
+import { useState, useEffect } from "react";
+import Select from "react-select";
+import {
+  Admin,
+  EventSearchBarProps,
+  SearchParams,
+} from "../../types/eventList.ts";
+import { fetchCompanies, fetchStages } from "../../service/register/api.ts";
+import { fetchAdmins } from "../../service/admineventlist/api.ts";
+import { Company, Stage } from "../../types/register.ts";
 
-const EventSearchBar = () => {
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+const EventSearchBar = ({ onSearch }: EventSearchBarProps) => {
+  const [localSearchParams, setLocalSearchParams] = useState<SearchParams>({
+    eventId: null,
+    eventTitle: null,
+    companyId: null,
+    adminId: null,
+    eventStageId: null,
+    startDate: null,
+    endDate: null,
+  });
 
-  const handleReset = () => {
-    // 초기화 로직
-    setStartDate(null);
-    setEndDate(null);
-    console.log("폼 초기화!");
+  const [stages, setStages] = useState<Stage[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [admins, setAdmins] = useState<Admin[]>([]);
+
+  useEffect(() => {
+    // Fetch stages, companies, and admins data on component mount
+    fetchStages().then((response) => setStages(response));
+    fetchCompanies().then((response) => setCompanies(response));
+    fetchAdmins().then((response) => setAdmins(response));
+  }, []);
+
+  const handleInputChange = (
+    key: keyof SearchParams,
+    value: string | number | null,
+  ) => {
+    setLocalSearchParams((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
-  const handleSearch = () => {
-    // 조회 로직
-    console.log("조회 버튼 클릭!");
+  const handleSearchClick = () => {
+    onSearch({ ...localSearchParams });
+  };
+
+  const handleReset = () => {
+    setLocalSearchParams({
+      eventId: null,
+      eventTitle: null,
+      companyId: null,
+      adminId: null,
+      eventStageId: null,
+      startDate: null,
+      endDate: null,
+    });
   };
 
   return (
     <div className="w-full bg-white rounded-lg shadow-md p-6 border border-gray-200">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
-        {/* 왼쪽: 제목 */}
         <div className="flex items-center">
           <FaDatabase className="text-xl" />
           <span className="ml-2 text-lg font-semibold">조건별 검색</span>
         </div>
-
-        {/* 오른쪽: 버튼 */}
         <div className="space-x-2">
           <button
             type="button"
@@ -40,14 +78,13 @@ const EventSearchBar = () => {
           </button>
           <button
             type="button"
-            onClick={handleSearch}
+            onClick={handleSearchClick}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
           >
             조회
           </button>
         </div>
       </div>
-
       <hr className="mb-6 border-gray-300" />
 
       {/* 폼 */}
@@ -55,84 +92,203 @@ const EventSearchBar = () => {
         {/* 공연 식별번호 */}
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            공연 식별번호<span className="text-red-500">*</span>
+            공연 식별번호
           </label>
           <input
-            type="text"
-            placeholder="공연 식별번호 입력해 주세요."
-            className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="number"
+            placeholder="공연 식별번호 입력"
+            value={localSearchParams.eventId || ""}
+            onChange={(e) =>
+              handleInputChange("eventId", parseInt(e.target.value, 10) || null)
+            }
+            className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-500"
           />
         </div>
 
         {/* 공연 제목 */}
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            공연 제목<span className="text-red-500">*</span>
+            공연 제목
           </label>
           <input
             type="text"
-            placeholder="공연 제목을 입력해 주세요."
-            className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="공연 제목 입력"
+            value={localSearchParams.eventTitle || ""}
+            onChange={(e) => handleInputChange("eventTitle", e.target.value)}
+            className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-500"
           />
         </div>
 
         {/* 담당 관리자 */}
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            담당 관리자<span className="text-red-500">*</span>
+            담당 관리자
           </label>
-          <select className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">담당 관리자를 검색해 주세요</option>
-            <option value="manager1">홍길동</option>
-            <option value="manager2">김철수</option>
-          </select>
+          <Select
+            options={admins.map((admin) => ({
+              label: `${admin.adminId} - ${admin.adminName}`,
+              value: admin.adminId,
+            }))}
+            value={
+              localSearchParams.adminId
+                ? {
+                    label: `${localSearchParams.adminId} - ${
+                      admins.find(
+                        (admin) => admin.adminId === localSearchParams.adminId,
+                      )?.adminName || ""
+                    }`,
+                    value: localSearchParams.adminId,
+                  }
+                : null
+            }
+            onChange={(option) =>
+              handleInputChange("adminId", option?.value || null)
+            }
+            placeholder="관리자를 선택하세요"
+            isClearable
+            styles={{
+              placeholder: (base) => ({
+                ...base,
+                fontSize: "0.875rem",
+                color: "#6B7280",
+              }),
+              control: (base) => ({
+                ...base,
+                height: "40px",
+                borderColor: "#D1D5DB",
+                fontSize: "0.875rem",
+              }),
+            }}
+          />
+        </div>
+
+        {/* 회사 */}
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            회사
+          </label>
+          <Select
+            options={companies.map((company) => ({
+              label: company.companyName,
+              value: company.companyId,
+            }))}
+            value={
+              localSearchParams.companyId
+                ? {
+                    label: companies.find(
+                      (company) =>
+                        company.companyId === localSearchParams.companyId,
+                    )?.companyName,
+                    value: localSearchParams.companyId,
+                  }
+                : null
+            }
+            onChange={(option) =>
+              handleInputChange("companyId", option?.value || null)
+            }
+            placeholder="회사를 선택하세요"
+            isClearable
+            styles={{
+              placeholder: (base) => ({
+                ...base,
+                fontSize: "0.875rem",
+                color: "#6B7280",
+              }),
+              control: (base) => ({
+                ...base,
+                height: "40px",
+                borderColor: "#D1D5DB",
+                fontSize: "0.875rem",
+              }),
+            }}
+          />
         </div>
 
         {/* 공연장 */}
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            공연장<span className="text-red-500">*</span>
+            공연장
           </label>
-          <select className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">공연장을 검색해 주세요</option>
-            <option value="venue1">서울 공연장</option>
-            <option value="venue2">부산 공연장</option>
-          </select>
-        </div>
-
-        {/* 거래처 */}
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            거래처<span className="text-red-500">*</span>
-          </label>
-          <select className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">거래처를 검색해 주세요</option>
-            <option value="client1">ABC 회사</option>
-            <option value="client2">DEF 회사</option>
-          </select>
+          <Select
+            options={stages.map((stage) => ({
+              label: stage.stageName,
+              value: stage.stageId,
+            }))}
+            value={
+              localSearchParams.eventStageId
+                ? {
+                    label: stages.find(
+                      (stage) =>
+                        stage.stageId === localSearchParams.eventStageId,
+                    )?.stageName,
+                    value: localSearchParams.eventStageId,
+                  }
+                : null
+            }
+            onChange={(option) =>
+              handleInputChange("eventStageId", option?.value || null)
+            }
+            placeholder="공연장을 선택하세요"
+            isClearable
+            styles={{
+              placeholder: (base) => ({
+                ...base,
+                fontSize: "0.875rem",
+                color: "#6B7280",
+              }),
+              control: (base) => ({
+                ...base,
+                height: "40px",
+                borderColor: "#D1D5DB",
+                fontSize: "0.875rem",
+              }),
+            }}
+          />
         </div>
 
         {/* 기간 조회 */}
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            기간 조회<span className="text-red-500">*</span>
+            기간 조회
           </label>
           <div className="flex items-center space-x-2">
             <DatePicker
-              selected={startDate}
-              onChange={(date) => setStartDate(date || null)}
+              selected={
+                localSearchParams.startDate
+                  ? new Date(localSearchParams.startDate)
+                  : null
+              }
+              onChange={(date) =>
+                handleInputChange(
+                  "startDate",
+                  date ? date.toISOString().split("T")[0] : null,
+                )
+              }
               dateFormat="yyyy-MM-dd"
               placeholderText="시작 날짜"
-              className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm"
             />
             <span className="text-gray-500">-</span>
             <DatePicker
-              selected={endDate}
-              onChange={(date) => setEndDate(date || null)}
-              minDate={startDate || undefined}
+              selected={
+                localSearchParams.endDate
+                  ? new Date(localSearchParams.endDate)
+                  : null
+              }
+              onChange={(date) =>
+                handleInputChange(
+                  "endDate",
+                  date ? date.toISOString().split("T")[0] : null,
+                )
+              }
+              minDate={
+                localSearchParams.startDate
+                  ? new Date(localSearchParams.startDate)
+                  : undefined
+              }
               dateFormat="yyyy-MM-dd"
               placeholderText="종료 날짜"
-              className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm"
             />
           </div>
         </div>
