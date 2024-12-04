@@ -45,7 +45,7 @@ const UserLoginRedirect: React.FC = () => {
 
                 },
                 () => {
-                    navi("/login")
+                    navi("/users/login")
                 }
             )
         }

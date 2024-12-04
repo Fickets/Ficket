@@ -23,11 +23,7 @@ export default function Router() {
   const user = useStore(userStore);
   const navi = useNavigate();
 
-  // useEffect(() => {
-  //     if (!user.isLogin && !location.pathname.includes('/attend')) {
-  //         navi('/login');
-  //     }
-  // }, [location.pathname, navi])
+
 
   return (
     <Routes location={location} key={location.pathname}>
