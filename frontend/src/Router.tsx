@@ -13,6 +13,10 @@ import NotFound from "./pages/errorpage/NotFound.tsx";
 import UserAdditionalInfo from "./pages/login/UserAdditionalInfo.tsx";
 import AdminLogin from "./pages/login/AdminLogin.tsx";
 import { userStore } from "./stores/UserStore";
+import SelectSession from './pages/selectsession/SelectSession.tsx';
+import SelectSeat from './pages/selectseat/SelectSeat.tsx';
+import SeleteDate from './pages/ticketing/SelectDate.tsx';
+import EventDetailPage from './pages/event/EventDetail.tsx'
 import SelectSession from "./pages/selectsession/SelectSession.tsx";
 import SelectSeat from "./pages/selectseat/SelectSeat.tsx";
 import SeleteDate from "./pages/ticketing/SelectDate.tsx";
@@ -45,14 +49,19 @@ export default function Router() {
       <Route path="/admin/edit-event/:eventId" element={<EditEvent />} />
 
       {/* FICKET USER TICKETING*/}
+      <Route path='ticketing/select-date' element={<SeleteDate />} />
+      <Route path="ticketing/select-seat" element={<SelectSeat />} />
+      <Route path="ticketing/register-face" element={<RegisterFace />} />
+      <Route path="ticketing/order" element={<Order />} />
+
+
+      {/* FICKET USER EVENT  */}
+      <Route path="events/detail/:eventId" element={<EventDetailPage />} />
+      {/* FICKET USER TICKETING*/}
       <Route
         path="ticketing/select-session/:eventId"
         element={<SelectSession />}
       />
-      <Route path="ticketing/select-date" element={<SeleteDate />} />
-      <Route path="ticketing/select-seat" element={<SelectSeat />} />
-      <Route path="ticketing/register-face" element={<RegisterFace />} />
-      <Route path="ticketing/order" element={<Order />} />
 
       {/* */}
       {/* */}

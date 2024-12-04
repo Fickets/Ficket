@@ -4,7 +4,7 @@ import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router';
 import { useStore } from 'zustand';
 import { userStore } from '../../stores/UserStore';
-import { userTokenRefresh, userAdditionalInfo } from '../../service/user/user';
+import { userTokenRefresh, userAdditionalInfo } from '../../service/user/userApi';
 
 import FicketLogo from '../../assets/logo.png';
 import BangMark from '../../assets/bang.png';
@@ -26,9 +26,7 @@ const UserLoginRedirect: React.FC = () => {
         years.push(year);
     }
 
-    useEffect(() => {
-        console.log("User state has changed:", user);
-    }, [user]);
+
     useEffect(() => {
         getAccess();
         setGender("MALE")
