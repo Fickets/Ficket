@@ -65,6 +65,7 @@ function EventDetailPage() {
 
     const choiceDate = async () => {
         let asd = "2024-12-26T17:00:00";
+        event.setTicketingStep(true);
         event.setScheduleId(3);
         event.setChoiceDate(asd.split("T")[0]);
         event.setChoicetime(asd.split("T")[1]);
@@ -73,7 +74,19 @@ function EventDetailPage() {
 
 
     const goTicketing = async () => {
-        navi("/ticketing/select-date")
+        // navi("/ticketing/select-date")
+        let url = "";
+        if (event.ticketingStep) {
+            url = "/ticketing/select-seat";
+        } else {
+            url = "/ticketing/select-date";
+        }
+        window.open(
+            // 새 창에서 열 URL
+            url,
+            '_blank', // 새 창으로 열기
+            // 창 옵션
+        );
     }
 
     return (
