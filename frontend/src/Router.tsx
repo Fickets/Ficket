@@ -17,9 +17,6 @@ import SelectSession from './pages/selectsession/SelectSession.tsx';
 import SelectSeat from './pages/selectseat/SelectSeat.tsx';
 import SeleteDate from './pages/ticketing/SelectDate.tsx';
 import EventDetailPage from './pages/event/EventDetail.tsx'
-import SelectSession from "./pages/selectsession/SelectSession.tsx";
-import SelectSeat from "./pages/selectseat/SelectSeat.tsx";
-import SeleteDate from "./pages/ticketing/SelectDate.tsx";
 import AdminEventList from "./pages/eventlist/AdminEventList.tsx";
 
 export default function Router() {

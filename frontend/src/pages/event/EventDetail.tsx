@@ -64,7 +64,7 @@ function EventDetailPage() {
     }
 
     const choiceDate = async () => {
-        let asd = "2024-12-26 17:00:00";
+        let asd = "2024-12-26T17:00:00";
         event.setScheduleId(3);
         event.setChoiceDate(asd.split("T")[0]);
         event.setChoicetime(asd.split("T")[1]);
