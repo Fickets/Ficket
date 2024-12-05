@@ -12,11 +12,11 @@ const RightPanel = ({
   selectedSeats,
 }: RightPanelProps) => {
   return (
-    <div className="w-[270px] h-[380px] flex flex-col mt-2 p-4 space-y-4">
+    <div className="w-[250px] h-[380px] flex flex-col mt-2 p-4 space-y-4">
       {/* 포스터와 정보 영역 */}
       <div className="flex -mt-6">
         {/* 이미지 영역 */}
-        <div className="w-[40%] flex items-center justify-center bg-gray-100">
+        <div className="flex items-center justify-center bg-gray-100">
           <img
             src={posterMobileUrl}
             alt="Event Poster"
@@ -25,8 +25,8 @@ const RightPanel = ({
         </div>
 
         {/* 행사 정보 영역 */}
-        <div className="w-[60%] pl-2">
-          <h3 className="text-white font-bold text-sm p-1 -mt-1 break-words">
+        <div className="w-[60%] pl-2 mt-2">
+          <h3 className="text-white font-bold text-sm p-1 break-words">
             {eventTitle}
           </h3>
           <div className="text-xs text-gray-700 mt-2">
@@ -43,7 +43,7 @@ const RightPanel = ({
           좌석 정보 / 잔여석
         </h4>
         <div className="overflow-y-auto max-h-[80px] border border-gray-300">
-          <table className="table-auto w-full text-left text-sm text-gray-700">
+          <table className="table-auto w-full text-left text-xs text-gray-700">
             <thead>
               <tr className="bg-gray-200">
                 <th className="px-2 py-1 border-b border-gray-300">등급</th>

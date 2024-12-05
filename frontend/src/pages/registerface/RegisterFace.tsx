@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo.png';
-import PictureBox from '../../components/registerface/PictureBox';
-import PolicyAgree from '../../components/registerface/PolicyAgree';
-import { useEventStore } from '../../types/StoreType/EventState';
-import { unLockSeats } from '../../service/selectseat/api';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PictureBox from "../../components/registerface/PictureBox";
+import PolicyAgree from "../../components/registerface/PolicyAgree";
+import { useEventStore } from "../../types/StoreType/EventState";
+import { unLockSeats } from "../../service/selectseat/api";
+import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
 
 function RegisterFace() {
   const navigate = useNavigate();
   const {
+    eventTitle,
+    eventStage,
     faceImg,
     setFaceImg,
     selectedSeats,
@@ -31,71 +33,29 @@ function RegisterFace() {
 
       navigate(`/ticketing/select-seat`);
     } catch (error) {
-      console.error('Error locking seats:', error);
+      console.error("Error locking seats:", error);
 
-      alert('좌석 선점에 실패했습니다. 다시 시도해주세요.');
+      alert("좌석 선점에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
   const handleNextStep = () => {
     if (!allAgreed) {
-      alert('모든 항목에 동의해야 합니다.');
+      alert("모든 항목에 동의해야 합니다.");
       return;
     }
     if (!faceImg) {
-      alert('이미지를 업로드해야 합니다.');
+      alert("이미지를 업로드해야 합니다.");
       return;
     }
-    navigate('/ticketing/order');
+    navigate("/ticketing/order");
   };
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
       {/* 상단 바 */}
-      <div className="relative z-10 h-[192px] bg-black text-white">
-        {/* 데스크탑: 로고와 텍스트 */}
-        <div className="hidden sm:flex items-center justify-between px-4 sm:px-8 py-3">
-          <div className="flex items-center">
-            <img
-              src={logo}
-              alt="Logo"
-              className="w-8 h-8 sm:w-10 sm:h-10 mr-2"
-            />
-            <h3 className="text-white text-sm sm:text-lg font-semibold">
-              Ficket 티켓예매
-            </h3>
-          </div>
-        </div>
-
-        {/* 데스크탑: 기존 단계 표시 */}
-        <div className="hidden sm:flex justify-center py-4 -mt-4">
-          <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#D9D9D9] border border-black font-bold flex items-center justify-center text-xs sm:text-base">
-            <span>01 관람일 / 회차선택</span>
-          </div>
-          <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#D9D9D9] border border-black font-bold flex items-center justify-center text-xs sm:text-base">
-            <span>02 좌석 선택</span>
-          </div>
-          <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#E94343] border border-black text-white font-bold flex items-center justify-center text-xs sm:text-base">
-            <span>03 얼굴 인식</span>
-          </div>
-          <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#D9D9D9] border border-black font-bold flex items-center justify-center text-xs sm:text-base">
-            <span>04 결제하기</span>
-          </div>
-        </div>
-
-        {/* 모바일: 동그라미 네비게이션 */}
-        <div className="flex sm:hidden justify-center py-4">
-          <div className="flex space-x-4">
-            <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
-            {/* Step 1 */}
-            <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
-            {/* Step 2 */}
-            <div className="w-4 h-4 bg-white rounded-full border border-gray-500"></div>
-            {/* Step 3 */}
-            <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
-            {/* Step 4 */}
-          </div>
-        </div>
+      <div className="relative z-10 h-[192px] bg-black hidden sm:block">
+        <TicketingHeader step={"2"} />
       </div>
 
       {/* 약관 및 이미지 박스 */}

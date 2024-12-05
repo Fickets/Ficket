@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../../assets/logo.png";
 import RightPanel from "../../components/selectseat/RightPanel";
 import {
   fetchAllSeatStatus,
@@ -21,6 +20,7 @@ import {
   AiOutlineUp,
 } from "react-icons/ai";
 import DraggableSeatMap from "../../components/selectseat/DraggableSeatMap";
+import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
 
 const SelectSeat = () => {
   const navigate = useNavigate();
@@ -41,7 +41,12 @@ const SelectSeat = () => {
     SeatStatusResponse[] | null
   >(null);
   const [selectedSeats, setLocalSelectedSeats] = useState<
-    { seatMappingId: number; grade: string; row: string; col: string }[]
+    {
+      seatMappingId: number;
+      grade: string;
+      row: string;
+      col: string;
+    }[]
   >([]);
   const [gradeColors, setGradeColors] = useState<{
     [key: string]: string;
@@ -152,33 +157,8 @@ const SelectSeat = () => {
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
-      <div className="relative z-10 h-[192px] bg-black text-white hidden sm:block">
-        <div className="hidden sm:flex items-center justify-between px-4 sm:px-8 py-3">
-          <div className="flex items-center">
-            <img
-              src={logo}
-              alt="Logo"
-              className="w-8 h-8 sm:w-10 sm:h-10 mr-2"
-            />
-            <h3 className="text-white text-sm sm:text-lg font-semibold">
-              Ficket 티켓예매
-            </h3>
-          </div>
-        </div>
-        <div className="hidden sm:flex justify-center py-4 -mt-4">
-          <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#D9D9D9] border border-black font-bold flex items-center justify-center text-xs sm:text-base">
-            <span>01 관람일 / 회차선택</span>
-          </div>
-          <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#E94343] border border-black text-white font-bold flex items-center justify-center text-xs sm:text-base">
-            <span>02 좌석 선택</span>
-          </div>
-          <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#D9D9D9] border border-black font-bold flex items-center justify-center text-xs sm:text-base">
-            <span>03 얼굴 인식</span>
-          </div>
-          <div className="w-[100px] h-[40px] sm:w-[210px] sm:h-[50px] bg-[#D9D9D9] border border-black font-bold flex items-center justify-center text-xs sm:text-base">
-            <span>04 결제하기</span>
-          </div>
-        </div>
+      <div className="relative z-10 h-[192px] bg-black hidden sm:block">
+        <TicketingHeader step={"2"} />
       </div>
 
       {/* 헤더 */}
@@ -231,14 +211,6 @@ const SelectSeat = () => {
       </div>
 
       <div className="relative -mt-8 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-0 px-4 z-10">
-        {/* <SeatMap
-          eventStageImg={eventSummary.eventStageImg}
-          reservationLimit={eventSummary.reservationLimit}
-          seatStatusResponse={seatStatusResponse}
-          onSeatSelect={setLocalSelectedSeats}
-          selectedSeats={selectedSeats}
-          gradeColors={gradeColors}
-        /> */}
         <DraggableSeatMap
           eventStageImg={eventSummary.eventStageImg}
           reservationLimit={eventSummary.reservationLimit}

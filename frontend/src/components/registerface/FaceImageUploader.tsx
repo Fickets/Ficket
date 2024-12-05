@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 type ImageUploaderProps = {
   aspectRatio: number;
@@ -43,7 +43,7 @@ function FaceImageUploader({ aspectRatio, onChange }: ImageUploaderProps) {
             alt="Uploaded Preview"
             className="object-cover w-full h-full"
           />
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex flex-row space-x-2">
+          <div className="absolute bottom-2 ml-5 flex flex-row space-x-2">
             <label className="bg-blue-500 text-white px-3 py-1 rounded-md cursor-pointer text-sm">
               수정
               <input
