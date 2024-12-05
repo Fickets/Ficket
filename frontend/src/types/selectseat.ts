@@ -58,7 +58,7 @@ export interface SeatMapProps {
       grade: string;
       row: string;
       col: string;
-    }[]
+    }[],
   ) => void;
   selectedSeats: {
     seatMappingId: number;

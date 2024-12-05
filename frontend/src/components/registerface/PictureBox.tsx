@@ -1,4 +1,4 @@
-import FaceImageUploader from './FaceImageUploader';
+import FaceImageUploader from "./FaceImageUploader";
 
 type PictureBoxProps = {
   onChange: (file: File | null) => void;
@@ -17,7 +17,7 @@ function PictureBox({ onChange }: PictureBoxProps) {
       </p>
       <div className="flex justify-between mt-4 w-full">
         <div className="relative w-[150px] h-[210px] border border-gray-500">
-          <h2 className="absolute top-2 left-1/2 transform -translate-x-1/2 text-white font-bold text-sm bg-black bg-opacity-50 px-2 py-1 rounded">
+          <h2 className="absolute top-2 left-1/2 transform -translate-x-1/2 text-white font-bold text-[10px] bg-black bg-opacity-50 px-2 py-1 rounded">
             사진 가이드
           </h2>
           <img
