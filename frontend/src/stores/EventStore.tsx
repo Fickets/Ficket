@@ -24,7 +24,10 @@ export const eventDetailStore = create(
             reservationLimit: 0,
             posterMobileUrl: "",
             posterPcUrl: "",
+            posterPcMainUrl: "",
+            partitionPrice: [],
             scheduleMap: {},
+
 
             // 예매 단계 선택
             ticketingStep: false,
@@ -69,6 +72,8 @@ export const eventDetailStore = create(
             setReservationLimit: (newLimit: number) => set(() => ({ reservationLimit: newLimit })),
             setPosterMobileUrl: (newUrl: string) => set(() => ({ posterMobileUrl: newUrl })),
             setPosterPcUrl: (newUrl: string) => set(() => ({ posterPcUrl: newUrl })),
+            setPosterPcMainUrl: (newUrl: string) => set(() => ({ posterPcMainUrl: newUrl })),
+            setPartitionPrice: (newPartitionPrice: { [key: string]: string }[]) => set(() => ({ partitionPrice: newPartitionPrice })),
             setScheduleMap: (newScheduleMap: { [key: string]: { [key: number]: eventScheduleDto } }) => set(() => ({ scheduleMap: newScheduleMap })),
 
 

@@ -22,5 +22,6 @@ export const userStore = create(
         setGender: (newData: string) => set(() => ({ gender: newData })),
 
     }),
-        { name: "USER_STORE" }
+        { name: "USER_STORE" },
+
     ))
