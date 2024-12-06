@@ -32,7 +32,6 @@ function EventDetailPage() {
         await eventDetail(
             choiceId,
             (response) => {
-                console.log(response.data)
                 const res = response.data
                 event.setAdminId(res.adminId);
                 event.setCompanyId(res.companyId);

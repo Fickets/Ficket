@@ -37,12 +37,11 @@ const UserLoginRedirect: React.FC = () => {
         if (Boolean(cookies.isLogin)) {
             await userTokenRefresh(
                 (response) => {
-                    console.log(response.headers['authorization']);
+        
                     user.setAccessToken(response.headers['authorization']);
                     user.setIsLogin(true);
 
-                    console.log("LocalStorage USER_STORE:", localStorage.getItem('USER_STORE'));
-
+    
                 },
                 () => {
                     navi("/users/login")
@@ -56,11 +55,11 @@ const UserLoginRedirect: React.FC = () => {
             birth: parseInt(birth),
             gender: gender,
         }
-        console.log(requestData)
+
         await userAdditionalInfo(
             requestData,
             (response) => {
-                console.log("User Additional Success")
+           
                 const parsedData = response.data;
                 user.setGender(parsedData.gender)
                 user.setBirth(parsedData.birth);
