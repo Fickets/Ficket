@@ -20,8 +20,9 @@ export interface eventDetail {
     reservationLimit: number;
     posterMobileUrl: string;
     posterPcUrl: string;
+    posterPcMainUrl: string;
     scheduleMap: { [key: string]: { [key: number]: eventScheduleDto } };
-
+    partitionPrice: { [key: string]: string }[]
 
     // eventStatus
     ticketingStep: boolean,
@@ -70,6 +71,8 @@ export interface eventDetail {
     setReservationLimit: (newLimit: number) => void;
     setPosterMobileUrl: (newUrl: string) => void;
     setPosterPcUrl: (newUrl: string) => void;
+    setPosterPcMainUrl: (newUrl: string) => void;
+    setPartitionPrice: (newPriceList: { [key: string]: string }[]) => void
     setScheduleMap: (newScheduleMap: { [key: string]: { [key: number]: eventScheduleDto } }) => void;
 
 }

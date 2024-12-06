@@ -6,8 +6,8 @@ import BackgroundImg from '../../assets/ticketing/FicketingBg.png';
 import { eventDetailStore } from '../../stores/EventStore';
 import { useNavigate } from 'react-router';
 import { useStore } from 'zustand';
-import CustomCalendar from '../../components/ticketing/CustomCalendar';
-const AdminLogin: React.FC = () => {
+
+const SelectDate: React.FC = () => {
     const eventDetail = useStore(eventDetailStore);
     const eventDate = Object.keys(eventDetail.scheduleMap);
     const [round, setRound] = useState<number | null>(null); // 선택된 날짜 상태
@@ -30,14 +30,15 @@ const AdminLogin: React.FC = () => {
     return (
         <div>
             {/* pc 버전 */}
-            <div className="w-[900px] h-[600px] min-w-[900px] min-h-[600px] bg-white hidden md:block"
+            <div className="w-[900px] h-[599px] min-w-[900px] min-h-[599px] bg-white hidden md:block"
                 style={{
                     backgroundImage: `url(${BackgroundImg})`,
+                    overflow: 'hidden',
                 }}
             >
                 <div className='pb-3.5'
                 >
-                    <TicketingHeader step={"1"} />
+                    <TicketingHeader step={1} />
                 </div>
                 <div className='flex w-full h-full justify-between overflow-hidden flex-grow'>
                     {/* 왼쪽 컴포넌트 */}
@@ -129,4 +130,4 @@ const AdminLogin: React.FC = () => {
     )
 };
 
-export default AdminLogin;
+export default SelectDate;

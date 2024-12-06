@@ -1,4 +1,15 @@
-const HomePage = () => {
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { userStore } from "../../stores/UserStore";
+import { eventDetailStore } from '../../stores/EventStore';
+import { useStore } from "zustand";
+const HomePage: React.FC = () => {
+  const user = useStore(userStore);
+  const event = useStore(eventDetailStore);
+  useEffect(() => {
+    console.log("TEST", event.title)
+  }, [])
+
   const openWindow = () => {
     const data = { eventId: '1' }; // 전달할 데이터
     const query = new URLSearchParams(data).toString(); // 쿼리스트링 생성
@@ -15,6 +26,7 @@ const HomePage = () => {
 
   return (
     <>
+
       <h1>메인페이지 입니다.</h1>
       <button onClick={openWindow}>새 창 열기</button>
     </>
