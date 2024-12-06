@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +41,21 @@ public class EventDetailRes {
     private Integer reservationLimit; // 1인당 티켓 매수 제한
 
     private String posterMobileUrl; // 모바일 포스터 이미지 URL
-    private String posterPcUrl; // PC 포스터 이미지 URL
-
+    private String posterPcUrl; // PC 포스터 이미지 URL 작은거
+    private String posterPcMainUrl; // PC 포스터 이미지 큰거
+    private List<Map<String, String>> partitionPrice;
     private Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap;
 
     public static EventDetailRes toEventDetailRes(Event event, String compName){
         Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap = new HashMap<>();
+        List<Map<String, String>> partitionList = new ArrayList<>();
+        event.getStagePartitions().forEach(partition -> {
+            Map<String, String> partitionTmp = new HashMap<>();
+            partitionTmp.put("partitionName", partition.getPartitionName());
+            partitionTmp.put("partitionPrice", partition.getPartitionPrice().toString());
+            partitionList.add(partitionTmp);
+        });
+
 
         event.getEventSchedules().forEach(eventSchedule -> {
             String key = eventSchedule.getEventDate().toString().split("T")[0];
@@ -71,7 +81,6 @@ public class EventDetailRes {
 
                     EventScheduleDto eventScheduleDto = hashEventScheduleDto.get(round);
 
-//                    PartitionDto tmp3 = eventScheduleDto.getPartition().get(partitionName);
                     PartitionDto tmp3 = eventScheduleDto.getPartition().computeIfAbsent(partitionName, k -> PartitionDto.builder()
                             .partitionName(partitionName)
                             .build());
@@ -84,7 +93,6 @@ public class EventDetailRes {
                 }
             });
         });
-
 
         return EventDetailRes.builder()
                 .adminId(event.getAdminId())
@@ -104,8 +112,10 @@ public class EventDetailRes {
                 .ticketingTime(event.getTicketingTime())
                 .runningTime(event.getRunningTime())
                 .reservationLimit(event.getReservationLimit())
-                .posterPcUrl(event.getEventImage().getPosterPcUrl())
+                .posterPcUrl(event.getEventImage().getPosterPcMain2Url())
+                .posterPcMainUrl(event.getEventImage().getPosterPcUrl())
                 .posterMobileUrl(event.getEventImage().getPosterMobileUrl())
+                .partitionPrice(partitionList)
                 .scheduleMap(scheduleMap)
                 .build();
     }
