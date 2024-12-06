@@ -158,7 +158,7 @@ const SelectSeat = () => {
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
       <div className="relative z-10 h-[192px] bg-black hidden sm:block">
-        <TicketingHeader step={"2"} />
+        <TicketingHeader step={2} />
       </div>
 
       {/* 헤더 */}

@@ -55,7 +55,7 @@ function RegisterFace() {
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
       {/* 상단 바 */}
       <div className="relative z-10 h-[192px] bg-black hidden sm:block">
-        <TicketingHeader step={"2"} />
+        <TicketingHeader step={3} />
       </div>
 
       {/* 약관 및 이미지 박스 */}

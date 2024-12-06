@@ -24,10 +24,10 @@ const KakaoPay = () => {
       .join("");
   };
 
-  const getTotalAmount = (selectedSeats: any) => {
-    const totalAmount = fetchTotalAmountByUser(selectedSeats); // 레디스 조회
-    setTotalAmount(totalAmount);
-  };
+  // const getTotalAmount = (selectedSeats: any) => {
+  //   const totalAmount = fetchTotalAmountByUser(selectedSeats); // 레디스 조회
+  //   setTotalAmount(totalAmount);
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +57,9 @@ const KakaoPay = () => {
           pc: "IFRAME",
           mobile: "REDIRECTION",
         },
+        noticeUrls: [
+          "https://9e6e-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
+        ],
         redirectUrl: "http://localhost:5137/order/payment-result",
       });
     } catch (error) {
