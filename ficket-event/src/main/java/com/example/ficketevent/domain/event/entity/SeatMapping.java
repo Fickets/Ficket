@@ -15,6 +15,7 @@ public class SeatMapping extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long seatMappingId;
 
+    @Setter
     private Long ticketId;
 
     @Setter

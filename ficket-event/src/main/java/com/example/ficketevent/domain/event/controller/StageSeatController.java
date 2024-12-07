@@ -1,5 +1,6 @@
 package com.example.ficketevent.domain.event.controller;
 
+import com.example.ficketevent.domain.event.dto.common.ReservedSeatsResponse;
 import com.example.ficketevent.domain.event.dto.request.SelectSeat;
 import com.example.ficketevent.domain.event.dto.request.UnSelectSeat;
 import com.example.ficketevent.domain.event.dto.response.SeatCntByGrade;
@@ -7,10 +8,12 @@ import com.example.ficketevent.domain.event.dto.response.SeatStatusResponse;
 import com.example.ficketevent.domain.event.dto.response.StageSeatResponse;
 import com.example.ficketevent.domain.event.service.PreoccupyService;
 import com.example.ficketevent.domain.event.service.StageSeatService;
+import jakarta.ws.rs.QueryParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -89,4 +92,10 @@ public class StageSeatController {
         preoccupyService.releaseSeat(req.getEventScheduleId(), req.getSeatMappingIds(), Long.parseLong(userId));
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping
+    public ResponseEntity<ReservedSeatsResponse> getReservedSeats(@QueryParam("userId") Long userId, @QueryParam("eventScheduleId") Long eventScheduleId) {
+        return ResponseEntity.ok(stageSeatService.getReservedSeats(userId, eventScheduleId));
+    }
+
 }

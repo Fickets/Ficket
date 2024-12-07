@@ -132,13 +132,13 @@ spring:
         - id: face-service
           uri: lb://face-service
           predicates:
-            - Path=/api/v1/faces/**
-          filters:
-            - name: AuthorizationHeaderFilter
+            - Path=/swagger.json
         - id: face-service
           uri: lb://face-service
           predicates:
-            - Path=/face-swagger/v3/api-docs/**
+            - Path=/api/v1/faces/**
+          filters:
+            - name: AuthorizationHeaderFilter
 
         # QUEUE-SERVICE
         - id: queue-service
@@ -151,6 +151,14 @@ spring:
             - Path=/queue-swagger/v3/api-docs
 
         # TICKETING-SERVICE
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
+            - Path=/api/v1/ticketing/order
+            - Method=POST
+          filters:
+            - AuthorizationHeaderFilter
+            - UserTokenExtractionFilter
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
@@ -187,7 +195,7 @@ springdoc:
       - name: queue-service
         url: http://localhost:9000/queue-swagger/v3/api-docs
       - name: face-service
-        url: http://localhost:5000/face-swagger/v3/api-docs/swagger.json
+        url: http://localhost:5000/swagger.json
     persistAuthorization: true
     use-root-path: true
 

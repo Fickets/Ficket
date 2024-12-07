@@ -1,10 +1,14 @@
 package com.example.ficketevent.domain.event.service;
 
 import com.example.ficketevent.global.config.redisson.DistributedLock;
+import com.example.ficketevent.global.config.redisson.RedisTTLConstants;
+import com.example.ficketevent.global.utils.RedisKeyHelper;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 
 @Service
@@ -16,15 +20,14 @@ public class PreoccupyInternalService {
     /**
      * 좌석에 대해 분산 락을 획득하고 선점 처리
      *
-     * @param lockName      락 키 (Redis에서 사용할 고유 락 이름)
-     * @param userId        좌석을 선점하는 사용자 ID
-     * @param seatMappingId 좌석 매핑 ID
+     * @param lockName        락 키 (Redis에서 사용할 고유 락 이름)
+     * @param userId          좌석을 선점하는 사용자 ID
+     * @param seatMappingId   좌석 매핑 ID
      * @param eventScheduleId 이벤트 일정 ID
      */
-    @DistributedLock(key = "#lockName") // AOP를 통해 분산 락을 적용
-    public void lockSeat(String lockName, Long userId, Long seatMappingId, Long eventScheduleId) {
-        // 좌석에 대한 선점 처리
-        holdSeat(eventScheduleId, userId, seatMappingId);
+    @DistributedLock(key = "#lockName")
+    public void lockSeat(String lockName, Long userId, Long seatMappingId, Long eventScheduleId, String seatGrade, BigDecimal seatPrice) {
+        holdSeat(eventScheduleId, userId, seatMappingId, seatGrade, seatPrice);
     }
 
     /**
@@ -34,30 +37,27 @@ public class PreoccupyInternalService {
      * @param userId          좌석을 선점하는 사용자 ID
      * @param seatMappingId   좌석 매핑 ID
      */
-    public void holdSeat(Long eventScheduleId, Long userId, Long seatMappingId) {
-        // 좌석 상태를 관리하는 해시 키: ficket:seats:<eventScheduleId>
-        String seatKey = "ficket:seats:" + eventScheduleId;
-
-        // 좌석 상태를 관리하는 RMap (Hash)
+    public void holdSeat(Long eventScheduleId, Long userId, Long seatMappingId, String seatGrade, BigDecimal seatPrice) {
+        String seatKey = RedisKeyHelper.getSeatKey(eventScheduleId); // 키 생성
         RMap<String, String> seatStates = redissonClient.getMap(seatKey);
 
-        String seatField = "seat_" + seatMappingId; // 필드: 좌석 ID
+        String seatField = "seat_" + seatMappingId;
+        String seatInfo = String.format("{\"userId\":%d, \"seatGrade\":\"%s\", \"seatPrice\":%s}", userId, seatGrade, seatPrice);
+        seatStates.put(seatField, seatInfo);
 
-        // 좌석 정보를 저장
-        seatStates.put(seatField, "{\"userId\":" + userId + "}");
-
-        // 사용자 예약 정보를 관리하는 해시 키: ficket:user:<userId>:events
-        String userKey = "ficket:user:" + userId + ":events";
-
-        // 사용자 예약 정보를 관리하는 RMap (Hash)
+        String userKey = RedisKeyHelper.getUserKey(userId); // 키 생성
         RMap<String, String> userEvents = redissonClient.getMap(userKey);
 
-        String eventField = "event_" + eventScheduleId; // 필드: 이벤트 ID
-        userEvents.merge(eventField, "[" + seatMappingId + "]", (oldValue, newValue) -> {
-            // 좌석 ID를 JSON 배열로 관리
-            return mergeSeatIds(oldValue, seatMappingId);
-        });
+        String eventField = "event_" + eventScheduleId;
+        userEvents.merge(eventField, "[" + seatMappingId + "]", (oldValue, newValue) -> mergeSeatIds(oldValue, seatMappingId));
+
+
+        redissonClient.getBucket(userKey).expire(RedisTTLConstants.SEAT_LOCK_LEASE_TIME,
+                RedisTTLConstants.SEAT_LOCK_TIME_UNIT);
+        redissonClient.getBucket(seatKey).expire(RedisTTLConstants.SEAT_LOCK_LEASE_TIME,
+                RedisTTLConstants.SEAT_LOCK_TIME_UNIT);
     }
+
 
     /**
      * 사용자 예약 정보에 좌석 ID를 병합

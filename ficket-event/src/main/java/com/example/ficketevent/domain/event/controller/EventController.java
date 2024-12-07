@@ -1,5 +1,6 @@
 package com.example.ficketevent.domain.event.controller;
 
+import com.example.ficketevent.domain.event.dto.common.EventScheduleDto;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
 import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
 import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;

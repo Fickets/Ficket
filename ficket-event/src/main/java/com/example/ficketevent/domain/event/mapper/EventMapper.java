@@ -15,13 +15,18 @@ public interface EventMapper {
 
     @Mappings({
             @Mapping(target = "eventSchedules", ignore = true),
-            @Mapping(target = "stagePartitions", ignore = true)
+            @Mapping(target = "stagePartitions", ignore = true),
+            @Mapping(target = "eventId", ignore = true),
+            @Mapping(target = "eventImage", ignore = true),
     })
     Event eventDtoToEvent(EventCreateReq eventCreateReq, Long companyId, Long adminId, EventStage eventStage);
 
     @Mappings({
             @Mapping(source = "grade", target = "partitionName"),
-            @Mapping(source = "price", target = "partitionPrice")
+            @Mapping(source = "price", target = "partitionPrice"),
+            @Mapping(target = "partitionId", ignore = true),
+            @Mapping(target = "event", ignore = true),
+            @Mapping(target = "seatMappings", ignore = true),
     })
     StagePartition toStagePartition(SeatDto seatDto);
 
@@ -32,6 +37,14 @@ public interface EventMapper {
                 .collect(Collectors.toList());
     }
 
+
+    @Mappings({
+            @Mapping(target = "createdAt", ignore = true),
+            @Mapping(target = "lastModifiedAt", ignore = true),
+            @Mapping(target = "deletedAt", ignore = true),
+            @Mapping(target = "event", ignore = true),
+            @Mapping(target = "eventImgId", ignore = true),
+    })
     EventImage toEventImage(String posterOriginUrl, String bannerOriginUrl, String posterMobileUrl, String posterPcUrl, String posterPcMain1Url, String posterPcMain2Url, String bannerPcUrl, String bannerMobileUrl);
 
 }

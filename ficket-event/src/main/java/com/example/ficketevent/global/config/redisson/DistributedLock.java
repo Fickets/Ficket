@@ -12,9 +12,4 @@ public @interface DistributedLock {
 
     String key();
 
-    TimeUnit timeUnit() default TimeUnit.SECONDS;
-
-    long waitTime() default 3L;
-
-    long leaseTime() default 480L; // 8분
 }

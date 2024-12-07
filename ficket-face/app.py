@@ -29,13 +29,13 @@ api = Api(
     title="FACE SERVICE API",
     version="v1",  # API 명세 버전
     description="Face Service 명세서",
-    prefix="/face-swagger/v3/api-docs",  # Swagger UI 경로
-    doc="/face-swagger/v3/api-docs",
+    # prefix="/face-swagger/v3/api-docs",  # Swagger UI 경로
+    # doc="/face-swagger/v3/api-docs",
     openapi="3.0.0"  # OpenAPI 명시적 설정
 )
 
 # Namespace 정의
-face_ns = api.namespace("faces", description="Face Operations")
+face_ns = api.namespace("api/v1/faces", description="Face Operations")
 
 # 얼굴 업로드 모델 정의
 upload_model = api.model(

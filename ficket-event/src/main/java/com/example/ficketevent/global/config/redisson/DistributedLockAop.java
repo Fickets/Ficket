@@ -42,7 +42,9 @@ public class DistributedLockAop {
         }
 
         try {
-            boolean available = rLock.tryLock(distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit());
+            boolean available = rLock.tryLock( RedisTTLConstants.SEAT_LOCK_LEASE_TIME,
+                    RedisTTLConstants.SEAT_LOCK_LEASE_TIME,
+                    RedisTTLConstants.SEAT_LOCK_TIME_UNIT);
             if (!available) {
                 throw new BusinessException(ErrorCode.FAILED_TRY_ROCK);
             }

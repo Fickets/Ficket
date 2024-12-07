@@ -8,15 +8,45 @@ spring:
     active: local
   config:
     import: optional:configserver:http://localhost:8888
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
 
-eureka:
-  instance:
-    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://127.0.0.1:8761/eureka
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 80
+        slow-call-duration-threshold: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        max-wait-duration-in-half-open-state: 0
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 10
+        wait-duration-in-open-state: 10s
+    instances:
+      getUserCircuitBreaker:
+        base-config: default
+      postUserFaceImgCircuitBreaker:
+        base-config: default
+
+logging:
+  level:
+    com.example.ficketticketing : DEBUG
+  pattern:
+    correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      consume: B3
+      produce: B3
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
 
 springdoc:
   api-docs:
