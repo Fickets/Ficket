@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,4 +19,5 @@ public class SeatInfo {
     private String seatRow;
     private String seatCol;
     private Boolean purchased;
+    private BigDecimal seatPrice;
 }

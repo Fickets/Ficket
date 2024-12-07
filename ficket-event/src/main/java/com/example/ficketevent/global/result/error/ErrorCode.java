@@ -17,6 +17,8 @@ public enum ErrorCode {
     FORBIDDEN_ERROR(403, "작업을 수행하기 위한 권한이 없습니다."),
     IS_NOT_IMAGE(400, "이미지가 아닙니다."),
     FAILED_DURING_TRANSACTION(409, "트랜잭션 실패"),
+    Json_Processing_Exception(400, "잘못된 JSON 형식 입니다."),
+
 
     // Circuit Breaker 관련 에러
     CIRCUIT_BREAKER_OPEN(503, "Circuit Breaker가 open 상태입니다. 잠시후 다시 시도해주세요"),

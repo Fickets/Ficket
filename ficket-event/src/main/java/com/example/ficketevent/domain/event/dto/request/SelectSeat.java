@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -13,5 +13,5 @@ public class SelectSeat {
 
     private Long eventScheduleId;
     private Integer reservationLimit;
-    private Set<Long> seatMappingIds;
+    private List<SelectSeatInfo> selectSeatInfoList;
 }

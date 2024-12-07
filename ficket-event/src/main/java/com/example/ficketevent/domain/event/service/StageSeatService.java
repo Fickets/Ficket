@@ -1,16 +1,21 @@
 package com.example.ficketevent.domain.event.service;
 
+import com.example.ficketevent.domain.event.dto.common.ReservedSeatsResponse;
+import com.example.ficketevent.domain.event.dto.kafka.OrderDto;
+import com.example.ficketevent.domain.event.dto.kafka.SeatMappingUpdatedEvent;
 import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.entity.EventStage;
+import com.example.ficketevent.domain.event.entity.SeatMapping;
 import com.example.ficketevent.domain.event.mapper.StageSeatMapper;
+import com.example.ficketevent.domain.event.messagequeue.SeatMappingProducer;
 import com.example.ficketevent.domain.event.repository.EventStageRepository;
 import com.example.ficketevent.domain.event.repository.SeatMappingRepository;
 import com.example.ficketevent.domain.event.repository.StageSeatRepository;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
+import com.example.ficketevent.global.utils.RedisKeyHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RBucket;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.cache.annotation.Cacheable;
@@ -36,8 +41,7 @@ public class StageSeatService {
     private final StageSeatMapper stageSeatMapper;
     private final SeatMappingRepository seatMappingRepository;
     private final RedissonClient redissonClient;
-
-    private static final String REDIS_SEAT_KEY_PREFIX = "Ficket_";
+    private final SeatMappingProducer seatMappingProducer;
 
     /**
      * 주어진 행사장(stageId)에 대한 좌석 목록을 조회하고, 결과를 캐싱합니다.
@@ -127,42 +131,35 @@ public class StageSeatService {
                         .seatRow(seat.getSeatRow())
                         .seatCol(seat.getSeatCol())
                         .status(determineSeatStatus(seat.getSeatMappingId(), lockedSeats, seat.getPurchased()))
+                        .seatPrice(seat.getSeatPrice())
                         .build())
                 .toList();
     }
 
     private Set<Long> getLockedSeatFromRedis(Long eventScheduleId) {
         Set<Long> lockedSeatSet = new HashSet<>();
-
         try {
-            // 좌석 상태를 관리하는 해시 키: ficket:seats:<eventScheduleId>
-            String seatKey = "ficket:seats:" + eventScheduleId;
-
-            // Redis 해시에서 모든 좌석 상태를 가져옴
+            String seatKey = RedisKeyHelper.getSeatKey(eventScheduleId); // 키 생성
             RMap<String, String> seatStates = redissonClient.getMap(seatKey);
 
-            // 해시의 모든 필드 이름(좌석 ID 추출)을 순회
             for (String seatField : seatStates.keySet()) {
                 try {
-                    // 좌석 필드명에서 ID 추출 (예: seat_5 -> 5)
                     String seatIdStr = seatField.replace("seat_", "");
                     Long seatId = Long.parseLong(seatIdStr);
-
                     lockedSeatSet.add(seatId);
                 } catch (NumberFormatException e) {
-                    // 좌석 ID 추출 실패 시 경고 로그 출력
-                    log.warn("Redis 해시 필드 '{}'에서 좌석 ID를 파싱하는 중 오류가 발생했습니다. 필드를 건너뜁니다.", seatField, e);
+                    log.warn("Redis 해시 필드 '{}'에서 좌석 ID를 파싱하는 중 오류가 발생했습니다.", seatField, e);
                 }
             }
         } catch (Exception e) {
-            // Redis 작업 중 오류 발생 시 로그 출력
-            log.error("Redis에서 해시 기반 잠금된 좌석 데이터를 가져오는 중 오류가 발생했습니다. EventScheduleId: {}", eventScheduleId, e);
-            throw new RuntimeException("잠금된 좌석 데이터를 가져오는 중 오류가 발생했습니다.", e);
+            log.error("Redis에서 좌석 상태를 가져오는 중 오류 발생. EventScheduleId: {}", eventScheduleId, e);
+            throw new RuntimeException("잠금된 좌석 데이터를 가져오는 중 오류 발생.", e);
         }
 
-        log.info("EventScheduleId {}와 관련된 해시 기반 잠금된 좌석 수: {}", eventScheduleId, lockedSeatSet.size());
+        log.info("EventScheduleId {}와 관련된 잠금된 좌석 수: {}", eventScheduleId, lockedSeatSet.size());
         return lockedSeatSet;
     }
+
     /**
      * 좌석 상태 결정
      *
@@ -190,4 +187,64 @@ public class StageSeatService {
         return seatMappingRepository.findPartitionSeatCounts(eventScheduleId);
     }
 
+    public ReservedSeatsResponse getReservedSeats(Long userId, Long eventScheduleId) {
+        String userKey = RedisKeyHelper.getUserKey(userId); // 키 생성
+        RMap<String, String> userEvents = redissonClient.getMap(userKey);
+
+        String eventField = "event_" + eventScheduleId;
+
+        String value = userEvents.get(eventField);
+
+        log.info("해당 유저가 선점한 좌석 : {}", value);
+
+        if (value == null) {
+            return ReservedSeatsResponse
+                    .builder()
+                    .reservedSeats(Collections.emptySet())
+                    .build();
+        }
+
+        Set<Long> result = Arrays.stream(value.replaceAll("[\\[\\]]", "")
+                        .split(","))
+                .map(Long::valueOf)
+                .collect(Collectors.toSet());
+
+        return ReservedSeatsResponse
+                .builder()
+                .reservedSeats(result)
+                .build();
+    }
+
+    @Transactional
+    public void handleOrderCreatedEvent(OrderDto orderEvent) {
+        log.info("Processing OrderCreatedEvent: {}", orderEvent);
+
+        try {
+            // OrderDto에서 데이터 추출
+            List<Long> seatMappingIds = new ArrayList<>(orderEvent.getSeatMappingIds());
+            Long ticketId = orderEvent.getTicketId();
+
+            // SeatMapping 데이터베이스 조회 및 업데이트
+            for (Long seatMappingId : seatMappingIds) {
+                SeatMapping seatMapping = seatMappingRepository.findBySeatMappingIdAndTicketIdIsNull(seatMappingId)
+                        .orElseThrow(() -> {
+                            log.error("SeatMapping not found or already assigned. seatMappingId: {}", seatMappingId);
+                            return new BusinessException(ErrorCode.SEAT_NOT_FOUND);
+                        });
+
+                seatMapping.setTicketId(ticketId);
+            }
+
+            log.info("OrderCreatedEvent processed successfully");
+
+        } catch (BusinessException e) {
+            log.error("Failed to process OrderCreatedEvent", e);
+
+            // 실패 이벤트 발행
+            Long orderId = orderEvent.getOrderId();
+            SeatMappingUpdatedEvent failedEvent = new SeatMappingUpdatedEvent(orderId, false);
+            seatMappingProducer.publishSeatMappingUpdatedEvent(failedEvent);
+            log.info("Published failure event for orderId: {}", orderId);
+        }
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.ficketticketing.global.config;
+package com.example.ficketticketing.global.config.swagger;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
