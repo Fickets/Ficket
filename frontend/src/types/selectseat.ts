@@ -23,6 +23,7 @@ export interface SeatStatusResponse {
   seatRow: string;
   seatCol: string;
   status: string;
+  seatPrice: number;
 }
 
 export interface RightPanelProps {
@@ -45,6 +46,7 @@ export interface RightPanelProps {
     grade: string;
     row: string;
     col: string;
+    price: number;
   }[];
 }
 
@@ -58,6 +60,7 @@ export interface SeatMapProps {
       grade: string;
       row: string;
       col: string;
+      price: number;
     }[],
   ) => void;
   selectedSeats: {
@@ -65,6 +68,7 @@ export interface SeatMapProps {
     grade: string;
     row: string;
     col: string;
+    price: number;
   }[];
   gradeColors: { [key: string]: string };
 }

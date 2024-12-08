@@ -1,29 +1,27 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
-import { useStore } from "zustand";
-import { useEffect } from "react";
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useStore } from 'zustand';
+import { useEffect } from 'react';
 
-import HomePage from "./pages/home/HomePage";
+import HomePage from './pages/home/HomePage';
 
-import UserLogin from "./pages/login/UserLogin.tsx";
-import RegisterEvent from "./pages/register/RegisterEvent";
-import EditEvent from "./pages/edit/EditEvent.tsx";
-import RegisterFace from "./pages/registerface/RegisterFace.tsx";
-import Order from "./pages/order/Order.tsx";
-import NotFound from "./pages/errorpage/NotFound.tsx";
-import UserAdditionalInfo from "./pages/login/UserAdditionalInfo.tsx";
-import AdminLogin from "./pages/login/AdminLogin.tsx";
-import { userStore } from "./stores/UserStore";
+import UserLogin from './pages/login/UserLogin.tsx';
+import RegisterEvent from './pages/register/RegisterEvent';
+import EditEvent from './pages/edit/EditEvent.tsx';
+import RegisterFace from './pages/registerface/RegisterFace.tsx';
+import Order from './pages/order/Order.tsx';
+import NotFound from './pages/errorpage/NotFound.tsx';
+import UserAdditionalInfo from './pages/login/UserAdditionalInfo.tsx';
+import AdminLogin from './pages/login/AdminLogin.tsx';
+import { userStore } from './stores/UserStore';
 import SelectSession from './pages/selectsession/SelectSession.tsx';
 import SelectSeat from './pages/selectseat/SelectSeat.tsx';
 import SeleteDate from './pages/ticketing/SelectDate.tsx';
-import EventDetailPage from './pages/event/EventDetail.tsx'
-import AdminEventList from "./pages/eventlist/AdminEventList.tsx";
+import EventDetailPage from './pages/event/EventDetail.tsx';
+import AdminEventList from './pages/eventlist/AdminEventList.tsx';
 
 export default function Router() {
   const user = useStore(userStore);
   const navi = useNavigate();
-
-
 
   return (
     <Routes location={location} key={location.pathname}>
@@ -42,11 +40,10 @@ export default function Router() {
       <Route path="/admin/edit-event/:eventId" element={<EditEvent />} />
 
       {/* FICKET USER TICKETING*/}
-      <Route path='ticketing/select-date' element={<SeleteDate />} />
+      <Route path="ticketing/select-date" element={<SeleteDate />} />
       <Route path="ticketing/select-seat" element={<SelectSeat />} />
       <Route path="ticketing/register-face" element={<RegisterFace />} />
       <Route path="ticketing/order" element={<Order />} />
-
 
       {/* FICKET USER EVENT  */}
       <Route path="events/detail/:eventId" element={<EventDetailPage />} />

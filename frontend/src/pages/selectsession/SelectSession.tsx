@@ -9,7 +9,7 @@ const SelectSession = () => {
   const handleNextStep = () => {
     const eventInfo = {
       eventId: 1,
-      eventScheduleId: 6,
+      eventScheduleId: 1,
       eventTitle: 'LOVE IN SEOUL - 엔플라잉',
       eventDate: '2024-12-20',
       eventTime: '18:00',

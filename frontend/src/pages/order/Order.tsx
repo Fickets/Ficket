@@ -1,25 +1,16 @@
-import { useEventStore } from "../../types/StoreType/EventState";
-import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
-import OrderConfirmation from "../../components/order/OrderConfirmation.tsx";
-import KakaoPay from "../../components/order/KakaoPay.tsx";
+import { useEventStore } from '../../types/StoreType/EventState';
+import TicketingHeader from '../../components/ticketing/TicketingHeader.tsx';
+import OrderConfirmation from '../../components/order/OrderConfirmation.tsx';
 
 function Order() {
-  const {
-    faceImg,
-    eventScheduleId,
-    selectedSeats,
-    eventTitle,
-    eventStage,
-    eventDate,
-    eventTime,
-  } = useEventStore();
-  console.log("넘겨받은 데이터:", { faceImg, eventScheduleId, selectedSeats });
+  const { faceImg, eventScheduleId, selectedSeats } = useEventStore();
+  console.log('넘겨받은 데이터:', { faceImg, eventScheduleId, selectedSeats });
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
       {/* 헤더 */}
       <div className="relative z-10 h-[192px] bg-black hidden sm:block">
-        <TicketingHeader step={"4"} />
+        <TicketingHeader step={4} />
       </div>
 
       {/* 메인 UI */}

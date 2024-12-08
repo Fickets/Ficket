@@ -46,6 +46,7 @@ const SelectSeat = () => {
       grade: string;
       row: string;
       col: string;
+      price: number;
     }[]
   >([]);
   const [gradeColors, setGradeColors] = useState<{
@@ -131,7 +132,11 @@ const SelectSeat = () => {
         const payload = {
           eventScheduleId: eventScheduleId,
           reservationLimit: eventSummary.reservationLimit,
-          seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
+          selectSeatInfoList: selectedSeats.map((seat) => ({
+            seatMappingId: seat.seatMappingId,
+            seatPrice: seat.price,
+            seatGrade: seat.grade,
+          })),
         };
 
         await lockSeats(payload);
@@ -139,10 +144,8 @@ const SelectSeat = () => {
         setSelectedSeats(selectedSeats);
 
         navigate("/ticketing/register-face");
-      } catch (error) {
-        console.error("Error locking seats:", error);
-
-        alert("좌석 선점에 실패했습니다. 다시 시도해주세요.");
+      } catch (error: any) {
+        alert(`${error.message}`);
       }
     }
   };

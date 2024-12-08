@@ -125,6 +125,7 @@ const DraggableSeatMap = ({
             grade: seat.seatGrade,
             row: seat.seatRow,
             col: seat.seatCol,
+            price: seat.seatPrice,
           },
         ]);
       } else {

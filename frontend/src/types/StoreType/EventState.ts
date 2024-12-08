@@ -14,6 +14,7 @@ interface EventState {
     grade: string;
     row: string;
     col: string;
+    price: number;
   }[];
   setEventInfo: (
     eventInfo: Partial<
@@ -47,7 +48,6 @@ const createEventState: StateCreator<EventState> = (set) => ({
   eventStage: '',
   faceImg: null,
   selectedSeats: [], // 초기값은 빈 배열
-
 
   // 상태 업데이트 함수
   setEventInfo: (
@@ -89,7 +89,6 @@ const createEventState: StateCreator<EventState> = (set) => ({
     }));
   },
 
-
   // 상태 초기화 함수
   resetEventInfo: () => {
     set(() => ({
@@ -105,11 +104,11 @@ const createEventState: StateCreator<EventState> = (set) => ({
   },
 
   setEventId: (newId: number) => set(() => ({ eventId: newId })),
-  setEventScheduleId: (newId: number) => set(() => ({ eventScheduleId: newId })),
+  setEventScheduleId: (newId: number) =>
+    set(() => ({ eventScheduleId: newId })),
   setEventDate: (newDate: string) => set(() => ({ eventDate: newDate })),
   setEventTime: (newTime: string) => set(() => ({ eventTime: newTime })),
 });
-
 
 // Zustand 스토어 생성
 export const useEventStore = create<EventState>(createEventState);

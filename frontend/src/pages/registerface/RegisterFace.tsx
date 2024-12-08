@@ -1,16 +1,14 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import PictureBox from "../../components/registerface/PictureBox";
-import PolicyAgree from "../../components/registerface/PolicyAgree";
-import { useEventStore } from "../../types/StoreType/EventState";
-import { unLockSeats } from "../../service/selectseat/api";
-import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import PictureBox from '../../components/registerface/PictureBox';
+import PolicyAgree from '../../components/registerface/PolicyAgree';
+import { useEventStore } from '../../types/StoreType/EventState';
+import { unLockSeats } from '../../service/selectseat/api';
+import TicketingHeader from '../../components/ticketing/TicketingHeader.tsx';
 
 function RegisterFace() {
   const navigate = useNavigate();
   const {
-    eventTitle,
-    eventStage,
     faceImg,
     setFaceImg,
     selectedSeats,
@@ -33,22 +31,22 @@ function RegisterFace() {
 
       navigate(`/ticketing/select-seat`);
     } catch (error) {
-      console.error("Error locking seats:", error);
+      console.error('Error locking seats:', error);
 
-      alert("좌석 선점에 실패했습니다. 다시 시도해주세요.");
+      alert('좌석 선점에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
   const handleNextStep = () => {
     if (!allAgreed) {
-      alert("모든 항목에 동의해야 합니다.");
+      alert('모든 항목에 동의해야 합니다.');
       return;
     }
     if (!faceImg) {
-      alert("이미지를 업로드해야 합니다.");
+      alert('이미지를 업로드해야 합니다.');
       return;
     }
-    navigate("/ticketing/order");
+    navigate('/ticketing/order');
   };
 
   return (
