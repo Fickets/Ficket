@@ -6,10 +6,11 @@ import com.example.ficketticketing.domain.order.client.UserServiceClient;
 import com.example.ficketticketing.domain.order.dto.client.FaceApiResponse;
 import com.example.ficketticketing.domain.order.dto.client.ReservedSeatsResponse;
 import com.example.ficketticketing.domain.order.dto.client.UserSimpleDto;
+import com.example.ficketticketing.domain.order.dto.client.ValidSeatInfoResponse;
 import com.example.ficketticketing.domain.order.dto.kafka.OrderDto;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.request.SelectSeatInfo;
-import com.example.ficketticketing.domain.order.entity.OrderStatus;
+import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.messagequeue.OrderProducer;
 import com.example.ficketticketing.domain.order.repository.OrderRepository;
@@ -17,7 +18,6 @@ import com.example.ficketticketing.global.result.error.ErrorCode;
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
 import com.example.ficketticketing.infrastructure.payment.PortOneApiClient;
 import com.example.ficketticketing.infrastructure.payment.dto.WebhookPayload;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +41,7 @@ import static com.example.ficketticketing.global.utils.CircuitBreakerUtils.execu
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class OrderService {
 
@@ -164,7 +165,6 @@ public class OrderService {
         }
     }
 
-    @Transactional
     public Long createOrder(CreateOrderRequest createOrderRequest, MultipartFile userFaceImage, Long userId) {
         // 유저 조회
         UserSimpleDto userDto = executeWithCircuitBreaker(circuitBreakerRegistry,
@@ -172,11 +172,12 @@ public class OrderService {
                 () -> userServiceClient.getUser(userId)
         );
 
+        ValidSeatInfoResponse validSeatInfoResponse = checkRequestValid(createOrderRequest);
+
         Set<Long> seatMappingIds = createOrderRequest.getSelectSeatInfoList().stream().map(SelectSeatInfo::getSeatMappingId)
                 .collect(Collectors.toSet());
 
-        // todo 해당 유저가 좌석을 선점 중인지 체크
-        if (seatMappingIds.isEmpty() || seatMappingIds.size() > createOrderRequest.getReservationLimit()) {
+        if (seatMappingIds.isEmpty() || seatMappingIds.size() > validSeatInfoResponse.getReservationLimit()) {
             throw new BusinessException(ErrorCode.INPUT_VALUE_INVALID);
         }
 
@@ -205,7 +206,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public OrderStatus getOrderStatus(Long orderId) {
+    public OrderStatusResponse getOrderStatus(Long orderId) {
         return orderRepository.findOrderStatusByOrderId(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_STATUS));
     }
@@ -220,21 +221,35 @@ public class OrderService {
             throw new BusinessException(ErrorCode.NOT_MATCH_RESERVED_SEATS);
         }
 
-        // todo 클라이언트 요청값과 선택 좌석 정보(db) 일치 검증
-
         log.info("해당 유저가 선점한 좌석 : {}", reservedSeatsResponse.getReservedSeats());
+    }
+
+    private ValidSeatInfoResponse checkRequestValid(CreateOrderRequest createOrderRequest) {
+        ValidSeatInfoResponse validSeatInfoResponse = executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "checkRequestValidCircuitBreaker",
+                () -> eventServiceClient.checkRequest(createOrderRequest));
+
+        if (createOrderRequest.getSelectSeatInfoList().equals(validSeatInfoResponse.getSelectSeatInfoList())) {
+            throw new BusinessException(ErrorCode.INPUT_VALUE_INVALID);
+        }
+
+        return validSeatInfoResponse;
+
     }
 
 
     private boolean verifyPaidInfo(String paymentId) {
         Map<String, Object> paymentDetails = portOneApiClient.getPaymentDetails(paymentId);
         String status = (String) paymentDetails.get("status");
-        String amount = (String) paymentDetails.get("amount");
+        Map<String, Integer> amount = (Map<String, Integer>) paymentDetails.get("amount");
+        BigDecimal totalPrice = new BigDecimal(amount.get("total"));
+
 
         BigDecimal orderPrice = orderRepository.findOrderByPaymentId(paymentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_PRICE));
 
-        return ("PAID".equalsIgnoreCase(status) && orderPrice.compareTo(new BigDecimal(amount)) == 0);
+        return ("PAID".equalsIgnoreCase(status) && orderPrice.compareTo(totalPrice) == 0);
     }
 
     private void notifyClient(String paymentId, String status) {

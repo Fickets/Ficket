@@ -1,5 +1,6 @@
 package com.example.ficketticketing.domain.order.repository;
 
+import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,6 @@ public interface OrderRepository extends JpaRepository<Orders,Long> {
     @Query("UPDATE Orders o SET o.orderStatus = :orderStatus WHERE o.orderId = :orderId")
     void updateOrderStatus(@Param("orderId") Long orderId, @Param("orderStatus") OrderStatus orderStatus);
 
-    @Query("SELECT o.orderStatus FROM Orders o WHERE o.orderId = :orderId")
-    Optional<OrderStatus> findOrderStatusByOrderId(@Param("orderId") Long orderId);
+    @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse(o.orderStatus) FROM Orders o WHERE o.orderId = :orderId")
+    Optional<OrderStatusResponse> findOrderStatusByOrderId(@Param("orderId") Long orderId);
 }

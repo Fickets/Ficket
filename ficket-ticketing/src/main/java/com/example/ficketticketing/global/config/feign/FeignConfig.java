@@ -15,8 +15,8 @@ public class FeignConfig {
         return new FeignErrorDecoder();
     }
 
-    @Bean
-    public Encoder feignEncoder() {
-        return new SpringFormEncoder();
-    }
+//    @Bean
+//    public Encoder feignEncoder() {
+//        return new SpringFormEncoder();
+//    }
 }

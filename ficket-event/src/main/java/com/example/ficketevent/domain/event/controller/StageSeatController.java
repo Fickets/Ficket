@@ -1,5 +1,7 @@
 package com.example.ficketevent.domain.event.controller;
 
+import com.example.ficketevent.domain.event.dto.common.CreateOrderRequest;
+import com.example.ficketevent.domain.event.dto.common.ValidSeatInfoResponse;
 import com.example.ficketevent.domain.event.dto.common.ReservedSeatsResponse;
 import com.example.ficketevent.domain.event.dto.request.SelectSeat;
 import com.example.ficketevent.domain.event.dto.request.UnSelectSeat;
@@ -13,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -93,9 +94,30 @@ public class StageSeatController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 좌석 선점 여부 검증 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-07
+     * 변경 이력:
+     * - 2024-12-07 오형상: 초기 작성
+     */
     @GetMapping
     public ResponseEntity<ReservedSeatsResponse> getReservedSeats(@QueryParam("userId") Long userId, @QueryParam("eventScheduleId") Long eventScheduleId) {
         return ResponseEntity.ok(stageSeatService.getReservedSeats(userId, eventScheduleId));
+    }
+
+    /**
+     * 결제 정보 검증 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-08
+     * 변경 이력:
+     * - 2024-12-08 오형상: 초기 작성
+     */
+    @PostMapping("/valid-request")
+    ResponseEntity<ValidSeatInfoResponse> checkRequest(@RequestBody CreateOrderRequest createOrderRequest) {
+        return ResponseEntity.ok(stageSeatService.validRequest(createOrderRequest));
     }
 
 }

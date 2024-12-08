@@ -30,6 +30,8 @@ resilience4j:
         base-config: default
       postUserFaceImgCircuitBreaker:
         base-config: default
+      checkRequestValidCircuitBreaker:
+        base-config: default
 
 logging:
   level:

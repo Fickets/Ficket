@@ -1,5 +1,6 @@
 package com.example.ficketevent.domain.event.repository;
 
+import com.example.ficketevent.domain.event.dto.request.SelectSeatInfo;
 import com.example.ficketevent.domain.event.dto.response.SeatCntByGrade;
 import com.example.ficketevent.domain.event.dto.response.SeatGradeInfo;
 import com.example.ficketevent.domain.event.dto.response.SeatInfo;
@@ -35,5 +36,8 @@ public interface SeatMappingRepository extends JpaRepository<SeatMapping, Long> 
     @Query("SELECT sm FROM SeatMapping sm WHERE sm.ticketId IS NULL AND sm.seatMappingId = :seatMappingId")
     Optional<SeatMapping> findBySeatMappingIdAndTicketIdIsNull(@Param("seatMappingId") Long seatMappingId);
 
+    @Query("SELECT new com.example.ficketevent.domain.event.dto.request.SelectSeatInfo(sm.seatMappingId, sm.stagePartition.partitionPrice, sm.stagePartition.partitionName) " +
+            "FROM SeatMapping sm WHERE sm.seatMappingId IN :seatMappingIds")
+    Set<SelectSeatInfo> findSeatInfoInSeatMappingIds(@Param("seatMappingIds") Set<Long> seatMappingIds);
 
 }

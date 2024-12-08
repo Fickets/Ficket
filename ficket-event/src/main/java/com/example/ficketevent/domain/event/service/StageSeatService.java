@@ -1,13 +1,18 @@
 package com.example.ficketevent.domain.event.service;
 
+import com.example.ficketevent.domain.event.dto.common.CreateOrderRequest;
 import com.example.ficketevent.domain.event.dto.common.ReservedSeatsResponse;
+import com.example.ficketevent.domain.event.dto.common.ValidSeatInfoResponse;
 import com.example.ficketevent.domain.event.dto.kafka.OrderDto;
 import com.example.ficketevent.domain.event.dto.kafka.SeatMappingUpdatedEvent;
+import com.example.ficketevent.domain.event.dto.request.SelectSeatInfo;
 import com.example.ficketevent.domain.event.dto.response.*;
+import com.example.ficketevent.domain.event.entity.EventSchedule;
 import com.example.ficketevent.domain.event.entity.EventStage;
 import com.example.ficketevent.domain.event.entity.SeatMapping;
 import com.example.ficketevent.domain.event.mapper.StageSeatMapper;
 import com.example.ficketevent.domain.event.messagequeue.SeatMappingProducer;
+import com.example.ficketevent.domain.event.repository.EventScheduleRepository;
 import com.example.ficketevent.domain.event.repository.EventStageRepository;
 import com.example.ficketevent.domain.event.repository.SeatMappingRepository;
 import com.example.ficketevent.domain.event.repository.StageSeatRepository;
@@ -42,6 +47,7 @@ public class StageSeatService {
     private final SeatMappingRepository seatMappingRepository;
     private final RedissonClient redissonClient;
     private final SeatMappingProducer seatMappingProducer;
+    private final EventScheduleRepository eventScheduleRepository;
 
     /**
      * 주어진 행사장(stageId)에 대한 좌석 목록을 조회하고, 결과를 캐싱합니다.
@@ -246,5 +252,23 @@ public class StageSeatService {
             seatMappingProducer.publishSeatMappingUpdatedEvent(failedEvent);
             log.info("Published failure event for orderId: {}", orderId);
         }
+    }
+
+    public ValidSeatInfoResponse validRequest(CreateOrderRequest createOrderRequest) {
+        Long requestEventScheduleId = createOrderRequest.getEventScheduleId();
+
+        EventSchedule eventSchedule = eventScheduleRepository.findById(requestEventScheduleId).orElseThrow(
+                () -> new BusinessException(ErrorCode.EVENT_SESSION_NOT_FOUND)
+        );
+
+        Set<Long> seatMappingIds = createOrderRequest.getSelectSeatInfoList().stream().map(SelectSeatInfo::getSeatMappingId).collect(Collectors.toSet());
+
+        Set<SelectSeatInfo> seatInfoInSeatMappingIds = seatMappingRepository.findSeatInfoInSeatMappingIds(seatMappingIds);
+
+        return ValidSeatInfoResponse
+                .builder()
+                .reservationLimit(eventSchedule.getEvent().getReservationLimit())
+                .selectSeatInfoList(seatInfoInSeatMappingIds)
+                .build();
     }
 }
