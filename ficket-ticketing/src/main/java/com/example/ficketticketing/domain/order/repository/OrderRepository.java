@@ -26,4 +26,6 @@ public interface OrderRepository extends JpaRepository<Orders,Long> {
 
     @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse(o.orderStatus) FROM Orders o WHERE o.orderId = :orderId")
     Optional<OrderStatusResponse> findOrderStatusByOrderId(@Param("orderId") Long orderId);
+
+    boolean existsByPaymentIdAndOrderStatus(String paymentId, OrderStatus orderStatus);
 }

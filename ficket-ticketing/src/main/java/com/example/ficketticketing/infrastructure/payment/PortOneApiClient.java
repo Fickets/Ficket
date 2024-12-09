@@ -2,7 +2,6 @@ package com.example.ficketticketing.infrastructure.payment;
 
 import com.example.ficketticketing.global.result.error.ErrorCode;
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
-import com.example.ficketticketing.infrastructure.payment.dto.PaymentDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
