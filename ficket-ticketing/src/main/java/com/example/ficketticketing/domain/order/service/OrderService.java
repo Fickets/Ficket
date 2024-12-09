@@ -11,6 +11,7 @@ import com.example.ficketticketing.domain.order.dto.kafka.OrderDto;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.request.SelectSeatInfo;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
+import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.messagequeue.OrderProducer;
 import com.example.ficketticketing.domain.order.repository.OrderRepository;
@@ -140,6 +141,17 @@ public class OrderService {
     private void handleEvent(WebhookPayload data) {
         String type = data.getType();
         String paymentId = data.getData().getPaymentId();
+
+//        // 중복 이벤트 방지: 이미 완료되었거나 취소된 결제는 무시
+//        if (orderRepository.existsByPaymentIdAndOrderStatus(paymentId, OrderStatus.COMPLETED)) {
+//            log.info("이미 처리된 결제: {}", paymentId);
+//            return; // 중복 이벤트 무시
+//        }
+//
+//        if (orderRepository.existsByPaymentIdAndOrderStatus(paymentId, OrderStatus.CANCELLED)) {
+//            log.info("이미 취소된 결제: {}", paymentId);
+//            return; // 중복 이벤트 무시
+//        }
 
         log.info("Processing event type: {}", type);
         switch (type) {

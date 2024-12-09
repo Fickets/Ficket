@@ -45,11 +45,11 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**
-        # ADMIN SERVICE
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/user-swagger/v3/api-docs
+        # ADMIN SERVICE
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -81,11 +81,11 @@ spring:
             - Path=/api/v1/admins/**
           filters:
             - AdminRoleCheckFilter
-        # EVENT-SERVICE
         - id: admin-service
           uri: lb://admin-service
           predicates:
             - Path=/admin-swagger/v3/api-docs
+        # EVENT-SERVICE
         - id: event-service
           uri: lb://event-service
           predicates:

@@ -30,7 +30,7 @@ ext {
 dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-//    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'io.projectreactor:reactor-test'
 
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0'
