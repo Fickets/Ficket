@@ -1,16 +1,40 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from 'zustand';
+import moment from 'moment';
+import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+
 import { eventDetail } from '../../service/event/eventApi';
 import { eventDetailStore } from '../../stores/EventStore';
 import { useEventStore } from '../../types/StoreType/EventState';
 import Calendar from 'react-calendar';
-import CustomCalendar from '../../components/ticketing/CustomCalendar';
+import './CustomDetailCalendar.css'
+import 'react-calendar/dist/Calendar.css';
+import { eventScheduleDto } from '../../types/StoreType/EventDetailStore';
+import { userStore } from '../../stores/UserStore';
 import UserHeader from '../../components/@common/UserHeader';
+import manImg from '../../assets/statistics/man.png'
+import womanImg from '../../assets/statistics/woman.png'
+
 const EventDetail: React.FC = () => {
+
+    const { eventId } = useParams();
     const navi = useNavigate();
     const event = useStore(eventDetailStore)
+    const user = useStore(userStore);
     const [showPrice, setShowPrice] = useState(false);
+    const [selectedButton, setSelectedButton] = useState<number>();
+    const [eventRounds, setEventRounds] = useState<Record<string, eventScheduleDto>>({}); // Map 타입으로 초기화
+    const [choiceRound, setChoiceRound] = useState<number>();
+    const [activeTab, setActiveTab] = useState("performance");
+    // const [selectedButton, setSelectedButton] = React.useState(null);
+
+
+    // Chart.js 모듈 등록
+    ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
+
     const togglePrice = () => {
         setShowPrice((prev) => !prev);
     };
@@ -22,21 +46,137 @@ const EventDetail: React.FC = () => {
     } = useEventStore();
 
 
+    const chartData = {
+        labels: ["10대", "20대", "30대", "40대", "50대"],
+        datasets: [
+            {
+                label: "Sales",
+                data: [13.7, 32.6, 27.7, 18, 7],
+                backgroundColor: "#5B4DFF", // 바 색상
+                borderColor: "#5B4DFF",       // 테두리 색상
+                borderWidth: 1,                             // 테두리 두께
+            },
+        ],
+    };
+    const chartOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false, // 범례 비활성화
+            },
+            tooltip: {
+                enabled: false, // 툴팁 비활성화
+            },
+            datalabels: {
+                color: "#5B4DFF", // 데이터 레이블 색상
+                anchor: "end", // 데이터 레이블 위치
+                align: "end",  // 데이터 레이블 정렬
+                formatter: (value) => `${value}%`, // 데이터 레이블 형식
+                font: {
+                    size: 12, // 데이터 레이블 글씨 크기
+                },
+            },
+        },
+        scales: {
+            x: {
+                display: false, // x축 숨김
+            },
+            y: {
+                display: false, // y축 숨김
+            },
+        },
+        layout: {
+            padding: {
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 10,
+            },
+        },
+    };
 
 
 
 
-    let choiceId = 1;// 임시 EVENTID
+    // 여기부터 달력 함수 입니다 ------------------------------------------------
 
+    const eventDates = Object.keys(event.scheduleMap);
+    const [choiceDate, setChoiceDate] = useState<string | null>(null); // 선택된 날짜 상태
+
+    // 예매 가능 날짜 설정
+    const availableDates = eventDates.map((dateString) => {
+        const [year, month, day] = dateString.split('-').map(Number);
+        return new Date(year, month - 1, day); // month는 0부터 시작하므로 -1 필요
+    });
+    // 처음 선택 날자
+    const initialDate = availableDates.at(-1);
+
+    // 선택된 날짜가 변경될 때마다 실행
+    const handleDateSelect = (date: string) => {
+        setChoiceDate(date); // 날짜 선택 시 choiceDate 상태 업데이트
+        setEventRounds(event.scheduleMap[date])
+        console.log(eventRounds)
+        setChoiceRound(1); // round를 초기화
+        console.log(choiceRound);
+    };
+
+    useEffect(() => {
+
+    })
+
+
+    // 날짜 클릭 핸들러
+    const handleDateClick = (date) => {
+        if (availableDates.some(d => d.toDateString() === date.toDateString())) {
+            setChoiceDate(date);
+            const formattedDate = date.toLocaleDateString("en-CA");
+            const selectedEventRounds = event.scheduleMap[formattedDate];
+            event.setChoiceDate(formattedDate);
+            setEventRounds(selectedEventRounds)
+            setChoiceRound(1); // round를 초기화
+            setSelectedButton(0)
+            event.setRound(1);
+
+        }
+    };
+    // 클릭 불가능한 날짜 설정
+    const tileDisabled = ({ date, view }) => {
+        if (view === 'month') {
+            // `availableDates`에 포함되지 않은 날짜는 클릭 비활성화
+            return !availableDates.some(d => d.toDateString() === date.toDateString());
+        }
+        return false;
+    };
+    // 날짜별 스타일 적용
+    const tileClassName = ({ date, view }) => {
+        if (view === 'month') {
+            if (choiceDate && date.toDateString() === choiceDate.toDateString()) {
+                return 'selected-date'; // 선택된 날짜 스타일
+            }
+            if (availableDates.some(d => d.toDateString() === date.toDateString())) {
+                return 'available-date'; // 예매 가능 날짜 스타일
+            }
+        }
+        return null;
+    };
+
+    // 달력 함수 END LINE ------------------------------------------------
+    const roundButtonClick = (e) => {
+        const key = parseInt(e.currentTarget.getAttribute('data-key') || ''); // data-key 값을 숫자로 변환
+        setSelectedButton(key); // 상태 업데이트
+        console.log(`Clicked key: ${key}`);
+        event.setRound(key + 1);
+    };
 
 
     useEffect(() => {
         eventDetailGet();
+
     }, [])
 
     const eventDetailGet = async () => {
         await eventDetail(
-            choiceId,
+            Number(eventId),
             (response) => {
                 const res = response.data
                 event.setAdminId(res.adminId);
@@ -61,7 +201,7 @@ const EventDetail: React.FC = () => {
                 event.setPosterPcMainUrl(res.posterPcMainUrl);
                 event.setPartitionPrice(res.partitionPrice)
                 event.setScheduleMap(res.scheduleMap);
-                setEventId(choiceId);
+                setEventId(Number(eventId));
 
 
             }, (error) => {
@@ -70,29 +210,26 @@ const EventDetail: React.FC = () => {
         )
     }
 
-    const choiceDate = async () => {
-        let asd = "2024-12-26T17:00:00";
-        event.setTicketingStep(true);
-        event.setScheduleId(3);
-        event.setChoiceDate(asd.split("T")[0]);
-        event.setChoicetime(asd.split("T")[1]);
-        event.setRound(1);
-    }
-
-
     const goTicketing = async () => {
-        // navi("/ticketing/select-date")
-        let url = "";
-        if (event.ticketingStep) {
-            url = "/ticketing/select-seat";
+        if (user.isLogin) {
+            let url = "";
+            if (event.ticketingStep) {
+                url = "/ticketing/select-seat";
+            } else {
+                url = "/ticketing/select-date";
+            }
+            window.open(
+                url,
+                '_blank', // 새 창 이름
+                `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`
+            );
         } else {
-            url = "/ticketing/select-date";
+            if (event.choiceDate && event.round) {
+                navi("/users/login")
+            } else {
+                alert("날짜/회차를 선택해 주세요.")
+            }
         }
-        window.open(
-            url,
-            '_blank', // 새 창 이름
-            `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`
-        );
     }
 
     return (
@@ -100,9 +237,9 @@ const EventDetail: React.FC = () => {
 
             {/** TESt  */}
             {/**아래가 개발 코드 여기는 테스트 코드  */}
-            <div>
+            {/* <div>
                 <h1>이벤트 디테일 페이지 입니다</h1>
-                <button onClick={choiceDate} className='bg-black text-white'>
+                <button onClick={choiceDate1} className='bg-black text-white'>
                     날짜선택버튼
                 </button>
                 <br></br>
@@ -111,7 +248,7 @@ const EventDetail: React.FC = () => {
                 </button>
             </div>
             <br></br>
-            <hr className='border-4' /><br></br>
+            <hr className='border-4' /><br></br> */}
             {/**아래가 개발 코드 위는 테스트 코드  */}
 
 
@@ -122,13 +259,13 @@ const EventDetail: React.FC = () => {
                 <hr className='mt-[15px] mb-[50px]' />
 
                 {/* 공연 정보 영역 */}
-                <div className='mx-[330px]'>
+                <div className='ml-[330px] '>
 
                     <h1 className='text-[24px] font-medium mb-[25px]'
                     >{event.title}</h1>
                     <div className='flex'>
                         <img src={event.posterPcMainUrl} alt="" />
-                        <div className='ml-[55px] mt-[20px]'>
+                        <div className='ml-[55px] mt-[20px] min-w-[500px] max-w-[500px]'>
                             <div className='flex mb-[20px]'>
                                 <p className='text-[16px] w-[90px]'>
                                     장소</p>
@@ -154,6 +291,15 @@ const EventDetail: React.FC = () => {
                                 <p className='text-[16px] w-[90px]'>
                                     관람연령</p>
                                 <p>{event.age.replaceAll('_', ' ')}</p>
+                            </div>
+                            <div className='flex mb-[20px]'>
+                                <h2
+                                    className='w-[90px]'>장르</h2>
+                                <p className='flex'>
+                                    {event.genre.map((element, index) => (
+                                        <p key={index}>{element.replaceAll("_", "\/")}&nbsp;&nbsp;</p>  // 각 항목을 <p> 태그로 렌더링
+                                    ))}
+                                </p>
                             </div>
                             <div className='flex mb-[20px]'>
                                 <p className='text-[16px] w-[90px]'>
@@ -184,69 +330,233 @@ const EventDetail: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        {/** 달력 */}
-                        <div className='ml-[200px]'>
-                            <Calendar />
+                        {/** 달력/회차/예매버튼 */}
+                        <div className='fixed bg-white  top-[250px] ml-[900px]'>
+                            <div className='ml-[0px] w-[340px]  border border-2 rounded-xl '>
+                                <h1 className='m-[20px] font-medium'>관람일</h1>
+                                <Calendar
+                                    className='detailCalendar'
+                                    onChange={handleDateClick}
+                                    value={Object.keys(event.scheduleMap).at(-1)} // 초기 날짜 설정 (예매 가능 첫 날짜)
+                                    locale="ko-KR" // 한국어 설정
+                                    formatDay={(locale, date) => moment(date).format("D")}
+                                    tileClassName={tileClassName}
+                                    tileDisabled={tileDisabled} // 클릭 비활성화 로직 추가
+                                    next2Label={null} // 다음 달 화살표 숨기기
+                                    prev2Label={null} // 이전 달 화살표 숨기기
+                                    showNeighboringMonth={false} // 이전/다음 달 날짜 숨기기
+                                />
+                                <hr className=' border  border-[#5B4DFF]' />
+                                <h1 className='my-[15px] ml-[20px] font-medium'>회차</h1>
+                                <div className='flex w-[300px] h-[70px]  mx-[20px] overflow-x-auto'>
+                                    {eventRounds && Object.entries(eventRounds).map(([key, value], index) => (
+                                        <button
+                                            key={index}
+                                            data-key={index}
+                                            className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index ? 'bg-[#8E43E7] text-white' : 'bg-white'
+                                                }`}
+                                            onClick={(e) => roundButtonClick(e)}
+                                        // onClick={setSelectedButton(key)}
+                                        >
+                                            <p>{value["round"]}회</p> &nbsp;
+                                            <p>{value["eventDate"].split("T")[1].split(":")[0] + ":" + value["eventDate"].split("T")[1].split(":")[1]}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className='ml-[0px]'>
+                                <button className='mt-[30px] w-[340px] h-[50px] bg-[#8E43E7] font-bold text-white text-[20px]'
+                                    onClick={goTicketing}
+                                >
+                                    예매하기
+                                </button>
+                            </div>
                         </div>
                     </div>
+
+                    {/** 공연 상세 정보 */}
                     <div className='flex flex-col'>
-                        asd
+                        <br></br><br></br>
                     </div>
-
-                </div>
-                {/* 아래는아직 미구현 껍대기 나중에 삭제*/}
-                <div className="performance-info flex mt-[20px] mb-8">
-
-                    <div className="details">
-                        <h2 className="text-xl font-semibold mb-4">
-                            2023 클래식콘서트: 불멸의 '비발디'
-                        </h2>
-                        <p className="text-gray-700">
-                            공연기간: 2023.01.01 ~ 2023.01.31
-                            <br />
-                            공연시간: 매주 토요일 오후 5시
-                            <br />
-                            장소: 예술의전당 콘서트홀
-                        </p>
-                    </div>
-                </div>
-
-                {/* 달력 영역 */}
-                <div className="calendar-section mb-8">
-                    <h3 className="text-lg font-medium mb-4">예매하기</h3>
-                    <Calendar />
-                </div>
-
-                {/* 이미지 미리보기 영역 */}
-                <div className="preview-section mb-8">
-                    <h3 className="text-lg font-medium mb-4">좌석배치 & 공연정보</h3>
-                    <div className="preview-box bg-gray-200 flex items-center justify-center h-52 rounded-md">
-                        {/* Placeholder 이미지 */}
-                        <span className="text-gray-500 text-lg">이미지</span>
-                    </div>
-                </div>
-
-                {/* 예매자 통계 영역 */}
-                <div className="stats-section">
-                    <h3 className="text-lg font-medium mb-4">예매자 통계</h3>
-                    <div className="stats-container flex gap-6">
-                        <div className="age-stat bg-gray-100 p-4 rounded-md w-1/2 shadow-md">
-                            <h4 className="text-md font-medium mb-2">연령 통계</h4>
-                            {/* 연령 통계 차트 이미지 또는 컴포넌트 */}
-                            <div className="chart-placeholder bg-gray-300 h-36 rounded-md flex items-center justify-center">
-                                <span className="text-gray-500 text-sm">차트 이미지</span>
-                            </div>
+                    <div className="w-[840px] ">
+                        {/* Tab Header */}
+                        <div className="flex border-b border-gray-300 sticky top-0 bg-white">
+                            <button
+                                className={`flex-1 text-center py-2 ${activeTab === "performance"
+                                    ? "border-b-2 border-black font-semibold"
+                                    : "text-gray-500"
+                                    }`}
+                                onClick={() => setActiveTab("performance")}
+                            >
+                                공연 정보
+                            </button>
+                            <button
+                                className={`flex-1 text-center py-2 ${activeTab === "sales"
+                                    ? "border-b-2 border-black font-semibold"
+                                    : "text-gray-500"
+                                    }`}
+                                onClick={() => setActiveTab("sales")}
+                            >
+                                판매 정보
+                            </button>
                         </div>
-                        <div className="gender-stat bg-gray-100 p-4 rounded-md w-1/2 shadow-md">
-                            <h4 className="text-md font-medium mb-2">성별 통계</h4>
-                            {/* 성별 통계 차트 이미지 또는 컴포넌트 */}
-                            <div className="chart-placeholder bg-gray-300 h-36 rounded-md flex items-center justify-center">
-                                <span className="text-gray-500 text-sm">차트 이미지</span>
-                            </div>
+
+                        {/* Tab Content */}
+                        <div className="mt-6">
+                            {activeTab === "performance" && (
+                                <div>
+
+                                    <div
+                                        dangerouslySetInnerHTML={{ __html: event.content }}
+                                    />
+                                    <br></br>
+                                    {/* 예매자 통계 영역 */}
+                                    <div className="stats-section">
+                                        <h3 className="text-lg font-medium mb-4">예매자 통계</h3>
+                                        <div className="stats-container flex gap-6">
+                                            <div className="age-stat  p-4 rounded-md w-1/2 shadow-md border">
+                                                <h4 className="text-md font-medium mb-2">연령 통계</h4>
+                                                {/* 연령 통계 차트 이미지 또는 컴포넌트 */}
+                                                <div className="flex chart-placeholder h-[200px] rounded-md flex items-center justify-center">
+                                                    <img src={manImg} className='w-[100px]' alt="" />
+                                                    <div className='flex flex-col'>
+                                                        <p className='mt-[0px]'>남자 </p>
+                                                        <p className='text-[30px] text-[#5B4DFF]'>63.5%</p>
+                                                    </div>
+                                                    <img src={womanImg} className='w-[100px]' alt="" />
+                                                    <div className='flex flex-col'>
+                                                        <p className='mt-[10px]'>여자 </p>
+                                                        <p className='text-[30px] text-[#5B4DFF]'>63.5%</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="gender-stat p-4 rounded-md w-1/2 shadow-md border">
+                                                <h4 className="text-md font-medium mb-2">성별 통계</h4>
+                                                {/* 성별 통계 차트 이미지 또는 컴포넌트 */}
+                                                <div className="chart-placeholder h-[200px] rounded-md flex items-center justify-center">
+                                                    <Bar data={chartData} options={chartOptions} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            )}
+
+                            {activeTab === "sales" && (
+                                <div>
+                                    <h2 className="text-xl font-bold">판매 정보</h2>
+                                    <div className="max-w-4xl">
+                                        {/** 시작  */}
+                                        <div className="max-w-4xl  p-[20px]">
+                                            <div className="bg-white">
+                                                {/* 상품 관련 정보 테이블 */}
+                                                <section className="mb-6">
+                                                    <h2 className="text-lg font-semibold text-gray-800 mb-4">상품 관련 정보</h2>
+                                                    <div className="min-w-full">
+                                                        <tbody className='border'>
+                                                            <div className='flex'>
+                                                                <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">주최/기획</p>
+                                                                <p className="px-4 py-2 text-black text-[14px] w-[300px] border">{event.companyName}</p>
+                                                                <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">고객문의</p>
+                                                                <p className="px-4 py-2 text-black text-[14px] w-[300px] border">02-6467-2200</p>
+                                                            </div>
+                                                            <div className='flex'>
+                                                                <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">상영시간</p>
+                                                                <p className="px-4 py-2 text-black text-[14px] w-[300px] border">{event.runningTime}분</p>
+                                                                <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">관람연령</p>
+                                                                <p className="px-4 py-2 text-black text-[14px] w-[300px] border">{event.age.replaceAll("_", " ")}</p>
+                                                            </div>
+                                                            <div className='flex'>
+                                                                <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">예매수수료</p>
+                                                                <p className="px-4 py-2 text-black text-[14px] w-[300px] border">장당 2,000원</p>
+                                                                <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">공연장</p>
+                                                                <p className="px-4 py-2 text-black text-[14px] w-[300px] border">{event.sido} {event.sigungu} {event.street} {event.stageName}</p>
+                                                            </div>
+                                                            <div className='flex'>
+                                                                <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">예매시작시간</p>
+                                                                <p className="px-4 py-2 text-black text-[14px] w-[300px] border">{event.ticketingTime.replace("T", " ")}</p>
+                                                                <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">예매가능기간</p>
+                                                                <p className="px-4 py-2 text-black text-[14px] w-[300px] border">{eventDates.at(-1)} ~ {eventDates[0]} 오전 11시</p>
+                                                            </div>
+                                                            <div className='flex'>
+                                                                <p className='px-4 py-[10px] bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border'>예매취소조건</p>
+                                                                <div className='flex flex-col'>
+                                                                    <p className='p-[10px] w-[720px] border'>취소일자에 따라서 아래와 같이 취소수수료가 부과됩니다. 예매 일 기준보다 관람일 기준이 우선 적용됩니다. 단, 예매 당일 밤 12시 이전 취소 시에는 취소수수료가 없으며, 예매 수수료도 환불됩니다.(취소기한 내에 한함)</p>
+                                                                    <div className='p-[5px] flex w-[720px] '>
+                                                                        <p className='bg-gray-100 w-[360px] h-[50px] border text-center flex items-center justify-center leading-none'>
+                                                                            취소일
+                                                                        </p>
+                                                                        <p className='bg-gray-100 w-[360px] h-[50px] border leading-none items-center flex justify-center'>취소수수료</p>
+                                                                    </div>
+                                                                    <div className='flex'>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-r-[1px] border-b-[1px]  flex items-center leading-none'>예매 후 7일 이내</p>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-b-[1px]  flex items-center leading-none'>없음</p>
+                                                                    </div>
+                                                                    <div className='flex'>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-r-[1px] border-b-[1px]  flex items-center leading-none'>예매 후 8일~관람일 10일전까지</p>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-b-[1px]  flex items-center leading-none'>장당 4,000원(티켓금액의 10%한도)</p>
+                                                                    </div>
+                                                                    <div className='flex'>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-r-[1px] border-b-[1px]  flex items-center leading-none'>관람일 9일전~7일전까지</p>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-b-[1px]  flex items-center leading-none'>티켓금액의 10%</p>
+                                                                    </div>
+                                                                    <div className='flex'>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-r-[1px] border-b-[1px]  flex items-center leading-none'>관람일 6일전~3일전까지</p>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-b-[1px]  flex items-center leading-none'>티켓금액의 20%</p>
+                                                                    </div>
+                                                                    <div className='flex'>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-r-[1px] border-b-[1px]  flex items-center leading-none'>관람일 2일전~1일전까지</p>
+                                                                        <p className='text-[14px] pl-[15px] w-[360px] h-[30px] border-b-[1px]  flex items-center leading-none'>티켓금액의 30%</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className='flex'>
+                                                                <p className='px-4 py-[10px] bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border'>취소환불방법</p>
+                                                                <div className='flex flex-col border-b-[1px]'>
+                                                                    <p className='text-[14px] mt-[10px] pl-[15px] w-[720px]   flex items-center leading-none'>- My티켓 &gt; 예매/취소내역에서 직접 취소 또는 고객센터 (1544-1234)를 통해서 예매를 취소할 수 있습니다.
+                                                                    </p>
+                                                                    <p className='text-[14px] my-[10px] pl-[15px] w-[720px]'>- 티켓이 배송된 이후에는 인터넷 취소가 안되며, 취소마감 시간 이전에 티켓이 피켓 고객센터로 반송되어야 취소 가능합니다. 취소수수료는 도착일자 기준으로 부과되며, 배송료는 환불되지 않습니다.</p>
+                                                                </div>
+                                                            </div>
+                                                            <br></br>
+                                                            <div>
+                                                                <h2 className='text-[20px] w-[500px]'>예매 유의사항</h2>
+                                                                <p className='ml-[20px] w-[820px]'>- 다른 이용자의 원활한 예매 및 취소에 지장을 초래할 정도로 반복적인 행위를 지속하는 경우 회원의 서비스 이용을 제한할 수 있습니다.</p>
+                                                                <p className='ml-[20px] w-[820px]'>- 일부 상품의 판매 오픈 시 원활한 서비스 제공을 위하여 특정 결제수단 이용이 제한될 수 있습니다.</p>
+                                                            </div>
+                                                            <br></br>
+                                                            <div>
+                                                                <h2 className='text-[20px] w-[500px]'>환불안내</h2>
+                                                                <p className='ml-[20px] w-[820px] font-medium'>신용카드 결제의 경우 </p>
+                                                                <p className='ml-[20px] w-[820px]'>- 일반적으로 당사의 취소 처리가 완료되고 4~5일 후 카드사의 취소가 확인됩니다. (체크카드 동일)</p>
+                                                                <p className='ml-[20px] w-[820px]'>- 예매 취소 시점과 해당 카드사의 환불 처리기준에 따라 취소금액의 환급방법과 환급일은 다소 차이가 있을 수 있으며,</p>
+                                                                <p className='ml-[20px] w-[820px]'>&nbsp;&nbsp;예매 취소시 기존에 결제하였던 내역을 취소하며 최초 결제하셨던 동일카드로 취소 시점에 따라 취소수수료와 </p>
+                                                                <p className='ml-[20px] w-[820px]'>&nbsp;&nbsp;배송료를 재승인 합니다.</p>
+                                                                <p className='ml-[20px] w-[820px]'>- </p>
+                                                            </div>
+                                                        </tbody>
+                                                    </div>
+                                                    <div>
+                                                    </div>
+
+                                                </section>
+
+
+                                            </div>
+                                        </div>
+                                        {/** 끝  */}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
+
                 </div>
-            </div>
+
+
+
+            </div >
         </div >
     )
 }
