@@ -1,43 +1,37 @@
-<link
-  href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap"
-  rel="stylesheet"
-/>;
-
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FaTheaterMasks,
   FaUserFriends,
   FaRegFileAlt,
   FaSignOutAlt,
-} from "react-icons/fa";
-import logo from "../../assets/logo.png";
-import { adminStore } from "../../stores/AdminStore.tsx";
-import { adminLogout } from "../../service/admin/admin.ts";
-import { useStore } from "zustand";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+} from 'react-icons/fa';
+import { adminStore } from '../../stores/AdminStore.tsx';
+import { adminLogout } from '../../service/admin/admin.ts';
+import { useStore } from 'zustand';
+import logo from '../../assets/logo.png';
 
-function Sidebar({ currentStep }: { currentStep: string }) {
-  const { adminName, isLogin, reset } = useStore(adminStore); // reset 메서드 가져오기
+const Sidebar = ({ currentStep }: { currentStep: string }) => {
+  const { adminName, isLogin, reset } = useStore(adminStore); // 상태 가져오기
   const navigate = useNavigate();
 
   const menuItems = [
     {
-      key: "performance",
-      label: "공연관리",
+      key: 'performance',
+      label: '공연관리',
       icon: <FaTheaterMasks />,
-      path: "/admin/event-list",
+      path: '/admin/event-list',
     },
     {
-      key: "customers",
-      label: "고객관리",
+      key: 'customers',
+      label: '고객관리',
       icon: <FaUserFriends />,
-      path: "/customers",
+      path: '/customers',
     },
     {
-      key: "finance",
-      label: "정산관리",
+      key: 'finance',
+      label: '정산관리',
       icon: <FaRegFileAlt />,
-      path: "/finance",
+      path: '/finance',
     },
   ];
 
@@ -45,23 +39,26 @@ function Sidebar({ currentStep }: { currentStep: string }) {
     await adminLogout(
       (response) => {
         if (response.status === 204) {
-          // adminStore 상태 초기화 및 로컬스토리지 삭제
+          // 상태 초기화 및 로컬스토리지 삭제
           reset();
-          localStorage.removeItem("ADMIN_STORE");
+          localStorage.removeItem('ADMIN_STORE');
 
           // 로그인 페이지로 이동
-          alert("Logout success!");
-          navigate("/admin/login");
+          alert('Logout success!');
+          navigate('/admin/login');
         }
       },
       () => {
-        alert("Logout failed: An unexpected error occurred.");
-      },
+        alert('Logout failed: An unexpected error occurred.');
+      }
     );
   };
 
   return (
-    <div className="h-full p-6 flex flex-col items-center bg-[#5E6770] text-white">
+    <div
+      className="h-full w-64 bg-[#5E6770] text-white flex flex-col items-center p-6"
+      style={{ position: 'fixed', top: 0, left: 0 }}
+    >
       {/* 로고 및 제목 */}
       <div className="mb-10 flex items-center justify-center w-full">
         <div className="flex items-center justify-center">
@@ -89,17 +86,18 @@ function Sidebar({ currentStep }: { currentStep: string }) {
           <Link
             key={item.key}
             to={item.path}
-            className={`flex items-center w-full px-4 py-2 text-base font-medium rounded-lg transition-colors ${
+            className={`relative flex items-center w-full px-4 py-2 text-base font-medium rounded-lg transition-colors ${
               currentStep === item.key
-                ? "bg-gray-600 text-white"
-                : "hover:bg-gray-600"
+                ? 'bg-gray-600 text-white'
+                : 'hover:bg-gray-600'
             }`}
           >
+            {/* 활성화된 메뉴의 색상 막대 */}
+            {currentStep === item.key && (
+              <span className="absolute left-0 top-0 h-full w-1 bg-purple-500 rounded-r-md"></span>
+            )}
             {item.icon}
             <span className="ml-3">{item.label}</span>
-            {currentStep === item.key && (
-              <span className="ml-auto text-green-400 font-bold">✔</span>
-            )}
           </Link>
         ))}
       </nav>
@@ -116,6 +114,6 @@ function Sidebar({ currentStep }: { currentStep: string }) {
       )}
     </div>
   );
-}
+};
 
 export default Sidebar;
