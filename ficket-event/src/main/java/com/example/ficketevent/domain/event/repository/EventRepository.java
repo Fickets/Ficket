@@ -1,7 +1,7 @@
 package com.example.ficketevent.domain.event.repository;
 
-import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
-import com.example.ficketevent.domain.event.dto.response.EventSearchRes;
+import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
+import com.example.ficketevent.domain.event.dto.response.TicketEventResponse;
 import com.example.ficketevent.domain.event.entity.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +23,18 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
 //            "AND (:#{#cond.adminId} IS NULL OR e.adminId = :#{#cond.adminId}) " +
 //            "AND (:#{#cond.eventStageId} IS NULL OR e.eventStage.stageId = :#{#cond.eventStageId}) ")
 //    List<EventSearchRes> searchEventByCond(@Param("cond") EventSearchCond eventSearchCond);
+
+
+    @Query("SELECT new com.example.ficketevent.domain.event.dto.response.TicketEventResponse(es.eventDate, e.eventStage.stageName, ei.bannerPcUrl, ei.bannerMobileUrl, e.title, e.companyId, sp.partitionName, ss.seatRow, ss.seatCol) " +
+            "FROM SeatMapping sm " +
+            "JOIN EventSchedule es ON sm.eventSchedule.eventScheduleId = es.eventScheduleId " +
+            "JOIN Event e ON es.event.eventId = e.eventId " +
+            "JOIN EventImage ei ON e.eventId = ei.event.eventId " +
+            "JOIN StagePartition sp ON sm.stagePartition.partitionId = sp.partitionId " +
+            "JOIN EventStage est ON e.eventStage.stageId = est.stageId " +
+            "JOIN StageSeat ss ON sm.stageSeat.seatId = ss.seatId " +
+            "WHERE sm.ticketId in :ticketIds ")
+    List<TicketEventResponse> getMyTicketInfo(@Param("ticketIds") List<Long> ticketIds);
+
+
 }

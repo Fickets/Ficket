@@ -42,6 +42,7 @@ public enum ErrorCode {
     NOT_FOUND_ORDER_PRICE(404, "해당 주문 금액을 조회할 수 없습니다."),
     NOT_MATCH_ORDER_PRICE(409, "총액이 일치하지 않습니다."),
     NOT_FOUND_ORDER_STATUS(404, "해당 주문 상태가 없습니다."),
+    NOT_FOUND_ORDER(404, "해당 주문을 찾을 수 없습니다."),
     ;
 
     private final int status;

@@ -1,17 +1,11 @@
 package com.example.ficketticketing.domain.order.service;
 
-import com.example.ficketticketing.domain.order.client.EventServiceClient;
-import com.example.ficketticketing.domain.order.client.FaceServiceClient;
-import com.example.ficketticketing.domain.order.client.UserServiceClient;
-import com.example.ficketticketing.domain.order.dto.client.FaceApiResponse;
-import com.example.ficketticketing.domain.order.dto.client.ReservedSeatsResponse;
-import com.example.ficketticketing.domain.order.dto.client.UserSimpleDto;
-import com.example.ficketticketing.domain.order.dto.client.ValidSeatInfoResponse;
+import com.example.ficketticketing.domain.order.client.*;
+import com.example.ficketticketing.domain.order.dto.client.*;
 import com.example.ficketticketing.domain.order.dto.kafka.OrderDto;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.request.SelectSeatInfo;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
-import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.messagequeue.OrderProducer;
 import com.example.ficketticketing.domain.order.repository.OrderRepository;
@@ -23,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,9 +27,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -268,4 +261,21 @@ public class OrderService {
         // SSE를 통해 클라이언트에 결제 상태 알림
         paymentSseService.notifyPaymentStatus(paymentId, status);
     }
+
+    public void refundOrder(Long orderId) {
+        Orders order = orderRepository.findById(orderId).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
+        portOneApiClient.cancelOrder(order.getPaymentId());
+    }
+
+    public List<TicketInfoDto> getMyTickets(Long userId) {
+        // 사용자 티켓 ID 가져오기
+        List<Long> myTicketIds = orderRepository.findTicketIdsByUserId(userId);
+
+        return executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "getMyTicketInfoCircuitBreaker",
+                () -> eventServiceClient.getMyTicketInfo(myTicketIds)
+        );
+    }
+
 }

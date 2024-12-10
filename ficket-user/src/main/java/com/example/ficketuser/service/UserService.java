@@ -2,27 +2,39 @@ package com.example.ficketuser.service;
 
 import com.example.ficketuser.Entity.User;
 import com.example.ficketuser.Entity.UserTokenRedis;
+import com.example.ficketuser.client.TicketingServiceClient;
 import com.example.ficketuser.dto.UserSimpleDto;
-import com.example.ficketuser.dto.response.UserDto;
+import com.example.ficketuser.dto.client.TicketInfoDto;
+import com.example.ficketuser.dto.response.*;
 import com.example.ficketuser.dto.resquest.CustomOAuth2User;
 import com.example.ficketuser.global.jwt.JwtUtils;
 import com.example.ficketuser.global.result.error.ErrorCode;
 import com.example.ficketuser.global.result.error.exception.BusinessException;
+import com.example.ficketuser.global.utils.CircuitBreakerUtils;
+import com.example.ficketuser.mapper.TicketMapper;
 import com.example.ficketuser.repository.UserRepository;
-import com.example.ficketuser.dto.response.CustomUserDetails;
 import com.example.ficketuser.dto.resquest.AdditionalInfoDto;
 import com.example.ficketuser.mapper.UserMapper;
 import com.example.ficketuser.repository.UserTokenRedisRepository;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.data.RepositoryMetricsAutoConfiguration;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,6 +46,9 @@ public class UserService {
     private final UserTokenRedisRepository userTokenRedisRepository;
     private final JwtUtils jwtUtils;
     private final RepositoryMetricsAutoConfiguration repositoryMetricsAutoConfiguration;
+    private final TicketingServiceClient ticketingServiceClient;
+    private final TicketMapper ticketMapper;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     @Value("${jwt.refresh.header}")
     private String REFRESH_HEADER;
@@ -44,11 +59,12 @@ public class UserService {
 
     /**
      * 카카오 로그인 유저 저장 함수
+     *
      * @param socialId
      * @param userName
      * @return
      */
-    public User saveUser(Long socialId, String userName){
+    public User saveUser(Long socialId, String userName) {
         User user = User.builder()
                 .socialId(socialId)
                 .userName(userName)
@@ -58,17 +74,18 @@ public class UserService {
         return saveUser;
     }
 
-    public User searchUser(String socialId){
-       return null;
+    public User searchUser(String socialId) {
+        return null;
     }
 
     /**
      * 유저 추가정보 저장
+     *
      * @param additionalInfoDto
      * @return userSimpleDto
      */
 
-    public UserSimpleDto additionalInfo(AdditionalInfoDto additionalInfoDto){
+    public UserSimpleDto additionalInfo(AdditionalInfoDto additionalInfoDto) {
 
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = userDetails.getUserId();
@@ -84,10 +101,11 @@ public class UserService {
 
     /**
      * 고객 로그아웃
+     *
      * @param request
      * @param response
      */
-    public void logout(HttpServletRequest request, HttpServletResponse response){
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
 
         // 아까 access로 등록한 유저정보 가져오기
@@ -101,27 +119,27 @@ public class UserService {
         // refresh 찾기
         String refresh = null;
         for (Cookie cookie : cookies) {
-            if (cookie.getName().equals(REFRESH_HEADER)){
+            if (cookie.getName().equals(REFRESH_HEADER)) {
                 refresh = cookie.getValue();
                 break;
             }
         }
-        if (refresh == null){
+        if (refresh == null) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
         }
 
         // access, refresh ID 비교
-        if (!jwtUtils.getUserId(refresh).equals(userId)){
-           throw new BusinessException(ErrorCode.DIFFERENT_BOTH_TOKEN_ID);
+        if (!jwtUtils.getUserId(refresh).equals(userId)) {
+            throw new BusinessException(ErrorCode.DIFFERENT_BOTH_TOKEN_ID);
         }
-        
+
         // Redis Refresh 삭제
         userTokenRedisRepository.findByUserId(userId)
                 .ifPresentOrElse(
-                    userTokenRedisRepository::delete,
-                    () -> {
-                        throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
-                    });
+                        userTokenRedisRepository::delete,
+                        () -> {
+                            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
+                        });
         // 쿠키 삭제
         Cookie cookie = new Cookie(REFRESH_HEADER, "");
         cookie.setMaxAge(0);
@@ -134,6 +152,7 @@ public class UserService {
 
     /**
      * 유저 ACCESS 재발급
+     *
      * @param request
      * @param response
      */
@@ -143,16 +162,16 @@ public class UserService {
         Cookie[] cookies = request.getCookies();
         String refresh = null;
         for (Cookie cookie : cookies) {
-            if(cookie != null && cookie.getName().equals(REFRESH_HEADER)){
+            if (cookie != null && cookie.getName().equals(REFRESH_HEADER)) {
                 refresh = cookie.getValue();
             }
         }
-        if (refresh == null){
+        if (refresh == null) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
         }
 
         // Refresh 토큰 검증
-        if (!jwtUtils.validateToken(refresh)){
+        if (!jwtUtils.validateToken(refresh)) {
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED);
         }
 
@@ -178,7 +197,7 @@ public class UserService {
 
     }
 
-    public void deleteUser(HttpServletResponse response){
+    public void deleteUser(HttpServletResponse response) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = userDetails.getUserId();
 
@@ -186,16 +205,19 @@ public class UserService {
         userRepository.findByUserId(userId)
                 .ifPresentOrElse(
                         userRepository::delete,
-                        () -> { throw new BusinessException(ErrorCode.NOT_USER_FOUND); }  // 사용자 없음 시 예외 던짐
+                        () -> {
+                            throw new BusinessException(ErrorCode.NOT_USER_FOUND);
+                        }  // 사용자 없음 시 예외 던짐
                 );
 
 
         // Redis Refresh 토큰 지우기
         userTokenRedisRepository.findByUserId(userId)
                 .ifPresentOrElse(
-                    userTokenRedisRepository::delete,
-                    () -> {throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
-                });
+                        userTokenRedisRepository::delete,
+                        () -> {
+                            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
+                        });
 
         // 쿠키 지우기
         Cookie cookie = new Cookie(REFRESH_HEADER, "");
@@ -204,12 +226,92 @@ public class UserService {
         response.addCookie(cookie);
     }
 
-    public UserSimpleDto getUser(Long userId){
+    public UserSimpleDto getUser(Long userId) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
         return userMapper.toUserSimpleDto(user);
     }
 
+    /**
+     * 사용자 티켓 조회 서비스
+     *
+     * @param userId 사용자 ID
+     * @param page   페이지 번호
+     * @param size   페이지 크기
+     * @return 페이징된 티켓 리스트
+     */
+    public PagedResponse<MyTicketResponse> getMyTicket(Long userId, int page, int size) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
+
+        List<TicketInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "getMyTicketCircuitBreaker",
+                () -> ticketingServiceClient.getMyTickets(user.getUserId())
+        );
+
+        Map<String, List<TicketInfoDto>> groupedByEvent = ticketInfoDtoList.stream()
+                .collect(Collectors.groupingBy(this::generateEventKey));
+
+        List<MyTicketResponse> allResponses = groupedByEvent.values().stream()
+                .map(this::convertGroupedTicketsToMyTicketResponse)
+                .toList();
+
+        // 페이징 처리
+        Pageable pageable = PageRequest.of(page, size);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allResponses.size());
+
+        // 페이징된 결과 리스트
+        List<MyTicketResponse> paginatedResponses = start > allResponses.size()
+                ? Collections.emptyList()
+                : allResponses.subList(start, end);
+
+        // 총 페이지 수 계산
+        int totalPages = (int) Math.ceil((double) allResponses.size() / size);
+
+        // PagedResponse로 반환
+        return new PagedResponse<>(
+                paginatedResponses,
+                page,
+                size,
+                allResponses.size(),
+                totalPages
+        );
+    }
+
+    /**
+     * 이벤트 그룹화를 위한 키 생성
+     *
+     * @param ticket 티켓 정보
+     * @return 그룹화 키
+     */
+    private String generateEventKey(TicketInfoDto ticket) {
+        return String.join("|",
+                ticket.getEventDateTime().toString(),
+                ticket.getEventStageName(),
+                ticket.getEventPcBannerUrl(),
+                ticket.getEventMobileBannerUrl(),
+                ticket.getEventName(),
+                ticket.getCompanyName());
+    }
+
+    /**
+     * 그룹화된 티켓 리스트를 MyTicketResponse로 변환
+     *
+     * @param tickets 티켓 리스트
+     * @return 변환된 MyTicketResponse 객체
+     */
+    private MyTicketResponse convertGroupedTicketsToMyTicketResponse(List<TicketInfoDto> tickets) {
+        TicketInfoDto firstTicket = tickets.get(0);
+        List<MySeatInfo> mySeatInfoList = tickets.stream()
+                .map(ticketMapper::toMySeatInfo)
+                .toList();
+
+        MyTicketResponse response = ticketMapper.toMyTicketResponse(firstTicket);
+        response.setMySeatInfoList(mySeatInfoList);
+        return response;
+    }
 
 }

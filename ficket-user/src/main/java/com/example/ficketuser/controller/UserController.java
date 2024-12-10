@@ -1,12 +1,14 @@
 package com.example.ficketuser.controller;
 
 import com.example.ficketuser.dto.UserSimpleDto;
+import com.example.ficketuser.dto.response.MyTicketResponse;
+import com.example.ficketuser.dto.response.PagedResponse;
 import com.example.ficketuser.dto.resquest.AdditionalInfoDto;
 import com.example.ficketuser.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +29,7 @@ public class UserController {
      * - 2024-11-28 최용수: 초기 작성
      */
     @PostMapping("/additional-info")
-    public ResponseEntity<UserSimpleDto> addUserInfo(@RequestBody AdditionalInfoDto additionalInfoDto){
+    public ResponseEntity<UserSimpleDto> addUserInfo(@RequestBody AdditionalInfoDto additionalInfoDto) {
 
         UserSimpleDto userSimpleDto = userService.additionalInfo(additionalInfoDto);
 
@@ -43,7 +45,7 @@ public class UserController {
      * - 2024-11-28 최용수: 초기 작성
      */
     @GetMapping("/logout")
-    public ResponseEntity<Integer> logout(HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<Integer> logout(HttpServletRequest request, HttpServletResponse response) {
         userService.logout(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
@@ -57,7 +59,7 @@ public class UserController {
      * - 2024-11-28 최용수: 초기 작성
      */
     @GetMapping("/reissue")
-    public ResponseEntity<Integer> reissue(HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<Integer> reissue(HttpServletRequest request, HttpServletResponse response) {
         userService.reissue(request, response);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -72,7 +74,7 @@ public class UserController {
      * - 2024-11-28 최용수: 초기 작성
      */
     @DeleteMapping()
-    public ResponseEntity<Integer> deleteUser(HttpServletResponse response){
+    public ResponseEntity<Integer> deleteUser(HttpServletResponse response) {
         userService.deleteUser(response);
         return null;
     }
@@ -87,10 +89,28 @@ public class UserController {
      * - 2024-11-28 최용수: 초기 작성
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<UserSimpleDto> getUser(@PathVariable Long userId){
+    public ResponseEntity<UserSimpleDto> getUser(@PathVariable Long userId) {
 
         UserSimpleDto res = userService.getUser(userId);
 
         return ResponseEntity.ok(res);
     }
+
+
+    /**
+     * 마이 티켓 조회
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-09
+     * 변경 이력:
+     * - 2024-12-09 오형상: 초기 작성
+     */
+    @GetMapping("/my-ticket")
+    public ResponseEntity<PagedResponse<MyTicketResponse>> getMyTicket(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size,
+            @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(userService.getMyTicket(Long.parseLong(userId), page, size));
+    }
+
 }

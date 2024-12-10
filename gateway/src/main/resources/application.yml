@@ -44,6 +44,13 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
+            - Path=/api/v1/users/my-ticket
+          filters:
+            - AuthorizationHeaderFilter
+            - UserTokenExtractionFilter
+        - id: user-service
+          uri: lb://user-service
+          predicates:
             - Path=/api/v1/users/**
         - id: user-service
           uri: lb://user-service
