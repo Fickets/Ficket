@@ -7,6 +7,7 @@ import com.example.ficketuser.dto.UserSimpleDto;
 import com.example.ficketuser.dto.client.TicketInfoDto;
 import com.example.ficketuser.dto.response.*;
 import com.example.ficketuser.dto.resquest.CustomOAuth2User;
+import com.example.ficketuser.dto.resquest.UpdateUserRequest;
 import com.example.ficketuser.global.jwt.JwtUtils;
 import com.example.ficketuser.global.result.error.ErrorCode;
 import com.example.ficketuser.global.result.error.exception.BusinessException;
@@ -232,6 +233,17 @@ public class UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
         return userMapper.toUserSimpleDto(user);
+    }
+
+    /**
+     *
+     * @param updateUserRequest 유저 변경 정보
+     */
+    public void updateUser(UpdateUserRequest updateUserRequest) {
+        User user = userRepository.findByUserId(updateUserRequest.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
+
+        user.updateUserInfo(updateUserRequest.getUserName(),updateUserRequest.getBirth(),updateUserRequest.getGender());
     }
 
     /**

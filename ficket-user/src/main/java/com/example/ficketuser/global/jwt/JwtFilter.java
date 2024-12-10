@@ -3,15 +3,12 @@ package com.example.ficketuser.global.jwt;
 
 import com.example.ficketuser.dto.response.CustomUserDetails;
 import com.example.ficketuser.dto.response.UserDto;
-import com.example.ficketuser.mapper.UserMapper;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,12 +25,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        if (request.getRequestURI().equals("/api/v1/users/my-ticket")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String authorization = request.getHeader("Authorization");
         String access = null;
-        if (authorization != null && authorization.startsWith("Bearer ")){
+        if (authorization != null && authorization.startsWith("Bearer ")) {
             access = authorization.substring(7);
-            if (jwtUtils.validateToken(access)){
+            if (jwtUtils.validateToken(access)) {
                 String name = jwtUtils.getUserName(access);
                 Long userId = jwtUtils.getUserId(access);
                 Long socialId = jwtUtils.getSocialId(access);
@@ -46,7 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, null);
                 SecurityContextHolder.getContext().setAuthentication(authToken);
                 filterChain.doFilter(request, response);
-            }else {
+            } else {
 
                 PrintWriter writer = response.getWriter();
                 writer.print("user access token expired");
@@ -56,7 +57,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
 
             }
-        }else{
+        } else {
             log.info("ERROR NO ACCESS TOKEN");
             filterChain.doFilter(request, response);
         }

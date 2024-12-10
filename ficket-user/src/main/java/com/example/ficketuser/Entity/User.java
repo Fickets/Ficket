@@ -1,6 +1,7 @@
 package com.example.ficketuser.Entity;
 
 import com.example.ficketuser.dto.resquest.AdditionalInfoDto;
+import com.example.ficketuser.dto.resquest.UpdateUserRequest;
 import com.example.ficketuser.global.BaseEntity;
 
 import jakarta.persistence.*;
@@ -36,5 +37,11 @@ public class User extends BaseEntity{
     public void addAdditionalInfo(AdditionalInfoDto additionalInfoDto){
         this.birth = additionalInfoDto.getBirth();
         this.gender = additionalInfoDto.getGender();
+    }
+
+    public void updateUserInfo(String updateName, int updateBirth, Gender updateGender) {
+        this.userName = updateName;
+        this.birth = updateBirth;
+        this.gender = updateGender;
     }
 }

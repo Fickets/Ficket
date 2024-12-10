@@ -36,7 +36,7 @@ public class EventImage extends BaseEntity {
 
     @Setter
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "evend_id", nullable = false)
+    @JoinColumn(name = "event_id", nullable = false)
     private Event event; // 관련 이벤트
 
 

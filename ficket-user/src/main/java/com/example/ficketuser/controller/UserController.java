@@ -3,7 +3,9 @@ package com.example.ficketuser.controller;
 import com.example.ficketuser.dto.UserSimpleDto;
 import com.example.ficketuser.dto.response.MyTicketResponse;
 import com.example.ficketuser.dto.response.PagedResponse;
+import com.example.ficketuser.dto.response.UserDto;
 import com.example.ficketuser.dto.resquest.AdditionalInfoDto;
+import com.example.ficketuser.dto.resquest.UpdateUserRequest;
 import com.example.ficketuser.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -94,6 +96,22 @@ public class UserController {
         UserSimpleDto res = userService.getUser(userId);
 
         return ResponseEntity.ok(res);
+    }
+
+    /**
+     * 유저 정보 수정
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-10
+     * 변경 이력:
+     * - 2024-12-10 오형상: 초기 작성
+     */
+    @PutMapping
+    public ResponseEntity<Void> updateUser(@RequestBody UpdateUserRequest updateUserRequest) {
+
+        userService.updateUser(updateUserRequest);
+
+        return ResponseEntity.noContent().build();
     }
 
 
