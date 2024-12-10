@@ -12,7 +12,6 @@ import {
   SeatCntGrade,
   SeatStatusResponse,
 } from "../../types/selectseat";
-import { useEventStore } from "../../types/StoreType/EventState";
 import {
   AiOutlineArrowLeft,
   AiOutlineReload,
@@ -21,18 +20,32 @@ import {
 } from "react-icons/ai";
 import DraggableSeatMap from "../../components/selectseat/DraggableSeatMap";
 import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
+import { eventDetailStore } from "../../stores/EventStore.tsx";
+import { useStore } from "zustand";
 
 const SelectSeat = () => {
   const navigate = useNavigate();
-  const {
-    eventId,
-    eventScheduleId,
-    eventTitle,
-    eventDate,
-    eventTime,
-    eventStage,
-    setSelectedSeats, // Zustand에서 가져오기
-  } = useEventStore();
+  // const {
+  //   eventId,
+  //   eventScheduleId,
+  //   eventTitle,
+  //   eventDate,
+  //   eventTime,
+  //   eventStage,
+  //   setSelectedSeats, // Zustand에서 가져오기
+  // } = useEventStore();
+
+  const event = useStore(eventDetailStore);
+  console.log(event);
+  // const eventId = event.eventId;
+  const eventScheduleId = event.scheduleId;
+  const eventTitle = event.title;
+  const eventDate = event.choiceDate;
+  const eventTime = event.choiceTime;
+  const eventStage = event.stageName;
+
+  const setSelectedSeats = event.setSelectedSeats;
+
   const [eventSummary, setEventSummary] = useState<EventSeatSummary | null>(
     null,
   );
@@ -98,6 +111,11 @@ const SelectSeat = () => {
   }, [eventScheduleId]);
 
   if (!eventSummary || !seatCntGrade || !seatStatusResponse || !gradeColors) {
+    console.log(eventSummary);
+    console.log(seatCntGrade);
+    console.log(seatStatusResponse);
+    console.log(gradeColors);
+
     return <div>Loading...</div>;
   }
 
@@ -151,7 +169,7 @@ const SelectSeat = () => {
   };
 
   const handleBeforeStep = () => {
-    navigate(`/ticketing/select-session/${eventId}`);
+    navigate(-1);
   };
 
   const handleRefresh = async () => {

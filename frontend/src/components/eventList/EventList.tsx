@@ -168,6 +168,13 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
           <FaList className="text-xl" />
           <span className="ml-2 text-lg font-semibold">공연 목록</span>
         </div>
+        <button
+          type="button"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
+          onClick={() => navigate("/admin/register-event")}
+        >
+          신규
+        </button>
       </div>
       <hr className="mb-6 border-gray-300" />
 
@@ -197,7 +204,7 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
                 {...row.getRowProps()}
                 className="odd:bg-white even:bg-gray-50 cursor-pointer hover:bg-blue-50 hover:text-blue-700"
                 onClick={() =>
-                  navigate(`/events/detail/${row.original.eventId}`)
+                  navigate(`/admin/event-detail/${row.original.eventId}`)
                 }
               >
                 {row.cells.map((cell) => (

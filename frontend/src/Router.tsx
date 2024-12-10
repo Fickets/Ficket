@@ -19,6 +19,7 @@ import EventDetailPage from "./pages/event/EventDetail.tsx";
 import AdminEventList from "./pages/eventlist/AdminEventList.tsx";
 import TemporaryUrlPage from "./pages/temporaryurl/TemporaryUrlPage.tsx";
 import AdminEventDetail from "./pages/adminEventDetail/AdminEventDetail.tsx";
+import MyTicket from "./pages/myTicket/MyTicket.tsx";
 
 export default function Router() {
   const user = useStore(userStore);
@@ -57,6 +58,7 @@ export default function Router() {
         path="ticketing/select-session/:eventId"
         element={<SelectSession />}
       />
+      <Route path="/my-ticket" element={<MyTicket />} />
 
       {/* */}
       {/* */}

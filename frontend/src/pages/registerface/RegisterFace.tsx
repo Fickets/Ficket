@@ -1,20 +1,30 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import PictureBox from '../../components/registerface/PictureBox';
-import PolicyAgree from '../../components/registerface/PolicyAgree';
-import { useEventStore } from '../../types/StoreType/EventState';
-import { unLockSeats } from '../../service/selectseat/api';
-import TicketingHeader from '../../components/ticketing/TicketingHeader.tsx';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PictureBox from "../../components/registerface/PictureBox";
+import PolicyAgree from "../../components/registerface/PolicyAgree";
+import { unLockSeats } from "../../service/selectseat/api";
+import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
+import { eventDetailStore } from "../../stores/EventStore.tsx";
+import { useStore } from "zustand";
 
 function RegisterFace() {
   const navigate = useNavigate();
-  const {
-    faceImg,
-    setFaceImg,
-    selectedSeats,
-    setSelectedSeats,
-    eventScheduleId,
-  } = useEventStore();
+  // const {
+  //   faceImg,
+  //   setFaceImg,
+  //   selectedSeats,
+  //   setSelectedSeats,
+  //   eventScheduleId,
+  // } = useEventStore();
+
+  const event = useStore(eventDetailStore);
+
+  const faceImg = event.faceImg;
+  const setFaceImg = event.setFaceImg;
+  const selectedSeats = event.selectedSeats;
+  const setSelectedSeats = event.setSelectedSeats;
+  const eventScheduleId = event.scheduleId;
+
   const [allAgreed, setAllAgreed] = useState<boolean>(false); // 약관 동의 상태
 
   const handleBeforeStep = async () => {
@@ -31,22 +41,22 @@ function RegisterFace() {
 
       navigate(`/ticketing/select-seat`);
     } catch (error) {
-      console.error('Error locking seats:', error);
+      console.error("Error locking seats:", error);
 
-      alert('좌석 선점에 실패했습니다. 다시 시도해주세요.');
+      alert("좌석 선점에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
   const handleNextStep = () => {
     if (!allAgreed) {
-      alert('모든 항목에 동의해야 합니다.');
+      alert("모든 항목에 동의해야 합니다.");
       return;
     }
     if (!faceImg) {
-      alert('이미지를 업로드해야 합니다.');
+      alert("이미지를 업로드해야 합니다.");
       return;
     }
-    navigate('/ticketing/order');
+    navigate("/ticketing/order");
   };
 
   return (
