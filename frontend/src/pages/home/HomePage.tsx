@@ -1,14 +1,33 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userStore } from "../../stores/UserStore";
+import { useCookies } from 'react-cookie';
+import { userStore } from '../../stores/UserStore';
+import { userTokenRefresh } from '../../service/user/userApi';
 import { eventDetailStore } from '../../stores/EventStore';
 import { useStore } from "zustand";
 const HomePage: React.FC = () => {
+  const [cookies] = useCookies(['isLogin']);
   const user = useStore(userStore);
   const event = useStore(eventDetailStore);
   useEffect(() => {
-    console.log("TEST", event.title)
+    getAccess();
   }, [])
+
+  const getAccess = async () => {
+    if (Boolean(cookies.isLogin) && user.accessToken === "") {
+      await userTokenRefresh(
+        (response) => {
+
+          user.setAccessToken(response.headers['authorization']);
+          user.setIsLogin(true);
+
+        },
+        () => {
+        }
+      )
+    }
+  }
+
 
   const openWindow = () => {
     const data = { eventId: "1" }; // 전달할 데이터

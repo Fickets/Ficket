@@ -111,70 +111,66 @@ const EventDetail: React.FC = () => {
   const eventDates = Object.keys(event.scheduleMap);
   const [choiceDate, setChoiceDate] = useState<string | null>(null); // 선택된 날짜 상태
 
-  // 예매 가능 날짜 설정
-  const availableDates = eventDates.map((dateString) => {
-    const [year, month, day] = dateString.split("-").map(Number);
-    return new Date(year, month - 1, day); // month는 0부터 시작하므로 -1 필요
-  });
-  // 처음 선택 날자
-  const initialDate = availableDates.at(-1);
-
-  // 선택된 날짜가 변경될 때마다 실행
-  const handleDateSelect = (date: string) => {
-    setChoiceDate(date); // 날짜 선택 시 choiceDate 상태 업데이트
-    setEventRounds(event.scheduleMap[date]);
-    console.log(eventRounds);
-    setChoiceRound(1); // round를 초기화
-    console.log(choiceRound);
-  };
+    // 예매 가능 날짜 설정
+    const availableDates = eventDates.map((dateString) => {
+        const [year, month, day] = dateString.split('-').map(Number);
+        return new Date(year, month - 1, day); // month는 0부터 시작하므로 -1 필요
+    });
+    // 처음 선택 날자
+    const initialDate = availableDates.at(-1);
 
   useEffect(() => {});
 
-  // 날짜 클릭 핸들러
-  const handleDateClick = (date) => {
-    if (availableDates.some((d) => d.toDateString() === date.toDateString())) {
-      setChoiceDate(date);
-      const formattedDate = date.toLocaleDateString("en-CA");
-      const selectedEventRounds = event.scheduleMap[formattedDate];
-      event.setChoiceDate(formattedDate);
-      setEventRounds(selectedEventRounds);
-      setChoiceRound(1); // round를 초기화
-      setSelectedButton(0);
-      event.setRound(1);
-    }
-  };
-  // 클릭 불가능한 날짜 설정
-  const tileDisabled = ({ date, view }) => {
-    if (view === "month") {
-      // `availableDates`에 포함되지 않은 날짜는 클릭 비활성화
-      return !availableDates.some(
-        (d) => d.toDateString() === date.toDateString(),
-      );
-    }
-    return false;
-  };
-  // 날짜별 스타일 적용
-  const tileClassName = ({ date, view }) => {
-    if (view === "month") {
-      if (choiceDate && date.toDateString() === choiceDate.toDateString()) {
-        return "selected-date"; // 선택된 날짜 스타일
-      }
-      if (
-        availableDates.some((d) => d.toDateString() === date.toDateString())
-      ) {
-        return "available-date"; // 예매 가능 날짜 스타일
-      }
-    }
-    return null;
-  };
+    // 날짜 클릭 핸들러
+    const handleDateClick = (date) => {
+        if (availableDates.some(d => d.toDateString() === date.toDateString())) {
+            setChoiceDate(date);
+            const formattedDate = date.toLocaleDateString("en-CA");
+            const selectedEventRounds = event.scheduleMap[formattedDate];
+            event.setChoiceDate(formattedDate);
+            // event.setChoicetime()
+            event.setTicketingStep(true);
+            setEventRounds(selectedEventRounds)
+            setChoiceRound(1); // round를 초기화
+            setSelectedButton(0)
+            event.setRound(1);
+            const scheduleData = event.scheduleMap[formattedDate][1]
+            event.setScheduleId(scheduleData.eventScheduleId)
 
-  // 달력 함수 END LINE ------------------------------------------------
-  const roundButtonClick = (e) => {
-    const key = parseInt(e.currentTarget.getAttribute("data-key") || ""); // data-key 값을 숫자로 변환
-    setSelectedButton(key); // 상태 업데이트
-    console.log(`Clicked key: ${key}`);
-    event.setRound(key + 1);
-  };
+        }
+    };
+    // 클릭 불가능한 날짜 설정
+    const tileDisabled = ({ date, view }) => {
+        if (view === 'month') {
+            // `availableDates`에 포함되지 않은 날짜는 클릭 비활성화
+            return !availableDates.some(d => d.toDateString() === date.toDateString());
+        }
+        return false;
+    };
+    // 날짜별 스타일 적용
+    const tileClassName = ({ date, view }) => {
+        if (view === 'month') {
+            if (choiceDate && date.toDateString() === choiceDate.toDateString()) {
+                return 'selected-date'; // 선택된 날짜 스타일
+            }
+            if (availableDates.some(d => d.toDateString() === date.toDateString())) {
+                return 'available-date'; // 예매 가능 날짜 스타일
+            }
+        }
+        return null;
+    };
+
+    // 달력 함수 END LINE ------------------------------------------------
+    const roundButtonClick = (e) => {
+        const key = parseInt(e.currentTarget.getAttribute('data-key') || ''); // data-key 값을 숫자로 변환
+        setSelectedButton(key); // 상태 업데이트
+        console.log(`Clicked key: ${key}`);
+        event.setRound(key + 1);
+        const date = event.choiceDate;
+        const scheduleData = event.scheduleMap[date][key + 1]
+        event.setScheduleId(scheduleData.eventScheduleId)
+    };
+
 
   useEffect(() => {
     eventDetailGet();
@@ -235,27 +231,13 @@ const EventDetail: React.FC = () => {
     }
   };
 
-  return (
-    <div>
-      {/** TESt  */}
-      {/**아래가 개발 코드 여기는 테스트 코드  */}
-      {/* <div>
-                <h1>이벤트 디테일 페이지 입니다</h1>
-                <button onClick={choiceDate1} className='bg-black text-white'>
-                    날짜선택버튼
-                </button>
-                <br></br>
-                <button onClick={goTicketing} className='bg-black text-white'>
-                    예약하기
-                </button>
-            </div>
-            <br></br>
-            <hr className='border-4' /><br></br> */}
-      {/**아래가 개발 코드 위는 테스트 코드  */}
+    return (
+        <div>
+            <div className="ticket-page p-6 font-sans">
 
-      <div className="ticket-page p-6 font-sans">
-        {/* 상단 헤더 영역 */}
-        <UserHeader />
+                {/* 상단 헤더 영역 */}
+                <UserHeader />
+                <hr className='mt-[15px] mb-[50px]' />
 
         {/* 공연 정보 영역 */}
         <div className="ml-[330px] ">
