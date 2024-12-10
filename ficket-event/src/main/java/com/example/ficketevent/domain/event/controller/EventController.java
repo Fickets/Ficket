@@ -1,5 +1,6 @@
 package com.example.ficketevent.domain.event.controller;
 
+import com.example.ficketevent.domain.event.dto.common.TicketInfoCreateDtoList;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
 import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
@@ -149,9 +150,9 @@ public class EventController {
      * 변경 이력:
      * - 2024-12-09 오형상: 초기 작성
      */
-    @GetMapping("/my-ticket-info")
-    public ResponseEntity<List<TicketInfoDto>> getMyTicketInfo(@RequestParam List<Long> ticketIds) {
-        return ResponseEntity.ok(eventService.getMyTicketInfo(ticketIds));
+    @PostMapping("/my-ticket-info")
+    public ResponseEntity<List<TicketInfoDto>> getMyTicketInfo(@RequestBody TicketInfoCreateDtoList ticketInfoCreateDtoList) {
+        return ResponseEntity.ok(eventService.getMyTicketInfo(ticketInfoCreateDtoList));
     }
 
 }

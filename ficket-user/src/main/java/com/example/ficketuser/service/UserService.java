@@ -32,6 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -239,31 +240,55 @@ public class UserService {
      * @param userId 사용자 ID
      * @param page   페이지 번호
      * @param size   페이지 크기
+     * @param sort   정렬 기준 ("asc" 또는 "desc")
+     * @param sidoFilter 시/도 필터 (null일 경우 필터링 없음)
      * @return 페이징된 티켓 리스트
      */
-    public PagedResponse<MyTicketResponse> getMyTicket(Long userId, int page, int size) {
+    public PagedResponse<MyTicketResponse> getMyTicket(Long userId, int page, int size, String sort, String sidoFilter) {
+        // 사용자 조회
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
+        // CircuitBreaker를 사용하여 외부 서비스 호출
         List<TicketInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
                 circuitBreakerRegistry,
                 "getMyTicketCircuitBreaker",
                 () -> ticketingServiceClient.getMyTickets(user.getUserId())
         );
 
+        // 시/도 필터 적용
+        if (sidoFilter != null && !sidoFilter.isBlank()) {
+            ticketInfoDtoList = ticketInfoDtoList.stream()
+                    .filter(ticket -> ticket.getSido().equalsIgnoreCase(sidoFilter))
+                    .toList();
+        }
+
+        // 이벤트별로 그룹화
         Map<String, List<TicketInfoDto>> groupedByEvent = ticketInfoDtoList.stream()
                 .collect(Collectors.groupingBy(this::generateEventKey));
 
+        // 그룹화된 데이터를 MyTicketResponse로 변환
         List<MyTicketResponse> allResponses = groupedByEvent.values().stream()
                 .map(this::convertGroupedTicketsToMyTicketResponse)
                 .toList();
+
+        // createdAt 정렬 (기본값: 오름차순, desc일 경우 내림차순)
+        if ("desc".equalsIgnoreCase(sort)) {
+            allResponses = allResponses.stream()
+                    .sorted(Comparator.comparing(MyTicketResponse::getCreatedAt).reversed())
+                    .toList();
+        } else {
+            allResponses = allResponses.stream()
+                    .sorted(Comparator.comparing(MyTicketResponse::getCreatedAt))
+                    .toList();
+        }
 
         // 페이징 처리
         Pageable pageable = PageRequest.of(page, size);
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allResponses.size());
 
-        // 페이징된 결과 리스트
+        // 페이징된 결과 리스트 반환
         List<MyTicketResponse> paginatedResponses = start > allResponses.size()
                 ? Collections.emptyList()
                 : allResponses.subList(start, end);
@@ -271,7 +296,7 @@ public class UserService {
         // 총 페이지 수 계산
         int totalPages = (int) Math.ceil((double) allResponses.size() / size);
 
-        // PagedResponse로 반환
+        // PagedResponse 객체 반환
         return new PagedResponse<>(
                 paginatedResponses,
                 page,
@@ -289,12 +314,15 @@ public class UserService {
      */
     private String generateEventKey(TicketInfoDto ticket) {
         return String.join("|",
-                ticket.getEventDateTime().toString(),
-                ticket.getEventStageName(),
-                ticket.getEventPcBannerUrl(),
-                ticket.getEventMobileBannerUrl(),
-                ticket.getEventName(),
-                ticket.getCompanyName());
+                ticket.getCreatedAt().toString(), // 생성일
+                ticket.getEventDateTime().toString(), // 이벤트 날짜 및 시간
+                ticket.getEventStageName(), // 공연장 이름
+                ticket.getSido(), // 시/도
+                ticket.getEventPcBannerUrl(), // PC 배너 URL
+                ticket.getEventMobileBannerUrl(), // 모바일 배너 URL
+                ticket.getEventName(), // 이벤트 이름
+                ticket.getCompanyName() // 회사 이름
+        );
     }
 
     /**
@@ -304,14 +332,20 @@ public class UserService {
      * @return 변환된 MyTicketResponse 객체
      */
     private MyTicketResponse convertGroupedTicketsToMyTicketResponse(List<TicketInfoDto> tickets) {
+        // 그룹 내 첫 번째 티켓 정보를 가져옴
         TicketInfoDto firstTicket = tickets.get(0);
+
+        // 좌석 정보 리스트 생성
         List<MySeatInfo> mySeatInfoList = tickets.stream()
                 .map(ticketMapper::toMySeatInfo)
                 .toList();
 
+        // MyTicketResponse로 변환
         MyTicketResponse response = ticketMapper.toMyTicketResponse(firstTicket);
         response.setMySeatInfoList(mySeatInfoList);
+
         return response;
     }
+
 
 }

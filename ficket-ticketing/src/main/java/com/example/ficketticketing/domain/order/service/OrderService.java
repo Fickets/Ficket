@@ -6,6 +6,8 @@ import com.example.ficketticketing.domain.order.dto.kafka.OrderDto;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.request.SelectSeatInfo;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
+import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
+import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDtoList;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.messagequeue.OrderProducer;
 import com.example.ficketticketing.domain.order.repository.OrderRepository;
@@ -269,12 +271,13 @@ public class OrderService {
 
     public List<TicketInfoDto> getMyTickets(Long userId) {
         // 사용자 티켓 ID 가져오기
-        List<Long> myTicketIds = orderRepository.findTicketIdsByUserId(userId);
+        List<TicketInfoCreateDto> myTicketIds = orderRepository.findTicketIdsByUserId(userId);
+
 
         return executeWithCircuitBreaker(
                 circuitBreakerRegistry,
                 "getMyTicketInfoCircuitBreaker",
-                () -> eventServiceClient.getMyTicketInfo(myTicketIds)
+                () -> eventServiceClient.getMyTicketInfo(new TicketInfoCreateDtoList(myTicketIds))
         );
     }
 

@@ -11,19 +11,21 @@ import static com.example.ficketticketing.global.result.error.ErrorCode.*;
 public class FeignErrorDecoder implements ErrorDecoder {
     @Override
     public Exception decode(String methodKey, Response response) {
+        log.error("Feign client error: methodKey={}, status={}, reason={}",
+                methodKey, response.status(), response.reason());
+
         switch (response.status()) {
             case 400:
-                break;
+                return new BusinessException(INVALID_REQUEST); // 적절한 ErrorCode 추가
             case 404:
                 if (methodKey.contains("getEventSchedule")) {
                     return new BusinessException(EVENT_SCHEDULE_NOT_FOUND);
                 } else if (methodKey.contains("getUser")) {
                     return new BusinessException(USER_NOT_FOUND);
                 }
-                break;
+                return new BusinessException(RESOURCE_NOT_FOUND); // 기본 404 처리
             default:
-                return new Exception(response.reason());
+                return new BusinessException(UNKNOWN_ERROR); // 기본 처리
         }
-        return null;
     }
 }

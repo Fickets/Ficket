@@ -109,8 +109,10 @@ public class UserController {
     public ResponseEntity<PagedResponse<MyTicketResponse>> getMyTicket(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size,
+            @RequestParam(required = false, defaultValue = "asc") String sort,
+            @RequestParam(required = false) String sidoFilter,
             @RequestHeader("X-User-Id") String userId) {
-        return ResponseEntity.ok(userService.getMyTicket(Long.parseLong(userId), page, size));
+        return ResponseEntity.ok(userService.getMyTicket(Long.parseLong(userId), page, size, sort, sidoFilter));
     }
 
 }

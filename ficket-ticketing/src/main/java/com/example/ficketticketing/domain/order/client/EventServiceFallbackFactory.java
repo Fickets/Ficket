@@ -4,6 +4,7 @@ import com.example.ficketticketing.domain.order.dto.client.ReservedSeatsResponse
 import com.example.ficketticketing.domain.order.dto.client.TicketInfoDto;
 import com.example.ficketticketing.domain.order.dto.client.ValidSeatInfoResponse;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
+import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDtoList;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class EventServiceFallbackFactory implements FallbackFactory<EventService
             }
 
             @Override
-            public List<TicketInfoDto> getMyTicketInfo(List<Long> ticketIds) {
+            public List<TicketInfoDto> getMyTicketInfo(TicketInfoCreateDtoList ticketInfoCreateDtoList) {
                 log.error("Fallback triggered for getMyTicketInfo due to: {}", cause.getMessage());
                 return Collections.emptyList();
             }

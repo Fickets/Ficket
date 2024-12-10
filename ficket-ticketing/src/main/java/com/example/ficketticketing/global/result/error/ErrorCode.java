@@ -18,6 +18,9 @@ public enum ErrorCode {
     IS_NOT_IMAGE(400, "이미지가 아닙니다."),
     FAILED_DURING_TRANSACTION(409, "트랜잭션 실패"),
     Json_Processing_Exception(400, "잘못된 JSON 형식 입니다."),
+    INVALID_REQUEST(400, "잘못된 요청"),
+    RESOURCE_NOT_FOUND(404, "없는 요청"),
+    UNKNOWN_ERROR(500, "알수없는 오류"),
 
     // Circuit Breaker 관련 에러
     CIRCUIT_BREAKER_OPEN(503, "Circuit Breaker가 open 상태입니다. 잠시후 다시 시도해주세요"),
@@ -34,7 +37,7 @@ public enum ErrorCode {
 
     EVENT_SCHEDULE_NOT_FOUND(404, "해당 공연 회차가 없습니다."),
     USER_NOT_FOUND(404, "해당 유저가 없습니다."),
-    NOT_MATCH_RESERVED_SEATS(400,"해당 유저가 선점한 좌석과 요청이 일치하지 않습니다."),
+    NOT_MATCH_RESERVED_SEATS(400, "해당 유저가 선점한 좌석과 요청이 일치하지 않습니다."),
 
     FAILED_UPLOAD_USER_FACE(409, "사용자 얼굴 등록에 실패했습니다."),
 

@@ -25,7 +25,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
 //    List<EventSearchRes> searchEventByCond(@Param("cond") EventSearchCond eventSearchCond);
 
 
-    @Query("SELECT new com.example.ficketevent.domain.event.dto.response.TicketEventResponse(es.eventDate, e.eventStage.stageName, ei.bannerPcUrl, ei.bannerMobileUrl, e.title, e.companyId, sp.partitionName, ss.seatRow, ss.seatCol) " +
+    @Query("SELECT new com.example.ficketevent.domain.event.dto.response.TicketEventResponse(sm.ticketId, es.eventDate, e.eventStage.stageName, ei.bannerPcUrl, ei.bannerMobileUrl, e.title, e.companyId, sp.partitionName, ss.seatRow, ss.seatCol, est.sido) " +
             "FROM SeatMapping sm " +
             "JOIN EventSchedule es ON sm.eventSchedule.eventScheduleId = es.eventScheduleId " +
             "JOIN Event e ON es.event.eventId = e.eventId " +

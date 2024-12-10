@@ -1,9 +1,7 @@
 package com.example.ficketevent.domain.event.service;
 
 import com.example.ficketevent.domain.event.client.AdminServiceClient;
-import com.example.ficketevent.domain.event.dto.common.AdminDto;
-import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
-import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
+import com.example.ficketevent.domain.event.dto.common.*;
 import com.example.ficketevent.domain.event.dto.request.*;
 import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.entity.*;
@@ -538,12 +536,14 @@ public class EventService {
         );
     }
 
-    public List<TicketInfoDto> getMyTicketInfo(List<Long> ticketIds) {
+    public List<TicketInfoDto> getMyTicketInfo(TicketInfoCreateDtoList ticketInfoCreateDtoList) {
+
+        List<Long> ticketIds = ticketInfoCreateDtoList.getTicketInfoCreateDtoList().stream().map(TicketInfoCreateDto::getTicketId).toList();
         // 1. 티켓 정보 조회
-        List<TicketEventResponse> myTicketInfo = eventRepository.getMyTicketInfo(ticketIds);
+        List<TicketEventResponse> ticketEventResponseList = eventRepository.getMyTicketInfo(ticketIds);
 
         // 2. companyId 수집
-        Set<Long> companyIds = myTicketInfo.stream()
+        Set<Long> companyIds = ticketEventResponseList.stream()
                 .map(TicketEventResponse::getCompanyId)
                 .collect(Collectors.toSet());
 
@@ -557,9 +557,13 @@ public class EventService {
         Map<Long, String> companyNameMap = companyResponses.stream()
                 .collect(Collectors.toMap(CompanyResponse::getCompanyId, CompanyResponse::getCompanyName));
 
+
+        Map<Long, LocalDateTime> ticketCreateMap = ticketInfoCreateDtoList.getTicketInfoCreateDtoList().stream()
+                .collect(Collectors.toMap(TicketInfoCreateDto::getTicketId, TicketInfoCreateDto::getCreatedAt));
+
         // 4. MapStruct 매퍼를 사용하여 변환
-        return myTicketInfo.stream()
-                .map(ticket -> ticketMapper.toTicketInfoDto(ticket, companyNameMap))
+        return ticketEventResponseList.stream()
+                .map(ticket -> ticketMapper.toTicketInfoDto(ticket, companyNameMap, ticketCreateMap))
                 .toList();
     }
 }

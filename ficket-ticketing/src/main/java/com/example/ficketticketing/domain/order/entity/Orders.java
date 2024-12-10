@@ -2,8 +2,6 @@ package com.example.ficketticketing.domain.order.entity;
 
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.request.SelectSeatInfo;
-import com.example.ficketticketing.domain.ticket.entity.Ticket;
-import com.example.ficketticketing.domain.ticket.entity.ViewingStatus;
 import com.example.ficketticketing.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

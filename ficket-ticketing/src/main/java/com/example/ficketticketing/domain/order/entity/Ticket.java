@@ -1,6 +1,5 @@
-package com.example.ficketticketing.domain.ticket.entity;
+package com.example.ficketticketing.domain.order.entity;
 
-import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

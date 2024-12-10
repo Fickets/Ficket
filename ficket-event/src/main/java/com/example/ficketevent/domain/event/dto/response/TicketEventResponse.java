@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TicketEventResponse {
+    private Long ticketId;
     private LocalDateTime eventDateTime;
     private String eventStageName;
     private String eventPcBannerUrl;
@@ -21,4 +22,5 @@ public class TicketEventResponse {
     private String seatGrade;
     private String seatRow;
     private String seatCol;
+    private String sido;
 }

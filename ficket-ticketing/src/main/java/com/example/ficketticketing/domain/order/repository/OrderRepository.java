@@ -1,6 +1,7 @@
 package com.example.ficketticketing.domain.order.repository;
 
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
+import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
 import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,6 +31,6 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     boolean existsByPaymentIdAndOrderStatus(String paymentId, OrderStatus orderStatus);
 
-    @Query("SELECT o.ticket.ticketId FROM Orders o where o.userId = :userId")
-    List<Long> findTicketIdsByUserId(@Param("userId") Long userId);
+    @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto(o.ticket.ticketId, o.createdAt) FROM Orders o where o.userId = :userId")
+    List<TicketInfoCreateDto> findTicketIdsByUserId(@Param("userId") Long userId);
 }

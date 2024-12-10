@@ -4,6 +4,7 @@ import com.example.ficketticketing.domain.order.dto.client.ReservedSeatsResponse
 import com.example.ficketticketing.domain.order.dto.client.TicketInfoDto;
 import com.example.ficketticketing.domain.order.dto.client.ValidSeatInfoResponse;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
+import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDtoList;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,6 @@ public interface EventServiceClient {
     ValidSeatInfoResponse checkRequest(@RequestBody CreateOrderRequest createOrderRequest);
 
 
-    @GetMapping("/api/v1/events/my-ticket-info")
-    List<TicketInfoDto> getMyTicketInfo(@RequestParam List<Long> ticketIds);
+    @PostMapping(value = "/api/v1/events/my-ticket-info", consumes = MediaType.APPLICATION_JSON_VALUE)
+    List<TicketInfoDto> getMyTicketInfo(@RequestBody TicketInfoCreateDtoList ticketInfoCreateDtoList);
 }

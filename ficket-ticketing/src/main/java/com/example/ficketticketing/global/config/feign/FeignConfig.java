@@ -1,6 +1,7 @@
 package com.example.ficketticketing.global.config.feign;
 
 import com.example.ficketticketing.global.result.error.FeignErrorDecoder;
+import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
 import feign.form.spring.SpringFormEncoder;
@@ -18,5 +19,10 @@ public class FeignConfig {
 //    @Bean
 //    public Encoder feignEncoder() {
 //        return new SpringFormEncoder();
+//    }
+
+//    @Bean
+//    public Decoder feignDecoder() {
+//        return new JacksonDecoder(); // ObjectMapper 기반 디코더
 //    }
 }

@@ -13,8 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MyTicketResponse {
+    private LocalDateTime createdAt;
     private LocalDateTime eventDateTime;
     private String eventStageName;
+    private String sido;
     private String eventPcBannerUrl;
     private String eventMobileBannerUrl;
     private String eventName;
