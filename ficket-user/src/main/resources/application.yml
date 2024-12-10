@@ -31,11 +31,6 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-logging:
-  level:
-    com.example.ficketuser : DEBUG
-  pattern:
-    correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
 management:
   tracing:
@@ -48,6 +43,28 @@ management:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
 
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 80
+        slow-call-duration-threshold: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        max-wait-duration-in-half-open-state: 0
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 10
+        wait-duration-in-open-state: 10s
+    instances:
+      getMyTicketCircuitBreaker:
+        base-config: default
+
+logging:
+  level:
+    com.example.ficketuser: DEBUG
+  pattern:
+    correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
 springdoc:
   api-docs:

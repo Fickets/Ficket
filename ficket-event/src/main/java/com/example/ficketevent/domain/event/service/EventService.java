@@ -3,25 +3,22 @@ package com.example.ficketevent.domain.event.service;
 import com.example.ficketevent.domain.event.client.AdminServiceClient;
 import com.example.ficketevent.domain.event.dto.common.AdminDto;
 import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
+import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.request.*;
 import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.mapper.EventMapper;
+import com.example.ficketevent.domain.event.mapper.TicketMapper;
 import com.example.ficketevent.domain.event.repository.*;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.AwsS3Service;
-import com.example.ficketevent.global.utils.CircuitBreakerUtils;
 import com.example.ficketevent.global.utils.FileUtils;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.example.ficketevent.global.config.awsS3.AwsConstants.*;
@@ -44,6 +40,7 @@ public class EventService {
 
     private final AdminServiceClient adminServiceClient;
     private final EventMapper eventMapper;
+    private final TicketMapper ticketMapper;
     private final EventRepository eventRepository;
     private final EventStageRepository eventStageRepository;
     private final EventScheduleRepository eventScheduleRepository;
@@ -539,5 +536,30 @@ public class EventService {
                 results.size(),
                 (int) Math.ceil((double) results.size() / pageable.getPageSize())
         );
+    }
+
+    public List<TicketInfoDto> getMyTicketInfo(List<Long> ticketIds) {
+        // 1. 티켓 정보 조회
+        List<TicketEventResponse> myTicketInfo = eventRepository.getMyTicketInfo(ticketIds);
+
+        // 2. companyId 수집
+        Set<Long> companyIds = myTicketInfo.stream()
+                .map(TicketEventResponse::getCompanyId)
+                .collect(Collectors.toSet());
+
+        // 3. 회사 정보 조회
+        List<CompanyResponse> companyResponses = executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "getCompaniesBatchCircuitBreaker",
+                () -> adminServiceClient.getCompaniesByIds(companyIds)
+        );
+
+        Map<Long, String> companyNameMap = companyResponses.stream()
+                .collect(Collectors.toMap(CompanyResponse::getCompanyId, CompanyResponse::getCompanyName));
+
+        // 4. MapStruct 매퍼를 사용하여 변환
+        return myTicketInfo.stream()
+                .map(ticket -> ticketMapper.toTicketInfoDto(ticket, companyNameMap))
+                .toList();
     }
 }

@@ -9,9 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
-public interface OrderRepository extends JpaRepository<Orders,Long> {
+public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     @Query("SELECT o.orderPrice FROM Orders o WHERE o.paymentId = :paymentId")
     Optional<BigDecimal> findOrderByPaymentId(@Param("paymentId") String paymentId);
@@ -28,4 +29,7 @@ public interface OrderRepository extends JpaRepository<Orders,Long> {
     Optional<OrderStatusResponse> findOrderStatusByOrderId(@Param("orderId") Long orderId);
 
     boolean existsByPaymentIdAndOrderStatus(String paymentId, OrderStatus orderStatus);
+
+    @Query("SELECT o.ticket.ticketId FROM Orders o where o.userId = :userId")
+    List<Long> findTicketIdsByUserId(@Param("userId") Long userId);
 }

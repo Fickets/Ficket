@@ -32,6 +32,8 @@ resilience4j:
         base-config: default
       checkRequestValidCircuitBreaker:
         base-config: default
+      getMyTicketInfoCircuitBreaker:
+        base-config: default
 
 logging:
   level:

@@ -1,6 +1,6 @@
 package com.example.ficketevent.domain.event.controller;
 
-import com.example.ficketevent.domain.event.dto.common.EventScheduleDto;
+import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
 import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
 import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
@@ -8,12 +8,9 @@ import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.service.EventService;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -142,6 +139,19 @@ public class EventController {
     public ResponseEntity<Integer> TT() {
         return ResponseEntity.status(HttpResponseStatus.OK.code()).build();
 
+    }
+
+    /**
+     * 티켓 정보 조회 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-09
+     * 변경 이력:
+     * - 2024-12-09 오형상: 초기 작성
+     */
+    @GetMapping("/my-ticket-info")
+    public ResponseEntity<List<TicketInfoDto>> getMyTicketInfo(@RequestParam List<Long> ticketIds) {
+        return ResponseEntity.ok(eventService.getMyTicketInfo(ticketIds));
     }
 
 }

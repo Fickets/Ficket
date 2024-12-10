@@ -3,11 +3,11 @@ package com.example.ficketticketing.global.result.error;
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
+import lombok.extern.slf4j.Slf4j;
 
-import static com.example.ficketticketing.global.result.error.ErrorCode.EVENT_SCHEDULE_NOT_FOUND;
-import static com.example.ficketticketing.global.result.error.ErrorCode.USER_NOT_FOUND;
+import static com.example.ficketticketing.global.result.error.ErrorCode.*;
 
-
+@Slf4j
 public class FeignErrorDecoder implements ErrorDecoder {
     @Override
     public Exception decode(String methodKey, Response response) {

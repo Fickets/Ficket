@@ -1,5 +1,6 @@
 package com.example.ficketticketing.domain.order.controller;
 
+import com.example.ficketticketing.domain.order.dto.client.TicketInfoDto;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.service.OrderService;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.List;
 
 
 @Slf4j
@@ -81,4 +84,30 @@ public class OrderController {
         return paymentSseService.subscribe(paymentId);
     }
 
+    /**
+     * 주문(티켓) 취소 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-09
+     * 변경 이력:
+     * - 2024-12-09 오형상: 초기 작성
+     */
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long orderId) {
+        orderService.refundOrder(orderId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 마이 티켓 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-09
+     * 변경 이력:
+     * - 2024-12-09 오형상: 초기 작성
+     */
+    @GetMapping("/my")
+    public ResponseEntity<List<TicketInfoDto>> getMyTickets(@RequestParam Long userId) {
+        return ResponseEntity.ok(orderService.getMyTickets(userId));
+    }
 }
