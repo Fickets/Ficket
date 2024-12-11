@@ -110,4 +110,10 @@ public class OrderController {
     public ResponseEntity<List<TicketInfoDto>> getMyTickets(@RequestParam Long userId) {
         return ResponseEntity.ok(orderService.getMyTickets(userId));
     }
+
+    @PostMapping("/all-user-id")
+    public int[] getTicketingUserIdList(@RequestBody List<Long> scheduleId){
+        int[] res = orderService.getTicketUserStatistic(scheduleId);
+        return res;
+    }
 }

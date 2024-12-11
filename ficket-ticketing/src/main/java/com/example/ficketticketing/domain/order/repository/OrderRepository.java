@@ -4,6 +4,7 @@ import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
 import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
+import com.example.ficketticketing.domain.order.entity.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -33,4 +34,6 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto(o.ticket.ticketId, o.createdAt) FROM Orders o where o.userId = :userId")
     List<TicketInfoCreateDto> findTicketIdsByUserId(@Param("userId") Long userId);
+
+    Optional<Orders> findByTicket(Ticket ticket);
 }

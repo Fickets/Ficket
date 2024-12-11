@@ -100,6 +100,10 @@ spring:
         - id: event-service
           uri: lb://event-service
           predicates:
+            - Path=/api/v1/events/statistic/**
+        - id: event-service
+          uri: lb://event-service
+          predicates:
             - Path=/api/v1/events/seat/{action}  # 좌석 선점 및 해제
           filters:
             - AuthorizationHeaderFilter #

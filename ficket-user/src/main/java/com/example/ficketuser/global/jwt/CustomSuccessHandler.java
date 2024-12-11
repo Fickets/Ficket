@@ -75,7 +75,6 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }else{
             response.sendRedirect("http://localhost:5173");
         }
-
     }
 
     public Cookie createCookie(String key, String value){
