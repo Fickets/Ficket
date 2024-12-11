@@ -54,10 +54,6 @@ export default function Router() {
       {/* FICKET USER EVENT  */}
       <Route path="events/detail/:eventId" element={<EventDetailPage />} />
       {/* FICKET USER TICKETING*/}
-      <Route
-        path="ticketing/select-session/:eventId"
-        element={<SelectSession />}
-      />
       <Route path="/my-ticket" element={<MyTicket />} />
 
       {/* */}

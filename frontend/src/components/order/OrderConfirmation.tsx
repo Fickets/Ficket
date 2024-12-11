@@ -1,9 +1,15 @@
-import { useEventStore } from '../../types/StoreType/EventState.ts';
-import KakaoPay from './KakaoPay.tsx';
+import KakaoPay from "./KakaoPay.tsx";
+import { useStore } from "zustand";
+import { eventDetailStore } from "../../stores/EventStore.tsx";
 
 const OrderConfirmation = () => {
-  const { selectedSeats, eventTitle, eventStage, eventDate, eventTime } =
-    useEventStore();
+  const event = useStore(eventDetailStore);
+
+  const selectedSeats = event.selectedSeats;
+  const eventTitle = event.title;
+  const eventStage = event.stageName;
+  const eventDate = event.choiceDate;
+  const eventTime = event.choiceTime;
 
   return (
     <div className="max-w-sm mx-auto bg-white border border-gray-300 rounded-lg shadow-lg">

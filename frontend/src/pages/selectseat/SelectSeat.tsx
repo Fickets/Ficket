@@ -25,15 +25,6 @@ import { useStore } from "zustand";
 
 const SelectSeat = () => {
   const navigate = useNavigate();
-  // const {
-  //   eventId,
-  //   eventScheduleId,
-  //   eventTitle,
-  //   eventDate,
-  //   eventTime,
-  //   eventStage,
-  //   setSelectedSeats, // Zustand에서 가져오기
-  // } = useEventStore();
 
   const event = useStore(eventDetailStore);
   console.log(event);
@@ -111,11 +102,6 @@ const SelectSeat = () => {
   }, [eventScheduleId]);
 
   if (!eventSummary || !seatCntGrade || !seatStatusResponse || !gradeColors) {
-    console.log(eventSummary);
-    console.log(seatCntGrade);
-    console.log(seatStatusResponse);
-    console.log(gradeColors);
-
     return <div>Loading...</div>;
   }
 
@@ -143,13 +129,12 @@ const SelectSeat = () => {
   const handleNextStep = async () => {
     if (selectedSeats.length === 0) {
       alert("좌석을 선택해주세요.");
-    } else if (selectedSeats.length > eventSummary.reservationLimit) {
+    } else if (selectedSeats.length > event.reservationLimit) {
       alert("예매 한도를 초과했습니다.");
     } else {
       try {
         const payload = {
           eventScheduleId: eventScheduleId,
-          reservationLimit: eventSummary.reservationLimit,
           selectSeatInfoList: selectedSeats.map((seat) => ({
             seatMappingId: seat.seatMappingId,
             seatPrice: seat.price,
@@ -169,7 +154,7 @@ const SelectSeat = () => {
   };
 
   const handleBeforeStep = () => {
-    navigate(-1);
+    navigate("/ticketing/select-date");
   };
 
   const handleRefresh = async () => {
@@ -234,7 +219,7 @@ const SelectSeat = () => {
       <div className="relative -mt-8 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-0 px-4 z-10">
         <DraggableSeatMap
           eventStageImg={eventSummary.eventStageImg}
-          reservationLimit={eventSummary.reservationLimit}
+          reservationLimit={event.reservationLimit}
           seatStatusResponse={seatStatusResponse}
           onSeatSelect={setLocalSelectedSeats}
           selectedSeats={selectedSeats}

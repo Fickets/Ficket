@@ -39,7 +39,6 @@ export const fetchAllSeatStatus = async (
 // 선택 좌석들 선점
 export const lockSeats = async (payload: {
   eventScheduleId: number;
-  reservationLimit: number;
   selectSeatInfoList: {
     seatMappingId: number;
     seatPrice: number;

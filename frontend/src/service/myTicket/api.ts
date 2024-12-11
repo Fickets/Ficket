@@ -35,3 +35,11 @@ export const fetchMyTickets = async (
   );
   return response.data;
 };
+
+export const refundMyTicket = async (orderId: number): Promise<number> => {
+  const response: AxiosResponse = await privateApi.delete(
+    `/ticketing/order/${orderId}`,
+  );
+
+  return response.status;
+};

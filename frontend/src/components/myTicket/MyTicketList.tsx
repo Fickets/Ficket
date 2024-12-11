@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { EventContent } from "../../types/myTicket.ts";
-import { fetchMyTickets } from "../../service/myTicket/api.ts";
+import { fetchMyTickets, refundMyTicket } from "../../service/myTicket/api.ts";
 import { useStore } from "zustand";
 import { userStore } from "../../stores/UserStore.tsx";
 
@@ -21,8 +21,8 @@ const MyTicketList = () => {
       setEvents((prevEvents) => [...prevEvents, ...response.content]);
       setPage(response.page + 1);
       setHasMore(response.page + 1 < response.totalPages);
-    } catch (error) {
-      console.error("데이터 로드 실패:", error);
+    } catch (error: any) {
+      console.error("데이터 로드 실패:", error.message);
     }
   };
 
@@ -39,6 +39,17 @@ const MyTicketList = () => {
     setPage(0);
     setHasMore(true);
     setIsDropdownOpen(false);
+  };
+
+  const postRefundMyTicket = async (orderId: number) => {
+    try {
+      const response = await refundMyTicket(orderId);
+      if (response == 204) {
+        alert("환불 완료 되었습니다.");
+      }
+    } catch (error: any) {
+      alert(error.message);
+    }
   };
 
   useEffect(() => {
@@ -168,7 +179,7 @@ const MyTicketList = () => {
               {/* Refund Button */}
               <button
                 className="absolute top-4 right-4 text-red-500 text-xs font-bold hover:underline"
-                onClick={() => alert("환불 기능은 구현되지 않았습니다.")}
+                onClick={() => postRefundMyTicket(event.orderId)}
               >
                 환불하기
               </button>
