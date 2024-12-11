@@ -115,7 +115,6 @@ const SelectDate: React.FC = () => {
                 </div>
             </div>
             {/* 모바일 */}
-            {/* 모바일 */}
             <div className='block md:hidden flex flex-col justify-center items-center'>
 
                 <TicketingHeader step={1} />

@@ -92,6 +92,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
             </div>
             <div className='block md:hidden'>
                 <Calendar
+                    className='customCalendar'
                     onChange={handleDateClick}
                     value={initialDate} // 초기 날짜 설정 (예매 가능 첫 날짜)
                     formatDay={(locale, date) => moment(date).format("D")}
