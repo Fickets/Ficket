@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MyTicketResponse {
+    private Long orderId;
     private LocalDateTime createdAt;
     private LocalDateTime eventDateTime;
     private String eventStageName;

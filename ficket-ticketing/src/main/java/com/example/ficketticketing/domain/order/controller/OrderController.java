@@ -116,4 +116,17 @@ public class OrderController {
         int[] res = orderService.getTicketUserStatistic(scheduleId);
         return res;
     }
+
+    /**
+     * 입장 제한을 위한 해당 회원의 해당 회차 구매 가능 티켓 수 반환 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-11
+     * 변경 이력:
+     * - 2024-12-11 오형상: 초기 작성
+     */
+    @GetMapping("/enter-ticketing/{eventScheduleId}")
+    public ResponseEntity<Integer> enterTicketing(@RequestHeader("X-User-Id") String userId, @PathVariable Long eventScheduleId) {
+        return ResponseEntity.ok(orderService.enterTicketing(Long.parseLong(userId), eventScheduleId));
+    }
 }

@@ -2,6 +2,7 @@ package com.example.ficketevent.domain.event.service;
 
 import com.example.ficketevent.domain.event.dto.common.CreateOrderRequest;
 import com.example.ficketevent.domain.event.dto.common.ReservedSeatsResponse;
+import com.example.ficketevent.domain.event.dto.common.TicketDto;
 import com.example.ficketevent.domain.event.dto.common.ValidSeatInfoResponse;
 import com.example.ficketevent.domain.event.dto.kafka.OrderDto;
 import com.example.ficketevent.domain.event.dto.kafka.SeatMappingUpdatedEvent;
@@ -270,5 +271,46 @@ public class StageSeatService {
                 .reservationLimit(eventSchedule.getEvent().getReservationLimit())
                 .selectSeatInfoList(seatInfoInSeatMappingIds)
                 .build();
+    }
+
+    /**
+     * 
+     * @param ticketId 환불 요청 티켓
+     */
+    public void openSeat(Long ticketId) {
+        seatMappingRepository.openSeat(ticketId);
+    }
+
+
+    /**
+     * 예약 제한과 이미 구매된 티켓 수를 기반으로 남은 구매 가능 티켓 수를 계산하는 메서드입니다.
+     *
+     * @param ticketDto 티켓 정보가 담긴 DTO
+     *                  - ticketIds: 조회할 티켓 ID 목록
+     *                  - eventScheduleId: 이벤트 스케줄 ID
+     * @return 구매 가능 티켓 수 (예약 제한 수 - 이미 구매된 티켓 수)
+     *         만약 구매 가능 수량이 없으면 0을 반환합니다.
+     */
+    public Integer getAvailableCount(TicketDto ticketDto) {
+        // 입력받은 DTO에서 티켓 ID 목록과 이벤트 스케줄 ID를 추출
+        List<Long> ticketIds = ticketDto.getTicketIds();
+        Long eventScheduleId = ticketDto.getEventScheduleId();
+
+        // 이벤트 스케줄에 설정된 예약 제한 수를 조회
+        int reservationLimit = eventScheduleRepository.findReservationLimit(eventScheduleId);
+
+        // 구매된 티켓 수를 저장할 변수 초기화
+        Integer count;
+
+        // 티켓 ID가 null이거나 비어 있는 경우 처리
+        if (ticketIds == null || ticketIds.isEmpty()) {
+            count = 0; // 티켓 ID가 없는 경우 구매된 티켓 수는 0으로 간주
+        } else {
+            // 티켓 ID 목록을 기준으로 이미 구매된 티켓 수를 조회
+            count = seatMappingRepository.countPurchasedSeatsByTicketId(ticketIds);
+        }
+
+        // 예약 제한에서 이미 구매된 티켓 수를 차감하여 남은 구매 가능 티켓 수를 계산
+        return reservationLimit - count;
     }
 }

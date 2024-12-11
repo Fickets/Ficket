@@ -16,5 +16,6 @@ public class WebhookPayload {
     public static class WebhookData {
         private String transactionId;  // 거래 ID
         private String paymentId;      // 결제 ID
+        private String cancellationId;
     }
 }

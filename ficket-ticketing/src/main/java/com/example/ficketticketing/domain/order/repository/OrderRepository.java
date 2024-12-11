@@ -1,6 +1,7 @@
 package com.example.ficketticketing.domain.order.repository;
 
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
+import com.example.ficketticketing.domain.order.dto.response.TicketDto;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
 import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
@@ -24,6 +25,10 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     void updateOrderStatusToCompleted(@Param("paymentId") String paymentId);
 
     @Modifying
+    @Query("UPDATE Orders o SET o.orderStatus = 'REFUNDED' WHERE o.paymentId = :paymentId AND o.orderStatus = 'COMPLETED'")
+    void updateOrderStatusToRefunded(@Param("paymentId") String paymentId);
+
+    @Modifying
     @Query("UPDATE Orders o SET o.orderStatus = :orderStatus WHERE o.orderId = :orderId")
     void updateOrderStatus(@Param("orderId") Long orderId, @Param("orderStatus") OrderStatus orderStatus);
 
@@ -32,8 +37,19 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     boolean existsByPaymentIdAndOrderStatus(String paymentId, OrderStatus orderStatus);
 
-    @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto(o.ticket.ticketId, o.createdAt) FROM Orders o where o.userId = :userId")
+    @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto(o.orderId, o.ticket.ticketId, o.createdAt) FROM Orders o where o.userId = :userId AND o.orderStatus = 'COMPLETED'")
     List<TicketInfoCreateDto> findTicketIdsByUserId(@Param("userId") Long userId);
 
     Optional<Orders> findByTicket(Ticket ticket);
+
+    @Query("SELECT o.ticket.ticketId " +
+            "FROM Orders o " +
+            "WHERE o.userId = :userId " +
+            "AND o.orderStatus = 'COMPLETED' " +
+            "AND o.ticket.eventScheduleId = :eventScheduleId")
+    List<Long> findTicketIdByEventSchedule(@Param("userId") Long userId, @Param("eventScheduleId") Long eventScheduleId);
+
+    @Query("SELECT o FROM Orders o WHERE o.orderId = :orderId AND o.orderStatus = 'COMPLETED'")
+    Optional<Orders> findByIdCompletedStatus(@Param("orderId") Long orderId);
 }
+

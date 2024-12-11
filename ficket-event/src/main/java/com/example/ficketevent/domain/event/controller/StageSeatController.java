@@ -1,6 +1,7 @@
 package com.example.ficketevent.domain.event.controller;
 
 import com.example.ficketevent.domain.event.dto.common.CreateOrderRequest;
+import com.example.ficketevent.domain.event.dto.common.TicketDto;
 import com.example.ficketevent.domain.event.dto.common.ValidSeatInfoResponse;
 import com.example.ficketevent.domain.event.dto.common.ReservedSeatsResponse;
 import com.example.ficketevent.domain.event.dto.request.SelectSeat;
@@ -12,6 +13,7 @@ import com.example.ficketevent.domain.event.service.PreoccupyService;
 import com.example.ficketevent.domain.event.service.StageSeatService;
 import jakarta.ws.rs.QueryParam;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -120,4 +122,31 @@ public class StageSeatController {
         return ResponseEntity.ok(stageSeatService.validRequest(createOrderRequest));
     }
 
+    /**
+     * 좌석 재 오픈 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-10
+     * 변경 이력:
+     * - 2024-12-10 오형상: 초기 작성
+     */
+    @PostMapping("/refund/{ticketId}")
+    ResponseEntity<Void> refundTicket(@PathVariable Long ticketId) {
+        stageSeatService.openSeat(ticketId);
+        return ResponseEntity.ok().build();
+    }
+
+
+    /**
+     * 해당 유저의 해당 회차 구매 가능 티켓 수 반환 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-11
+     * 변경 이력:
+     * - 2024-12-11 오형상: 초기 작성
+     */
+    @PostMapping("/available-count")
+    ResponseEntity<Integer> getAvailableCount(@RequestBody TicketDto ticketDto) {
+        return ResponseEntity.ok(stageSeatService.getAvailableCount(ticketDto));
+    }
 }

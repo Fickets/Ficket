@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TicketInfoCreateDto {
+    private Long orderId;
     private Long ticketId;
     private LocalDateTime createdAt;
 }
