@@ -38,7 +38,7 @@ const UserInfo = () => {
   };
 
   return (
-    <div className="flex items-center justify-between mx-[300px] mt-[50px] border-b pb-4">
+    <div className="flex items-center justify-between mx-[300px] mt-[50px] border-b pb-4 hidden sm:flex">
       {/* Left Section: User Info */}
       <div className="flex flex-col space-y-3">
         <div className="flex items-center">
