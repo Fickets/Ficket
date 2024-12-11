@@ -1,5 +1,5 @@
 import { UserAdditionalInfoType } from "./users/UserAdditionalInfoType";
-import { eventDetail} from './StoreType/EventDetailStore'
+import { eventDetail } from './StoreType/EventDetailStore'
 export interface ResponseData {
     data: string;
     status: number;
@@ -16,4 +16,9 @@ export interface UserAdditionalInfoRes {
 export interface EventDetailRes {
     status: number;
     data: eventDetail;
+}
+
+export interface GenderStatisticRes {
+    status: number;
+    data: number[]
 }
