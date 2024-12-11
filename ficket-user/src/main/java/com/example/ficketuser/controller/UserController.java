@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -133,4 +135,9 @@ public class UserController {
         return ResponseEntity.ok(userService.getMyTicket(Long.parseLong(userId), page, size, sort, sidoFilter));
     }
 
+    @PostMapping("/all-ticketing-user")
+    public List<UserSimpleDto> getTicketingUsers(@RequestBody List<Long> userIds){
+        List<UserSimpleDto> res = userService.getTicketingUsers(userIds);
+        return res;
+    }
 }

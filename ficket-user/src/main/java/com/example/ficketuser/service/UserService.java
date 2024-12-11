@@ -32,10 +32,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -359,5 +356,14 @@ public class UserService {
         return response;
     }
 
+    public List<UserSimpleDto> getTicketingUsers(List<Long> userIds){
+        List<UserSimpleDto> res = new ArrayList<>();
+        for (Long userId : userIds) {
+            userRepository.findByUserId(userId)
+                    .ifPresent(user -> res.add(userMapper.toUserSimpleDto(user)));
+        }
+
+        return res;
+    }
 
 }

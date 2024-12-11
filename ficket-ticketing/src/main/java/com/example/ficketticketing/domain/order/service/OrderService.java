@@ -11,6 +11,7 @@ import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.messagequeue.OrderProducer;
 import com.example.ficketticketing.domain.order.repository.OrderRepository;
+import com.example.ficketticketing.domain.order.repository.TicketRepository;
 import com.example.ficketticketing.global.result.error.ErrorCode;
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
 import com.example.ficketticketing.infrastructure.payment.PortOneApiClient;
@@ -50,6 +51,7 @@ public class OrderService {
     private final PortOneApiClient portOneApiClient;
     private final PaymentSseService paymentSseService;
     private final OrderRepository orderRepository;
+    private final TicketRepository ticketRepository;
     private final UserServiceClient userServiceClient;
     private final EventServiceClient eventServiceClient;
     private final FaceServiceClient faceServiceClient;
@@ -279,6 +281,44 @@ public class OrderService {
                 "getMyTicketInfoCircuitBreaker",
                 () -> eventServiceClient.getMyTicketInfo(new TicketInfoCreateDtoList(myTicketIds))
         );
+    }
+
+
+    public int[] getTicketUserStatistic(List<Long> scheduleIdList){
+        List<Long> userIds = new ArrayList<>();
+        for (Long id : scheduleIdList) {
+            ticketRepository.findAllByEventScheduleId(id)
+                    .forEach(ticket -> {
+                        Orders order = orderRepository.findByTicket(ticket)
+                                .orElseThrow(()-> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
+                        userIds.add(order.getUserId());
+                    });
+        }
+        List<UserSimpleDto> users = userServiceClient.getUsers(userIds);
+        int male = 0;
+        int female = 0;
+        int age10 = 0;
+        int age20 = 0;
+        int age30 = 0;
+        int age40 = 0;
+        int age50 = 0;
+        for (UserSimpleDto user : users) {
+            if (user.getGender().equals(Gender.MALE)){
+                male++;
+            }else{female++;}
+            int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+            int age = (currentYear - user.getBirth()) / 10;
+            switch(age){
+                case 1: age10++;break;
+                case 2: age20++;break;
+                case 3: age30++;break;
+                case 4: age40++;break;
+                default:age50++;break;
+            }
+        }
+
+        int[] res = {male, female, age10, age20, age30, age40, age50};
+        return res;
     }
 
 }
