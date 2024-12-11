@@ -9,13 +9,6 @@ import { useStore } from "zustand";
 
 function RegisterFace() {
   const navigate = useNavigate();
-  // const {
-  //   faceImg,
-  //   setFaceImg,
-  //   selectedSeats,
-  //   setSelectedSeats,
-  //   eventScheduleId,
-  // } = useEventStore();
 
   const event = useStore(eventDetailStore);
 

@@ -1,5 +1,5 @@
 import PortOne from "@portone/browser-sdk/v2";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createOrder } from "../../service/order/api.ts";
 import { useStore } from "zustand/index";
@@ -10,16 +10,6 @@ const CHANNEL_KEY: string = import.meta.env.VITE_CHANNEL_KEY;
 
 const KakaoPay = () => {
   const navigate = useNavigate();
-
-  // const {
-  //   faceImg,
-  //   eventScheduleId,
-  //   selectedSeats,
-  //   eventTitle,
-  //   eventStage,
-  //   eventDate,
-  //   eventTime,
-  // } = useEventStore();
 
   const event = useStore(eventDetailStore);
 
@@ -44,6 +34,16 @@ const KakaoPay = () => {
       .join("");
   };
 
+  useEffect(() => {
+    if (paymentStatus === "PAID") {
+      alert("결제가 성공적으로 완료되었습니다!");
+    } else if (paymentStatus === "FAILED") {
+      alert("결제가 실패하였습니다. 다시 시도해주세요.");
+    } else if (paymentStatus === "ERROR") {
+      alert("결제 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  }, [paymentStatus]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setWaitingPayment(true);
@@ -52,7 +52,6 @@ const KakaoPay = () => {
     console.log(`Generated paymentId: ${paymentId}`);
 
     try {
-      // SSE 연결 시작
       console.log("Attempting to connect to SSE...");
       const eventSource = new EventSource(
         `http://localhost:9000/api/v1/ticketing/order/subscribe/${paymentId}`,
@@ -68,8 +67,7 @@ const KakaoPay = () => {
         setPaymentStatus(data.status);
 
         if (data.status === "PAID" || data.status === "FAILED") {
-          console.log(`SSE connection closing with status: ${data.status}`);
-          eventSource.close(); // 결과를 받으면 SSE 연결 종료
+          eventSource.close();
           setWaitingPayment(false);
         }
       };
@@ -81,7 +79,6 @@ const KakaoPay = () => {
         eventSource.close();
       };
 
-      // 주문 생성 요청
       console.log("Creating order...");
       const createOrderRequest = {
         paymentId: paymentId,
@@ -96,7 +93,7 @@ const KakaoPay = () => {
               }),
             ),
           ),
-        ).map((item) => JSON.parse(item)), // JSON 형태를 다시 객체로 변환
+        ).map((item) => JSON.parse(item)),
       };
 
       const formData = new FormData();
@@ -120,7 +117,6 @@ const KakaoPay = () => {
       const orderDetails = await createOrder(formData);
       console.log("Order created successfully:", orderDetails);
 
-      // PortOne 결제 요청
       console.log("Sending payment request to PortOne...");
       await PortOne.requestPayment({
         storeId: STORE_ID,
@@ -143,9 +139,8 @@ const KakaoPay = () => {
           mobile: "REDIRECTION",
         },
         noticeUrls: [
-          "https://d22e-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
+          "https://38be-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
         ],
-        redirectUrl: "http://localhost:5137/order/payment-result",
       });
 
       console.log("Payment request sent successfully!");
@@ -155,24 +150,6 @@ const KakaoPay = () => {
       setWaitingPayment(false);
     }
   };
-
-  if (paymentStatus === "PAID") {
-    return <div>결제가 성공적으로 완료되었습니다!</div>;
-  }
-
-  if (paymentStatus === "FAILED" || paymentStatus === "ERROR") {
-    return (
-      <div>
-        <div>결제가 실패하였습니다. 다시 시도해주세요.</div>
-        <button
-          onClick={handleSubmit}
-          className="w-full bg-red-500 text-white py-3 border border-black font-semibold text-lg mt-4"
-        >
-          다시 시도하기
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -185,7 +162,6 @@ const KakaoPay = () => {
           ? "결제 진행 중..."
           : `${totalAmount.toLocaleString("ko-KR")} 원 결제하기`}
       </button>
-      {isWaitingPayment && <div>결제 상태 확인 중...</div>}
     </div>
   );
 };

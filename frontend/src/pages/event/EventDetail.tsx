@@ -13,8 +13,12 @@ import {
   Legend,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import { GenderStatisticRes } from '../../types/ApiResponseType'
-import { eventDetail, genderStatistic } from "../../service/event/eventApi";
+import { GenderStatisticRes } from "../../types/ApiResponseType";
+import {
+  checkEnterTicketing,
+  eventDetail,
+  genderStatistic,
+} from "../../service/event/eventApi";
 import { eventDetailStore } from "../../stores/EventStore";
 import { useEventStore } from "../../types/StoreType/EventState";
 import Calendar from "react-calendar";
@@ -36,7 +40,9 @@ const EventDetail: React.FC = () => {
   const [eventRounds, setEventRounds] = useState<
     Record<string, eventScheduleDto>
   >({}); // Map 타입으로 초기화
-  const [genderStatisticData, setGenderStatisticData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
+  const [genderStatisticData, setGenderStatisticData] = useState<number[]>([
+    0, 0, 0, 0, 0, 0, 0,
+  ]);
 
   const [choiceRound, setChoiceRound] = useState<number>();
   const [activeTab, setActiveTab] = useState("performance");
@@ -77,14 +83,14 @@ const EventDetail: React.FC = () => {
     plugins: {
       legend: {
         display: false, // 범례 활성화
-        position: 'top', // 범례 위치
+        position: "top", // 범례 위치
         labels: {
           font: {
             size: 14, // 범례 텍스트 크기
-            family: 'Arial', // 텍스트 폰트
-            weight: 'bold', // 텍스트 두께
+            family: "Arial", // 텍스트 폰트
+            weight: "bold", // 텍스트 두께
           },
-          color: '#5B4DFF', // 범례 텍스트 색상
+          color: "#5B4DFF", // 범례 텍스트 색상
           padding: 10, // 범례 항목 간격
         },
       },
@@ -126,50 +132,51 @@ const EventDetail: React.FC = () => {
 
   // 예매 가능 날짜 설정
   const availableDates = eventDates.map((dateString) => {
-    const [year, month, day] = dateString.split('-').map(Number);
+    const [year, month, day] = dateString.split("-").map(Number);
     return new Date(year, month - 1, day); // month는 0부터 시작하므로 -1 필요
   });
   // 처음 선택 날자
   const initialDate = availableDates.at(-1);
 
-  useEffect(() => {
-
-  });
+  useEffect(() => {});
 
   // 날짜 클릭 핸들러
   const handleDateClick = (date) => {
-    if (availableDates.some(d => d.toDateString() === date.toDateString())) {
+    if (availableDates.some((d) => d.toDateString() === date.toDateString())) {
       setChoiceDate(date);
       const formattedDate = date.toLocaleDateString("en-CA");
       const selectedEventRounds = event.scheduleMap[formattedDate];
       event.setChoiceDate(formattedDate);
       // event.setChoicetime()
       event.setTicketingStep(true);
-      setEventRounds(selectedEventRounds)
+      setEventRounds(selectedEventRounds);
       setChoiceRound(1); // round를 초기화
-      setSelectedButton(0)
+      setSelectedButton(0);
       event.setRound(1);
-      const scheduleData = event.scheduleMap[formattedDate][1]
-      event.setScheduleId(scheduleData.eventScheduleId)
-
+      const scheduleData = event.scheduleMap[formattedDate][1];
+      event.setScheduleId(scheduleData.eventScheduleId);
     }
   };
   // 클릭 불가능한 날짜 설정
   const tileDisabled = ({ date, view }) => {
-    if (view === 'month') {
+    if (view === "month") {
       // `availableDates`에 포함되지 않은 날짜는 클릭 비활성화
-      return !availableDates.some(d => d.toDateString() === date.toDateString());
+      return !availableDates.some(
+        (d) => d.toDateString() === date.toDateString(),
+      );
     }
     return false;
   };
   // 날짜별 스타일 적용
   const tileClassName = ({ date, view }) => {
-    if (view === 'month') {
+    if (view === "month") {
       if (choiceDate && date.toDateString() === choiceDate.toDateString()) {
-        return 'selected-date'; // 선택된 날짜 스타일
+        return "selected-date"; // 선택된 날짜 스타일
       }
-      if (availableDates.some(d => d.toDateString() === date.toDateString())) {
-        return 'available-date'; // 예매 가능 날짜 스타일
+      if (
+        availableDates.some((d) => d.toDateString() === date.toDateString())
+      ) {
+        return "available-date"; // 예매 가능 날짜 스타일
       }
     }
     return null;
@@ -177,15 +184,14 @@ const EventDetail: React.FC = () => {
 
   // 달력 함수 END LINE ------------------------------------------------
   const roundButtonClick = (e) => {
-    const key = parseInt(e.currentTarget.getAttribute('data-key') || ''); // data-key 값을 숫자로 변환
+    const key = parseInt(e.currentTarget.getAttribute("data-key") || ""); // data-key 값을 숫자로 변환
     setSelectedButton(key); // 상태 업데이트
     console.log(`Clicked key: ${key}`);
     event.setRound(key + 1);
     const date = event.choiceDate;
-    const scheduleData = event.scheduleMap[date][key + 1]
-    event.setScheduleId(scheduleData.eventScheduleId)
+    const scheduleData = event.scheduleMap[date][key + 1];
+    event.setScheduleId(scheduleData.eventScheduleId);
   };
-
 
   useEffect(() => {
     eventDetailGet();
@@ -198,18 +204,21 @@ const EventDetail: React.FC = () => {
       (response) => {
         const res = response.data;
         const statisticData = res.slice(0, 2);
-        const sum = statisticData.reduce((acc, currentValue) => acc + currentValue, 0);
+        const sum = statisticData.reduce(
+          (acc, currentValue) => acc + currentValue,
+          0,
+        );
         console.log("TT", sum);
-        res.slice(2).forEach(value => {
-          const ageStatistic = (value / sum) * 100
-          statisticData.push(ageStatistic)
+        res.slice(2).forEach((value) => {
+          const ageStatistic = (value / sum) * 100;
+          statisticData.push(ageStatistic);
         });
         setGenderStatisticData(statisticData);
         console.log(response);
       },
-      (error) => { },
-    )
-  }
+      (error) => {},
+    );
+  };
 
   const eventDetailGet = async () => {
     await eventDetail(
@@ -240,7 +249,7 @@ const EventDetail: React.FC = () => {
         event.setScheduleMap(res.scheduleMap);
         setEventId(Number(eventId));
       },
-      (error) => { },
+      (error) => {},
     );
   };
 
@@ -248,6 +257,13 @@ const EventDetail: React.FC = () => {
     if (user.isLogin) {
       let url = "";
       if (event.ticketingStep) {
+        try {
+          const availableCount = await checkEnterTicketing(event.scheduleId);
+          event.setReservationLimit(availableCount);
+        } catch (error: any) {
+          alert(`${error.message}`); // API에서 에러 발생 시 처리
+          return; // 에러 발생 시 새 창 열기를 중단
+        }
         url = "/ticketing/select-seat";
       } else {
         url = "/ticketing/select-date";
@@ -269,10 +285,9 @@ const EventDetail: React.FC = () => {
   return (
     <div>
       <div className="ticket-page p-6 font-sans">
-
         {/* 상단 헤더 영역 */}
         <UserHeader />
-        <hr className='mt-[15px] mb-[50px]' />
+        <hr className="mt-[15px] mb-[50px]" />
 
         {/* 공연 정보 영역 */}
         <div className="ml-[330px] ">
@@ -373,12 +388,13 @@ const EventDetail: React.FC = () => {
                       <button
                         key={index}
                         data-key={index}
-                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
-                          ? "bg-[#8E43E7] text-white"
-                          : "bg-white"
-                          }`}
+                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
+                          selectedButton === index
+                            ? "bg-[#8E43E7] text-white"
+                            : "bg-white"
+                        }`}
                         onClick={(e) => roundButtonClick(e)}
-                      // onClick={setSelectedButton(key)}
+                        // onClick={setSelectedButton(key)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
                         <p>
@@ -410,19 +426,21 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "performance"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "sales"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -445,13 +463,29 @@ const EventDetail: React.FC = () => {
                         <div className="flex chart-placeholder h-[200px] rounded-md flex items-center justify-center">
                           <img src={manImg} className="w-[100px]" alt="" />
                           <div className="flex flex-col">
-                            <p className="mt-[0px]">남자 {genderStatisticData[0]}명</p>
-                            <p className="text-[30px] text-[#5B4DFF]">{(genderStatisticData[0] / (genderStatisticData[0] + genderStatisticData[1]) * 100)}%</p>
+                            <p className="mt-[0px]">
+                              남자 {genderStatisticData[0]}명
+                            </p>
+                            <p className="text-[30px] text-[#5B4DFF]">
+                              {(genderStatisticData[0] /
+                                (genderStatisticData[0] +
+                                  genderStatisticData[1])) *
+                                100}
+                              %
+                            </p>
                           </div>
                           <img src={womanImg} className="w-[100px]" alt="" />
                           <div className="flex flex-col">
-                            <p className="mt-[10px]">여자 {genderStatisticData[1]}명</p>
-                            <p className="text-[30px] text-[#5B4DFF]">{(genderStatisticData[1] / (genderStatisticData[0] + genderStatisticData[1]) * 100)}%</p>
+                            <p className="mt-[10px]">
+                              여자 {genderStatisticData[1]}명
+                            </p>
+                            <p className="text-[30px] text-[#5B4DFF]">
+                              {(genderStatisticData[1] /
+                                (genderStatisticData[0] +
+                                  genderStatisticData[1])) *
+                                100}
+                              %
+                            </p>
                           </div>
                         </div>
                       </div>
