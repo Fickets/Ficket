@@ -64,4 +64,9 @@ public class Orders extends BaseEntity {
 
         return order;
     }
+
+    public void refund(BigDecimal refundPrice) {
+        this.refundPrice = refundPrice;
+        this.orderStatus = OrderStatus.REFUNDED;
+    }
 }

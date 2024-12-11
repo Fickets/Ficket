@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -153,6 +154,19 @@ public class EventController {
     @PostMapping("/my-ticket-info")
     public ResponseEntity<List<TicketInfoDto>> getMyTicketInfo(@RequestBody TicketInfoCreateDtoList ticketInfoCreateDtoList) {
         return ResponseEntity.ok(eventService.getMyTicketInfo(ticketInfoCreateDtoList));
+    }
+
+    /**
+     * 공연 날짜 조회 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-10
+     * 변경 이력:
+     * - 2024-12-10 오형상: 초기 작성
+     */
+    @GetMapping("/date/time/{eventScheduleId}")
+    public ResponseEntity<LocalDateTime> getEventDateTime(@PathVariable Long eventScheduleId) {
+        return ResponseEntity.ok(eventService.getEventDateTime(eventScheduleId));
     }
 
 }

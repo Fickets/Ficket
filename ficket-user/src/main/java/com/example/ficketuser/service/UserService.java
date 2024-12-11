@@ -273,10 +273,13 @@ public class UserService {
         }
 
         // 이벤트별로 그룹화
-        Map<String, List<TicketInfoDto>> groupedByEvent = ticketInfoDtoList.stream()
-                .collect(Collectors.groupingBy(this::generateEventKey));
+//        Map<String, List<TicketInfoDto>> groupedByEvent = ticketInfoDtoList.stream()
+//                .collect(Collectors.groupingBy(this::generateEventKey));
 
-        // 그룹화된 데이터를 MyTicketResponse로 변환
+        Map<Long, List<TicketInfoDto>> groupedByEvent = ticketInfoDtoList.stream()
+                .collect(Collectors.groupingBy(TicketInfoDto::getOrderId));
+
+//        // 그룹화된 데이터를 MyTicketResponse로 변환
         List<MyTicketResponse> allResponses = groupedByEvent.values().stream()
                 .map(this::convertGroupedTicketsToMyTicketResponse)
                 .toList();
@@ -323,6 +326,7 @@ public class UserService {
      */
     private String generateEventKey(TicketInfoDto ticket) {
         return String.join("|",
+                ticket.getOrderId().toString(),
                 ticket.getCreatedAt().toString(), // 생성일
                 ticket.getEventDateTime().toString(), // 이벤트 날짜 및 시간
                 ticket.getEventStageName(), // 공연장 이름

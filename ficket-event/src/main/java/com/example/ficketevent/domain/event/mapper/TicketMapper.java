@@ -15,7 +15,13 @@ public interface TicketMapper {
 
     @Mapping(source = "companyId", target = "companyName", qualifiedByName = "mapCompanyName")
     @Mapping(source = "ticketId", target = "createdAt", qualifiedByName = "mapCreatedAt")
-    TicketInfoDto toTicketInfoDto(TicketEventResponse ticketEventResponse, @Context Map<Long, String> companyNameMap,@Context Map<Long, LocalDateTime> createdAtMap);
+    @Mapping(source = "ticketId", target = "orderId", qualifiedByName = "mapOrderId")
+    TicketInfoDto toTicketInfoDto(
+            TicketEventResponse ticketEventResponse,
+            @Context Map<Long, String> companyNameMap,
+            @Context Map<Long, LocalDateTime> createdAtMap,
+            @Context Map<Long, Long> ticketOrderMap
+    );
 
     @Named("mapCompanyName")
     default String mapCompanyName(Long companyId, @Context Map<Long, String> companyNameMap) {
@@ -25,5 +31,10 @@ public interface TicketMapper {
     @Named("mapCreatedAt")
     default LocalDateTime mapCreatedAt(Long ticketId, @Context Map<Long, LocalDateTime> createdAtMap) {
         return createdAtMap.getOrDefault(ticketId, LocalDateTime.now());
+    }
+
+    @Named("mapOrderId")
+    default Long mapOrderId(Long ticketId, @Context Map<Long, Long> ticketOrderMap) {
+        return ticketOrderMap.getOrDefault(ticketId, 0L);
     }
 }

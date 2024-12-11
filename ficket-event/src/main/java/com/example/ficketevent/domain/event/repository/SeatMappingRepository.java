@@ -6,6 +6,7 @@ import com.example.ficketevent.domain.event.dto.response.SeatGradeInfo;
 import com.example.ficketevent.domain.event.dto.response.SeatInfo;
 import com.example.ficketevent.domain.event.entity.SeatMapping;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -40,4 +41,10 @@ public interface SeatMappingRepository extends JpaRepository<SeatMapping, Long> 
             "FROM SeatMapping sm WHERE sm.seatMappingId IN :seatMappingIds")
     Set<SelectSeatInfo> findSeatInfoInSeatMappingIds(@Param("seatMappingIds") Set<Long> seatMappingIds);
 
+    @Modifying
+    @Query("UPDATE SeatMapping sm SET sm.ticketId = NULL WHERE sm.ticketId = :ticketId")
+    void openSeat(@Param("ticketId") Long ticketId);
+
+    @Query("SELECT COUNT(sm.ticketId) FROM SeatMapping sm WHERE sm.ticketId in :ticketIds")
+    int countPurchasedSeatsByTicketId(@Param("ticketIds") List<Long> ticketIds);
 }

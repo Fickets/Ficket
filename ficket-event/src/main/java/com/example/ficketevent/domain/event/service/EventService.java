@@ -561,9 +561,18 @@ public class EventService {
         Map<Long, LocalDateTime> ticketCreateMap = ticketInfoCreateDtoList.getTicketInfoCreateDtoList().stream()
                 .collect(Collectors.toMap(TicketInfoCreateDto::getTicketId, TicketInfoCreateDto::getCreatedAt));
 
+        // 5. TicketId -> OrderId 매핑
+        Map<Long, Long> ticketOrderMap = ticketInfoCreateDtoList.getTicketInfoCreateDtoList()
+                .stream()
+                .collect(Collectors.toMap(TicketInfoCreateDto::getTicketId, TicketInfoCreateDto::getOrderId));
+
         // 4. MapStruct 매퍼를 사용하여 변환
         return ticketEventResponseList.stream()
-                .map(ticket -> ticketMapper.toTicketInfoDto(ticket, companyNameMap, ticketCreateMap))
+                .map(ticket -> ticketMapper.toTicketInfoDto(ticket, companyNameMap, ticketCreateMap, ticketOrderMap))
                 .toList();
+    }
+
+    public LocalDateTime getEventDateTime(Long eventScheduleId) {
+        return eventScheduleRepository.findEventDateByEventScheduleId(eventScheduleId);
     }
 }

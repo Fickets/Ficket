@@ -173,7 +173,17 @@ spring:
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
-            - Path=/api/v1/ticketing/**
+            - Path=/api/v1/ticketing/order/enter-ticketing/{eventScheduleId:\d+}
+            - Method=GET
+          filters:
+            - AuthorizationHeaderFilter
+            - UserTokenExtractionFilter
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
+            - Path=/api/v1/ticketing/order/**
+          filters:
+            - AuthorizationHeaderFilter
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
