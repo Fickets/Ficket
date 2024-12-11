@@ -1,10 +1,13 @@
 package com.example.ficketevent.domain.event.service;
 
+import com.example.ficketevent.domain.event.client.TicketingServiceClient;
 import com.example.ficketevent.domain.event.client.UserServiceClient;
 import com.example.ficketevent.domain.event.dto.common.UserSimpleDto;
 import com.example.ficketevent.domain.event.dto.request.SelectSeat;
 import com.example.ficketevent.domain.event.dto.request.SelectSeatInfo;
 import com.example.ficketevent.domain.event.dto.response.ReservedSeatInfo;
+import com.example.ficketevent.domain.event.repository.EventScheduleRepository;
+import com.example.ficketevent.domain.event.repository.SeatMappingRepository;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.CircuitBreakerUtils;
@@ -40,6 +43,7 @@ public class PreoccupyService {
     private final PreoccupyInternalService preoccupyInternalService;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final RateLimiterRegistry rateLimiterRegistry;
+    private final TicketingServiceClient ticketingServiceClient;
 
     @Transactional
     public void lockSeat(SelectSeat request, Long userId) {
@@ -73,7 +77,13 @@ public class PreoccupyService {
         ensureUserHasNoSelectedSeats(eventScheduleId, user.getUserId());
 
         // 요청된 좌석 수와 예약 제한을 검증
-        validateSeatCount(seatMappingIds, request.getReservationLimit());
+        Integer reservationLimit = CircuitBreakerUtils.executeWithCircuitBreaker(
+                        circuitBreakerRegistry,
+                        "enterTicketingCircuitBreaker",
+                        () -> ticketingServiceClient.enterTicketing(String.valueOf(user.getUserId()), eventScheduleId)
+                );
+
+        validateSeatCount(seatMappingIds, reservationLimit);
 
         // 요청 좌석 중 이미 선점된 좌석이 있는지 확인
         validateSeatsAvailability(eventScheduleId, seatMappingIds);

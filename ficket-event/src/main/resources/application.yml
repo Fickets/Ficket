@@ -37,6 +37,8 @@ resilience4j:
         base-config: default
       getAdminsBatchCircuitBreaker:
         base-config: default
+      enterTicketingCircuitBreaker:
+        base-config: default
   ratelimiter:
     configs:
       default:

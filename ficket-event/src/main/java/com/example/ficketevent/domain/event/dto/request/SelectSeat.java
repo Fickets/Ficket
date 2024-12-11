@@ -12,6 +12,5 @@ import java.util.List;
 public class SelectSeat {
 
     private Long eventScheduleId;
-    private Integer reservationLimit;
     private List<SelectSeatInfo> selectSeatInfoList;
 }
