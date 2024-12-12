@@ -1,13 +1,13 @@
-import Sidebar from "../../components/@common/Sidebar";
-import EventForm from "../../components/register/EventForm";
-import CalendarWithSchedule from "../../components/register/CalendarWithSchedule";
-import SeatSetting from "../../components/register/SeatSetting";
-import { useState, useEffect } from "react";
-import { EventData } from "../../types/register";
-import { registerEvent, fetchStages } from "../../service/register/api";
-import ImageUploader from "../../components/register/ImageUploader";
-import TinyEditor from "../../components/register/TinyEditor";
-import { useNavigate } from "react-router-dom";
+import Sidebar from '../../components/@common/Sidebar';
+import EventForm from '../../components/register/EventForm';
+import CalendarWithSchedule from '../../components/register/CalendarWithSchedule';
+import SeatSetting from '../../components/register/SeatSetting';
+import { useState, useEffect } from 'react';
+import { EventData } from '../../types/register';
+import { registerEvent, fetchStages } from '../../service/register/api';
+import ImageUploader from '../../components/register/ImageUploader';
+import TinyEditor from '../../components/register/TinyEditor';
+import { useNavigate } from 'react-router-dom';
 
 interface Stage {
   stageId: number;
@@ -21,12 +21,12 @@ const RegisterEvent = () => {
     companyId: 0,
     stageId: 0, // 행사장 ID 초기값 설정
     genre: [],
-    age: "",
-    content: "",
-    title: "",
-    subTitle: "",
+    age: '',
+    content: '',
+    title: '',
+    subTitle: '',
     runningTime: 0,
-    ticketingTime: "",
+    ticketingTime: '',
     reservationLimit: 0,
     eventDate: [],
     seats: [],
@@ -46,11 +46,11 @@ const RegisterEvent = () => {
       try {
         const stages: Stage[] = await fetchStages();
         const selectedStage = stages.find(
-          (stage) => stage.stageId === eventData.stageId,
+          (stage) => stage.stageId === eventData.stageId
         );
         setStageImg(selectedStage?.eventStageImg || null);
       } catch (error) {
-        console.error("Error fetching stage image:", error);
+        console.error('Error fetching stage image:', error);
       }
     };
 
@@ -59,7 +59,7 @@ const RegisterEvent = () => {
 
   const handleFormChange = (formData: Partial<EventData>) => {
     setEventData((prevData) =>
-      prevData ? { ...prevData, ...formData } : null,
+      prevData ? { ...prevData, ...formData } : null
     );
   };
 
@@ -73,45 +73,57 @@ const RegisterEvent = () => {
 
   const handleRegister = async () => {
     if (!eventData) {
-      alert("입력된 데이터가 없습니다.");
+      alert('입력된 데이터가 없습니다.');
       return;
     }
     const formData = new FormData();
     console.log(JSON.stringify(eventData));
     formData.append(
-      "req",
-      new Blob([JSON.stringify(eventData)], { type: "application/json" }),
+      'req',
+      new Blob([JSON.stringify(eventData)], { type: 'application/json' })
     );
     if (poster) {
-      formData.append("poster", poster);
+      formData.append('poster', poster);
     }
     if (banner) {
-      formData.append("banner", banner);
+      formData.append('banner', banner);
     }
     try {
       const response = await registerEvent(formData);
       alert(response);
-      navigate("/admin/event-list"); // 성공 시 이동
+      navigate('/admin/event-list'); // 성공 시 이동
     } catch (error) {
-      console.error("공연 등록 실패:", error);
-      alert("공연 등록 중 오류가 발생했습니다."); // 실패 시 알림창 표시
+      console.error('공연 등록 실패:', error);
+      alert('공연 등록 중 오류가 발생했습니다.'); // 실패 시 알림창 표시
     }
   };
 
   return (
     <div className="flex h-screen bg-[#F0F2F5]">
-      <div className="w-64 bg-[#5E6770] text-white h-full">
-        <Sidebar currentStep={"performance"} />
+      {/* 사이드바 */}
+      <div className="w-64 h-full">
+        <Sidebar currentStep={'performance'} />
       </div>
 
+      {/* 메인 컨텐츠 */}
       <div className="flex-1 p-8 overflow-auto">
-        <div className="bg-white w-full p-8 rounded-xl shadow-lg">
+        <div
+          className="bg-white p-8 rounded-xl shadow-lg mx-auto"
+          style={{ width: '1580px' }}
+        >
           <h2 className="text-2xl font-bold mb-8">공연 등록</h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-6">
+          {/* 메인 레이아웃 */}
+          <div className="flex flex-wrap justify-between gap-8">
+            {/* 왼쪽 섹션 */}
+            <div
+              className="space-y-6"
+              style={{
+                flex: '0 0 500px', // 고정 너비
+                maxWidth: '500px',
+              }}
+            >
               <EventForm onChange={handleFormChange} />
-              {/* 이미지 업로더 섹션 */}
               <ImageUploader
                 title="포스터 업로드"
                 aspectRatio={2960 / 3520}
@@ -123,11 +135,18 @@ const RegisterEvent = () => {
                 onChange={handleBannerChange}
               />
             </div>
-            <div className="lg:col-span-2 space-y-6">
+
+            {/* 오른쪽 섹션 */}
+            <div
+              className="space-y-6 flex-1"
+              style={{
+                minWidth: '0', // 플렉스 항목 오버플로우 방지
+              }}
+            >
               <CalendarWithSchedule onChange={handleFormChange} />
               <SeatSetting
                 stageId={eventData?.stageId || 0}
-                stageImg={stageImg || ""}
+                stageImg={stageImg || ''}
                 onChange={handleFormChange}
               />
               <TinyEditor
@@ -136,6 +155,7 @@ const RegisterEvent = () => {
             </div>
           </div>
 
+          {/* 등록 버튼 */}
           <div className="flex justify-end mt-8">
             <button
               onClick={handleRegister}

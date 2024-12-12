@@ -44,13 +44,62 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
           return prev; // 중복 시간일 경우 기존 상태 반환
         }
 
-        const newRound = existingSessions.length + 1;
+        // 새로운 회차 추가
+        const updatedSessions = [
+          ...existingSessions,
+          { round: existingSessions.length + 1, time: timeString },
+        ];
+
+        // 시간 순서대로 정렬
+        updatedSessions.sort((a, b) => {
+          const [aHour, aMinute] = a.time.split(':').map(Number);
+          const [bHour, bMinute] = b.time.split(':').map(Number);
+          return aHour - bHour || aMinute - bMinute;
+        });
+
+        // 회차 번호 재할당
+        updatedSessions.forEach((session, index) => {
+          session.round = index + 1;
+        });
+
         const updatedSchedule = {
           ...prev,
-          [selectedDate]: [
-            ...existingSessions,
-            { round: newRound, time: timeString },
-          ],
+          [selectedDate]: updatedSessions,
+        };
+
+        // 부모 컴포넌트에 전달할 데이터 변환
+        const eventDate: EventDate[] = Object.entries(updatedSchedule).map(
+          ([date, sessions]) => ({
+            date,
+            sessions,
+          })
+        );
+
+        onChange({ eventDate }); // 부모로 전달
+
+        return updatedSchedule;
+      });
+    }
+  };
+
+  const handleDeleteTime = (time: string) => {
+    if (selectedDate) {
+      setSchedule((prev) => {
+        const existingSessions = prev[selectedDate] || [];
+
+        // 삭제된 시간 제외
+        const updatedSessions = existingSessions.filter(
+          (session) => session.time !== time
+        );
+
+        // 회차 번호 재할당
+        updatedSessions.forEach((session, index) => {
+          session.round = index + 1;
+        });
+
+        const updatedSchedule = {
+          ...prev,
+          [selectedDate]: updatedSessions,
         };
 
         // 부모 컴포넌트에 전달할 데이터 변환
@@ -191,8 +240,16 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
             {selectedDate && schedule[selectedDate]?.length > 0 ? (
               <ul className="list-disc pl-5 space-y-1">
                 {schedule[selectedDate].map((session, index) => (
-                  <li key={index}>
-                    {session.round}회차 - {session.time}
+                  <li key={index} className="flex justify-between">
+                    <span>
+                      {session.round}회차 - {session.time}
+                    </span>
+                    <button
+                      onClick={() => handleDeleteTime(session.time)}
+                      className="text-red-500 text-sm"
+                    >
+                      삭제
+                    </button>
                   </li>
                 ))}
               </ul>

@@ -66,13 +66,16 @@ const EditCalendarWithSchedule = ({
           return prev;
         }
 
-        const newRound = existingSessions.length + 1;
+        const updatedSessions = [
+          ...existingSessions,
+          { round: 0, time: timeString },
+        ]
+          .sort((a, b) => (a.time > b.time ? 1 : -1))
+          .map((session, index) => ({ ...session, round: index + 1 }));
+
         const updatedSchedule = {
           ...prev,
-          [selectedDate]: [
-            ...existingSessions,
-            { round: newRound, time: timeString },
-          ],
+          [selectedDate]: updatedSessions,
         };
 
         // 부모로 전달할 데이터 변환
@@ -88,6 +91,35 @@ const EditCalendarWithSchedule = ({
         return updatedSchedule;
       });
     }
+  };
+
+  // 회차 삭제 처리
+  const handleRemoveTime = (date: string, round: number) => {
+    setSchedule((prev) => {
+      const updatedSessions = prev[date]
+        .filter((session) => session.round !== round)
+        .map((session, index) => ({ ...session, round: index + 1 }));
+
+      const updatedSchedule = {
+        ...prev,
+        [date]: updatedSessions,
+      };
+
+      if (updatedSessions.length === 0) {
+        delete updatedSchedule[date];
+      }
+
+      const eventDate: EventDate[] = Object.entries(updatedSchedule).map(
+        ([date, sessions]) => ({
+          date,
+          sessions,
+        })
+      );
+
+      onChange({ eventDate });
+
+      return updatedSchedule;
+    });
   };
 
   // 월 변경 처리
@@ -116,9 +148,9 @@ const EditCalendarWithSchedule = ({
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
       <h3 className="text-xl font-semibold mb-4">공연 기간 및 회차 선택</h3>
 
-      <div className="flex space-x-4 mb-4">
+      <div className="flex gap-4">
         {/* 달력 */}
-        <div className="w-1/2 bg-gray-100 rounded p-4">
+        <div className="w-[50%] bg-gray-100 rounded p-4">
           <div className="flex justify-between items-center mb-4">
             <button
               onClick={() => handleMonthChange('prev')}
@@ -176,8 +208,8 @@ const EditCalendarWithSchedule = ({
           </div>
         </div>
 
-        {/* 회차 추가 */}
-        <div className="w-1/2 bg-white rounded p-4 border border-gray-300">
+        {/* 회차 추가 및 삭제 */}
+        <div className="w-[50%] bg-white rounded p-4 border border-gray-300">
           <div className="flex items-center mb-4">
             <select
               value={hour}
@@ -213,9 +245,19 @@ const EditCalendarWithSchedule = ({
             <h4 className="text-lg font-semibold mb-2">추가된 회차</h4>
             {selectedDate && schedule[selectedDate]?.length > 0 ? (
               <ul className="list-disc pl-5 space-y-1">
-                {schedule[selectedDate].map((session, index) => (
-                  <li key={index}>
-                    {session.round}회차 - {session.time}
+                {schedule[selectedDate].map((session) => (
+                  <li key={session.round} className="flex justify-between">
+                    <span>
+                      {session.round}회차 - {session.time}
+                    </span>
+                    <button
+                      onClick={() =>
+                        handleRemoveTime(selectedDate, session.round)
+                      }
+                      className="text-red-500 text-sm ml-4"
+                    >
+                      삭제
+                    </button>
                   </li>
                 ))}
               </ul>
