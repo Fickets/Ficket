@@ -77,7 +77,7 @@ public class UserController {
      * 변경 이력:
      * - 2024-11-28 최용수: 초기 작성
      */
-    @DeleteMapping()
+    @DeleteMapping("/delete")
     public ResponseEntity<Integer> deleteUser(HttpServletResponse response) {
         userService.deleteUser(response);
         return null;

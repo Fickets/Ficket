@@ -33,6 +33,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -499,13 +501,13 @@ public class OrderService {
         return availableCount;
     }
 
-    public int[] getTicketUserStatistic(List<Long> scheduleIdList){
+    public int[] getTicketUserStatistic(List<Long> scheduleIdList) {
         List<Long> userIds = new ArrayList<>();
         for (Long id : scheduleIdList) {
             ticketRepository.findAllByEventScheduleId(id)
                     .forEach(ticket -> {
                         Orders order = orderRepository.findByTicket(ticket)
-                                .orElseThrow(()-> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
+                                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
                         userIds.add(order.getUserId());
                     });
         }
@@ -518,22 +520,78 @@ public class OrderService {
         int age40 = 0;
         int age50 = 0;
         for (UserSimpleDto user : users) {
-            if (user.getGender().equals(Gender.MALE)){
+            if (user.getGender().equals(Gender.MALE)) {
                 male++;
-            }else{female++;}
+            } else {
+                female++;
+            }
             int currentYear = Calendar.getInstance().get(Calendar.YEAR);
             int age = (currentYear - user.getBirth()) / 10;
-            switch(age){
-                case 1: age10++;break;
-                case 2: age20++;break;
-                case 3: age30++;break;
-                case 4: age40++;break;
-                default:age50++;break;
+            switch (age) {
+                case 1:
+                    age10++;
+                    break;
+                case 2:
+                    age20++;
+                    break;
+                case 3:
+                    age30++;
+                    break;
+                case 4:
+                    age40++;
+                    break;
+                default:
+                    age50++;
+                    break;
             }
         }
 
         int[] res = {male, female, age10, age20, age30, age40, age50};
         return res;
+    }
+
+    /**
+     * 날짜별 수익 데이터를 계산합니다.
+     *
+     * @param ticketIds 계산할 티켓 ID 목록
+     * @return 날짜별 수익 데이터 리스트
+     */
+    public List<DailyRevenueResponse> calculateDailyRevenue(Set<Long> ticketIds) {
+        return orderRepository.calculateDailyRevenue(ticketIds);
+    }
+
+    /**
+     * 요일별 예매 수를 계산합니다.
+     *
+     * @param ticketIds 계산할 티켓 ID 목록
+     * @return 요일별 예매 수 데이터 (DayCountResponse 객체)
+     */
+    public DayCountResponse calculateDayCount(Set<Long> ticketIds) {
+        // 이번 주 월요일과 일요일 계산
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(DayOfWeek.MONDAY);
+        LocalDate endOfWeek = today.with(DayOfWeek.SUNDAY);
+
+        // 시작과 끝 날짜를 LocalDateTime으로 변환
+        LocalDateTime startOfWeekTime = startOfWeek.atStartOfDay(); // 월요일 00:00:00
+        LocalDateTime endOfWeekTime = endOfWeek.atTime(23, 59, 59); // 일요일 23:59:59
+
+        // 쿼리 실행
+        List<Object[]> results = orderRepository.calculateDayCount(ticketIds, startOfWeekTime, endOfWeekTime);
+
+        // 요일별 초기화
+        Map<String, Long> dayCountMap = new LinkedHashMap<>();
+        List<String> daysOrder = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
+        daysOrder.forEach(day -> dayCountMap.put(day, 0L)); // 초기값 0
+
+        // 쿼리 결과를 맵에 추가
+        for (Object[] result : results) {
+            String day = (String) result[0];
+            Long count = (Long) result[1];
+            dayCountMap.put(day, count);
+        }
+
+        return new DayCountResponse(dayCountMap);
     }
 
 }

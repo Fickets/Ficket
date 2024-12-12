@@ -11,12 +11,11 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.example.ficketevent.domain.event.entity.QEvent.*;
 import static com.example.ficketevent.domain.event.entity.QEventSchedule.*;
+import static com.example.ficketevent.domain.event.entity.QSeatMapping.seatMapping;
 import static com.querydsl.core.group.GroupBy.groupBy;
 
 @RequiredArgsConstructor
@@ -96,6 +95,21 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                 .join(event.eventSchedules, eventSchedule) // Event -> EventSchedule 조인
                 .where(event.eventId.eq(eventId)) // 조건: EventId와 일치
                 .fetch(); // 결과를 리스트로 반환
+    }
+
+    @Override
+    public Set<Long> getTicketIdsByEventId(Long eventId) {
+        return new HashSet<>(
+                queryFactory
+                        .select(seatMapping.ticketId)
+                        .from(eventSchedule)
+                        .join(seatMapping).on(eventSchedule.eventScheduleId.eq(seatMapping.eventSchedule.eventScheduleId))
+                        .where(
+                                eventSchedule.event.eventId.eq(eventId)
+                                        .and(seatMapping.ticketId.isNotNull())
+                        )
+                        .fetch()
+        );
     }
 
 }

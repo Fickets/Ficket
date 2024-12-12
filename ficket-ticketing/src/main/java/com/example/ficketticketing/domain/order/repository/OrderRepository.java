@@ -1,5 +1,6 @@
 package com.example.ficketticketing.domain.order.repository;
 
+import com.example.ficketticketing.domain.order.dto.client.DailyRevenueResponse;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.dto.response.TicketDto;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
@@ -12,8 +13,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface OrderRepository extends JpaRepository<Orders, Long> {
 
@@ -37,7 +40,7 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     boolean existsByPaymentIdAndOrderStatus(String paymentId, OrderStatus orderStatus);
 
-    @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto(o.orderId, o.ticket.ticketId, o.createdAt) FROM Orders o where o.userId = :userId AND o.orderStatus = 'COMPLETED'")
+    @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto(o.orderId, o.ticket.ticketId, o.createdAt) FROM Orders o WHERE o.userId = :userId AND o.orderStatus = 'COMPLETED'")
     List<TicketInfoCreateDto> findTicketIdsByUserId(@Param("userId") Long userId);
 
     Optional<Orders> findByTicket(Ticket ticket);
@@ -51,5 +54,22 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     @Query("SELECT o FROM Orders o WHERE o.orderId = :orderId AND o.orderStatus = 'COMPLETED'")
     Optional<Orders> findByIdCompletedStatus(@Param("orderId") Long orderId);
+
+    @Query("SELECT new com.example.ficketticketing.domain.order.dto.client.DailyRevenueResponse(DATE(o.createdAt), SUM(o.orderPrice - o.refundPrice))" +
+            "FROM Orders o " +
+            "WHERE o.ticket.ticketId IN :ticketIds " +
+            "AND (o.orderStatus = 'COMPLETED' OR o.orderStatus = 'REFUNDED') " +
+            "GROUP BY DATE(o.createdAt)")
+    List<DailyRevenueResponse> calculateDailyRevenue(@Param("ticketIds") Set<Long> ticketIds);
+
+    @Query("SELECT DAYNAME(o.createdAt), COUNT(o) " +
+            "FROM Orders o " +
+            "WHERE o.ticket.ticketId IN :ticketIds " +
+            "AND o.orderStatus = 'COMPLETED' " +
+            "AND o.createdAt BETWEEN :startOfWeek AND :endOfWeek " +
+            "GROUP BY DAYNAME(o.createdAt)")
+    List<Object[]> calculateDayCount(@Param("ticketIds") Set<Long> ticketIds,
+                                     @Param("startOfWeek") LocalDateTime startOfWeek,
+                                     @Param("endOfWeek") LocalDateTime endOfWeek);
 }
 
