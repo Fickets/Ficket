@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import TemporaryUrlModal from '../../components/adminEventDetail/TemporaryUrlModal.tsx';
 import Sidebar from '../../components/@common/Sidebar.tsx';
+import AdminEventInfo from '../../components/adminEventDetail/AdminEventInfo.tsx'
 import { useParams, useSearchParams } from 'react-router-dom';
 import NotFound from '../errorpage/NotFound.tsx';
 import EditEvent from '../../components/adminEventDetail/EditEvent.tsx';
@@ -10,7 +11,6 @@ const AdminEventDetail = () => {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'info'; // 기본값 'info'
-
   const { eventId } = useParams<{ eventId: string }>();
 
   // 숫자만 허용
@@ -47,25 +47,22 @@ const AdminEventDetail = () => {
           </button>
           <button
             onClick={() => handleTabChange('monitoring')}
-            className={`px-4 py-2 ${
-              activeTab === 'monitoring' ? 'bg-blue-600' : 'bg-blue-500'
-            } text-white rounded-md hover:bg-blue-600`}
+            className={`px-4 py-2 ${activeTab === 'monitoring' ? 'bg-blue-600' : 'bg-blue-500'
+              } text-white rounded-md hover:bg-blue-600`}
           >
             모니터링
           </button>
           <button
             onClick={() => handleTabChange('info')}
-            className={`px-4 py-2 ${
-              activeTab === 'info' ? 'bg-blue-600' : 'bg-blue-500'
-            } text-white rounded-md hover:bg-blue-600`}
+            className={`px-4 py-2 ${activeTab === 'info' ? 'bg-blue-600' : 'bg-blue-500'
+              } text-white rounded-md hover:bg-blue-600`}
           >
             공연 정보
           </button>
           <button
             onClick={() => handleTabChange('edit')}
-            className={`px-4 py-2 ${
-              activeTab === 'edit' ? 'bg-blue-600' : 'bg-blue-500'
-            } text-white rounded-md hover:bg-blue-600`}
+            className={`px-4 py-2 ${activeTab === 'edit' ? 'bg-blue-600' : 'bg-blue-500'
+              } text-white rounded-md hover:bg-blue-600`}
           >
             수정
           </button>
@@ -88,7 +85,7 @@ const AdminEventDetail = () => {
           {activeTab === 'info' && (
             <div>
               <h2 className="text-xl font-bold mb-4">공연 정보</h2>
-              <p>공연 세부 정보를 확인할 수 있는 화면입니다.</p>
+              <AdminEventInfo eventId={eventId} />
             </div>
           )}
           {activeTab === 'edit' && (
