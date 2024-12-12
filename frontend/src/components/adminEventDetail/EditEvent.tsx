@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import EditCalendarWithSchedule from '../edit/EditCalendarWithSchedule';
-import EditSeatSetting from '../edit/EditSeatSetting';
-import EventForm from '../edit/EditEventForm';
-import ImageUploader from '../edit/EditImageUploader';
-import TinyEditor from '../edit/EditTinyEditor';
-import { fetchEventDetail, updateEvent } from '../../service/edit/api';
-import { EventDetailData } from '../../types/edit';
-import { EventData } from '../../types/register';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import EditCalendarWithSchedule from "../edit/EditCalendarWithSchedule";
+import EditSeatSetting from "../edit/EditSeatSetting";
+import EventForm from "../edit/EditEventForm";
+import ImageUploader from "../edit/EditImageUploader";
+import TinyEditor from "../edit/EditTinyEditor";
+import { fetchEventDetail, updateEvent } from "../../service/edit/api";
+import { EventDetailData } from "../../types/edit";
+import { EventData } from "../../types/register";
 
 const EditEvent = ({ eventId }: { eventId: string }) => {
   const navigate = useNavigate();
@@ -30,8 +30,8 @@ const EditEvent = ({ eventId }: { eventId: string }) => {
         const eventDetails = await fetchEventDetail(numericEventId);
         setOriginalEventData(eventDetails); // Save original event data
       } catch (error) {
-        console.error('Error fetching event details:', error);
-        alert('행사 정보를 불러오는데 실패했습니다.');
+        console.error("Error fetching event details:", error);
+        alert("행사 정보를 불러오는데 실패했습니다.");
       }
     };
 
@@ -55,7 +55,7 @@ const EditEvent = ({ eventId }: { eventId: string }) => {
 
   const handleUpdate = async () => {
     if (!originalEventData || numericEventId === null) {
-      alert('기존 데이터를 불러오지 못했습니다.');
+      alert("기존 데이터를 불러오지 못했습니다.");
       return;
     }
 
@@ -65,24 +65,24 @@ const EditEvent = ({ eventId }: { eventId: string }) => {
 
     const formData = new FormData();
     formData.append(
-      'req',
-      new Blob([JSON.stringify(mergedData)], { type: 'application/json' })
+      "req",
+      new Blob([JSON.stringify(mergedData)], { type: "application/json" }),
     );
     if (poster) {
-      formData.append('poster', poster);
+      formData.append("poster", poster);
     }
     if (banner) {
-      formData.append('banner', banner);
+      formData.append("banner", banner);
     }
 
     try {
       console.log(mergedData);
       await updateEvent(numericEventId, formData);
-      alert('행사가 성공적으로 수정되었습니다.');
-      navigate('/admin/events/1'); // 수정 후 리스트 페이지로 이동
+      alert("행사가 성공적으로 수정되었습니다.");
+      navigate("/admin/events/1"); // 수정 후 리스트 페이지로 이동
     } catch (error) {
-      console.error('Error updating event:', error);
-      alert('행사 수정에 실패했습니다.');
+      console.error("Error updating event:", error);
+      alert("행사 수정에 실패했습니다.");
     }
   };
 
@@ -95,7 +95,7 @@ const EditEvent = ({ eventId }: { eventId: string }) => {
       <h2 className="text-2xl font-bold mb-8">공연 수정</h2>
 
       <div className="flex gap-8">
-        <div className="space-y-6" style={{ width: '500px' }}>
+        <div className="w-[500px] space-y-6">
           <EventForm
             initialData={originalEventData}
             onChange={handleFormChange}

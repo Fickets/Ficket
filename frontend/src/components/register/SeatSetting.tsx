@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { fetchStageSeats } from '../../service/register/api';
-import { SeatInfo, SeatSettingProps } from '../../types/register';
+import { useState, useEffect, useRef } from "react";
+import { fetchStageSeats } from "../../service/register/api";
+import { SeatInfo, SeatSettingProps } from "../../types/register";
 
 const getRandomColor = () => {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
+  const letters = "0123456789ABCDEF";
+  let color = "#";
   for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
@@ -26,22 +26,22 @@ const SeatSetting = ({
       color: string;
     }[]
   >([]);
-  const [currentGrade, setCurrentGrade] = useState('');
-  const [currentPrice, setCurrentPrice] = useState('');
+  const [currentGrade, setCurrentGrade] = useState("");
+  const [currentPrice, setCurrentPrice] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const [scale, setScale] = useState({ x: 0.93, y: 0.94 });
+  const [scale, setScale] = useState({ x: 0.95, y: 0.95 });
 
   // Reset state when stageId changes
   useEffect(() => {
     setSeatCoordinates([]); // 좌석 좌표 초기화
     setSelectedSeats([]); // 선택된 좌석 초기화
     setGrades([]); // 등급 초기화
-    setCurrentGrade(''); // 입력 중인 등급 초기화
-    setCurrentPrice(''); // 입력 중인 가격 초기화
+    setCurrentGrade(""); // 입력 중인 등급 초기화
+    setCurrentPrice(""); // 입력 중인 가격 초기화
   }, [stageId]);
 
   useEffect(() => {
@@ -57,8 +57,8 @@ const SeatSetting = ({
     };
 
     updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
   }, [stageImg]);
 
   useEffect(() => {
@@ -66,14 +66,14 @@ const SeatSetting = ({
       if (!stageId) return;
 
       setLoading(true);
-      setError('');
+      setError("");
       setSeatCoordinates([]);
 
       try {
         const seats = await fetchStageSeats(stageId);
         setSeatCoordinates(seats);
       } catch (err) {
-        setError('좌석 정보를 불러오는 데 실패했습니다.');
+        setError("좌석 정보를 불러오는 데 실패했습니다.");
       } finally {
         setLoading(false);
       }
@@ -90,7 +90,7 @@ const SeatSetting = ({
     setSelectedSeats((prev) =>
       prev.some((selected) => selected.seatId === seat.seatId)
         ? prev.filter((selected) => selected.seatId !== seat.seatId)
-        : [...prev, seat]
+        : [...prev, seat],
     );
   };
 
@@ -107,17 +107,17 @@ const SeatSetting = ({
       setSelectedSeats((prev) =>
         prev.some((selected) => selected.seatId === seat.seatId)
           ? prev
-          : [...prev, seat]
+          : [...prev, seat],
       );
     }
   };
 
   const handleAddGrade = () => {
     if (!currentGrade || !currentPrice) {
-      alert('등급명, 가격 입력 및 좌석 선택 해주세요.');
+      alert("등급명, 가격 입력 및 좌석 선택 해주세요.");
       return;
     } else if (selectedSeats.length === 0) {
-      alert('좌석을 선택해 주세요.');
+      alert("좌석을 선택해 주세요.");
       return;
     }
 
@@ -134,8 +134,8 @@ const SeatSetting = ({
     ]);
 
     setSelectedSeats([]); // 선택 초기화
-    setCurrentGrade('');
-    setCurrentPrice('');
+    setCurrentGrade("");
+    setCurrentPrice("");
   };
 
   const handleRemoveGrade = (grade: string) => {
@@ -144,7 +144,7 @@ const SeatSetting = ({
 
   const handleSaveGrades = () => {
     if (grades.length === 0) {
-      alert('저장할 등급이 없습니다.');
+      alert("저장할 등급이 없습니다.");
       return;
     }
 
@@ -157,12 +157,12 @@ const SeatSetting = ({
     onChange({ seats: formattedGrades });
 
     // 알림 표시
-    alert('좌석 설정이 저장되었습니다.');
+    alert("좌석 설정이 저장되었습니다.");
   };
 
   const getSeatGrade = (seat: SeatInfo) => {
     return grades.find((grade) =>
-      grade.seats.some((s) => s.seatId === seat.seatId)
+      grade.seats.some((s) => s.seatId === seat.seatId),
     );
   };
 
@@ -190,12 +190,12 @@ const SeatSetting = ({
               src={stageImg}
               alt="Stage Map"
               className="absolute top-0 left-0 w-full h-full object-contain"
-              style={{ objectPosition: 'left top' }}
+              style={{ objectPosition: "left top" }}
             />
             {seatCoordinates.map((seat) => {
               const seatGrade = getSeatGrade(seat);
               const isSelected = selectedSeats.some(
-                (selected) => selected.seatId === seat.seatId
+                (selected) => selected.seatId === seat.seatId,
               );
 
               // 좌표 변환
@@ -206,14 +206,14 @@ const SeatSetting = ({
                 <button
                   key={seat.seatId}
                   className={`absolute w-[9px] h-[9px] border ${
-                    isSelected ? 'bg-red-500' : seatGrade ? '' : 'bg-white'
+                    isSelected ? "bg-red-500" : seatGrade ? "" : "bg-white"
                   }`}
                   style={{
-                    backgroundColor: seatGrade?.color || '',
-                    borderColor: seatGrade?.color || 'gray',
+                    backgroundColor: seatGrade?.color || "",
+                    borderColor: seatGrade?.color || "gray",
                     top: `${adjustedY}px`,
                     left: `${adjustedX}px`,
-                    transform: 'translate(-50%, -50%)',
+                    transform: "translate(-50%, -50%)",
                   }}
                   onMouseEnter={() => handleSeatHover(seat)}
                   onClick={() => toggleSeatSelection(seat)}
