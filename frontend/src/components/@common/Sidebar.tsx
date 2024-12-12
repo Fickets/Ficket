@@ -56,7 +56,7 @@ const Sidebar = ({ currentStep }: { currentStep: string }) => {
 
   return (
     <div
-      className="h-full w-64 bg-[#5E6770] text-white flex flex-col items-center p-6"
+      className="h-full w-64 bg-[#5E6770] text-white flex flex-col items-center p-6 hidden md:block"
       style={{ position: 'fixed', top: 0, left: 0 }}
     >
       {/* 로고 및 제목 */}

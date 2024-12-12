@@ -3,7 +3,7 @@ import { AxiosResponse } from "axios";
 import { PagedResponse } from "../../types/myTicket.ts";
 
 export const deleteUser = async (): Promise<void> => {
-  await privateApi.delete("/users");
+  await privateApi.delete("/users/delete");
 };
 
 export const updateUser = async (requestData: {

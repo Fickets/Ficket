@@ -33,7 +33,7 @@ const SeatSetting = ({
   const [error, setError] = useState('');
 
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const [scale, setScale] = useState({ x: 1, y: 1 });
+  const [scale, setScale] = useState({ x: 0.93, y: 0.94 });
 
   // Reset state when stageId changes
   useEffect(() => {
