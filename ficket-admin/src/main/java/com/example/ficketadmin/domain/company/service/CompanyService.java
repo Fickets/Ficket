@@ -4,7 +4,7 @@ import com.example.ficketadmin.domain.company.dto.response.CompanyListResponse;
 import com.example.ficketadmin.domain.company.dto.response.CompanyResponse;
 import com.example.ficketadmin.domain.company.entity.Company;
 import com.example.ficketadmin.domain.company.repository.CompanyRepository;
-import com.example.ficketadmin.domain.mapper.CompanyMapper;
+import com.example.ficketadmin.domain.company.mapper.CompanyMapper;
 import com.example.ficketadmin.global.result.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;

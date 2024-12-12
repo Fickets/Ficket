@@ -74,6 +74,9 @@ dependencies {
     annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
+    // Resilience4j
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
     // Micrometer Observation and Tracing with Brave
     implementation 'io.micrometer:micrometer-observation'
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'

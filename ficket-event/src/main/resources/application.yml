@@ -39,6 +39,10 @@ resilience4j:
         base-config: default
       enterTicketingCircuitBreaker:
         base-config: default
+      calculateDailyRevenueCircuitBreaker:
+        base-config: default
+      calculateDayCountCircuitBreaker:
+        base-config: default
   ratelimiter:
     configs:
       default:

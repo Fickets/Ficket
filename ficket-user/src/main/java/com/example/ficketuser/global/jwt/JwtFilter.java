@@ -16,6 +16,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 @AllArgsConstructor
@@ -23,9 +26,18 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
 
+    private final Set<String> filterCheckUrl = new HashSet<>(
+            Arrays.asList(
+                    "/api/v1/users/logout",
+                    "/api/v1/users/reissue",
+                    "/api/v1/users/delete"
+            )
+    );
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getRequestURI().equals("/api/v1/users/my-ticket")) {
+        if (!filterCheckUrl.contains(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }

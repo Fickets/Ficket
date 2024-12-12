@@ -1,5 +1,7 @@
 package com.example.ficketticketing.domain.order.controller;
 
+import com.example.ficketticketing.domain.order.dto.client.DailyRevenueResponse;
+import com.example.ficketticketing.domain.order.dto.client.DayCountResponse;
 import com.example.ficketticketing.domain.order.dto.client.TicketInfoDto;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
@@ -13,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.Set;
 
 
 @Slf4j
@@ -115,6 +118,32 @@ public class OrderController {
     public int[] getTicketingUserIdList(@RequestBody List<Long> scheduleId){
         int[] res = orderService.getTicketUserStatistic(scheduleId);
         return res;
+    }
+
+    /**
+     * 날짜별 수익 (event -> ticketing) API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-12
+     * 변경 이력:
+     * - 2024-12-12 오형상: 초기 작성
+     */
+    @GetMapping("/daily-revenue")
+    public ResponseEntity<List<DailyRevenueResponse>> calculateDailyRevenue(@RequestParam("ticketIds") Set<Long> ticketIds){
+        return ResponseEntity.ok(orderService.calculateDailyRevenue(ticketIds));
+    }
+
+    /**
+     * 요일별 예매수 (event -> ticketing) API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-12
+     * 변경 이력:
+     * - 2024-12-12 오형상: 초기 작성
+     */
+    @GetMapping("/day-count")
+    public ResponseEntity<DayCountResponse> calculateDayCount(@RequestParam("ticketIds") Set<Long> ticketIds){
+        return ResponseEntity.ok(orderService.calculateDayCount(ticketIds));
     }
 
     /**

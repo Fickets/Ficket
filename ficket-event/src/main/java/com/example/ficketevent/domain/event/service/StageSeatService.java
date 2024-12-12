@@ -277,6 +277,7 @@ public class StageSeatService {
      * 
      * @param ticketId 환불 요청 티켓
      */
+    @Transactional
     public void openSeat(Long ticketId) {
         seatMappingRepository.openSeat(ticketId);
     }
