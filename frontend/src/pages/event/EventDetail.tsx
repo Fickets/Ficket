@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useStore } from "zustand";
 import moment from "moment";
 import { Bar } from "react-chartjs-2";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,6 +15,7 @@ import {
   Legend,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import MobileHeader from '../../components/@common/MobileHeader'
 import { GenderStatisticRes } from "../../types/ApiResponseType";
 import {
   checkEnterTicketing,
@@ -140,7 +143,7 @@ const EventDetail: React.FC = () => {
   // 처음 선택 날자
   const initialDate = availableDates.at(-1);
 
-  useEffect(() => {});
+  useEffect(() => { });
 
   // 날짜 클릭 핸들러
   const handleDateClick = (date) => {
@@ -218,7 +221,7 @@ const EventDetail: React.FC = () => {
         setGenderStatisticData(statisticData);
         console.log(response);
       },
-      (error) => {},
+      (error) => { },
     );
   };
 
@@ -251,7 +254,7 @@ const EventDetail: React.FC = () => {
         event.setScheduleMap(res.scheduleMap);
         setEventId(Number(eventId));
       },
-      (error) => {},
+      (error) => { },
     );
   };
 
@@ -283,7 +286,20 @@ const EventDetail: React.FC = () => {
   };
 
   const mobileGo = async () => {
-    navi("/ticketing/select-date")
+    console.log("FUCK YOU")
+    if (user.isLogin) {
+      navi("/ticketing/select-date")
+    } else {
+      toast.error('로그인이 필요합니다.', {
+        position: 'top-center',
+        autoClose: 1000, // 3초 후 자동으로 닫힘
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
   }
 
   return (
@@ -393,13 +409,12 @@ const EventDetail: React.FC = () => {
                       <button
                         key={index}
                         data-key={index}
-                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
-                          selectedButton === index
-                            ? "bg-[#8E43E7] text-white"
-                            : "bg-white"
-                        }`}
+                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
+                          ? "bg-[#8E43E7] text-white"
+                          : "bg-white"
+                          }`}
                         onClick={(e) => roundButtonClick(e)}
-                        // onClick={setSelectedButton(key)}
+                      // onClick={setSelectedButton(key)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
                         <p>
@@ -431,21 +446,19 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "performance"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "performance"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "sales"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "sales"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -720,9 +733,10 @@ const EventDetail: React.FC = () => {
 
       {/** APP SCREEN */}
       <div className="block md:hidden">
-        <p className="bg-orange-300">헤더 위치 입니다.</p>
+        <ToastContainer />
+        <MobileHeader title={event.subTitle} />
         {/** 상단정보 */}
-        <div className="flex flex-col mt-[15px]  mx-[30px]">
+        <div className="flex flex-col mt-[60px]  mx-[30px]">
           <p className="text-[24px] font-bold">{event.title}</p>
           <div className="flex">
             <p className="flex">

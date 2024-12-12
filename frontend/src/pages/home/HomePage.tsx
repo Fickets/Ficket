@@ -25,6 +25,8 @@ const HomePage: React.FC = () => {
         () => {
         }
       )
+    } else {
+      user.setIsLogin(false);
     }
   }
 
