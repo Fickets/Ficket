@@ -6,7 +6,7 @@ spring:
     name: admin-service
   profiles:
     active: local
-  #    active: prod
+#      active: prod
   config:
     import: optional:configserver:http://localhost:8888
   zipkin:

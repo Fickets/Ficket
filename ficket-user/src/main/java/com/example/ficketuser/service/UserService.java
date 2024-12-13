@@ -144,7 +144,10 @@ public class UserService {
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
-
+        Cookie cookie2 = new Cookie("isLogin", "false");
+        cookie2.setMaxAge(1209600000); // 2주
+        cookie2.setPath("/");
+        response.addCookie(cookie2);
         //TODO 로그아웃시 홈으로 보내버리기
         // response.redirect("HOME_ADDRESS") 이거 좋을듯
     }
@@ -368,6 +371,17 @@ public class UserService {
         }
 
         return res;
+    }
+
+    public UserSimpleDto getMyInfo(){
+
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userDetails.getUserId();
+
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
+
+        return userMapper.toUserSimpleDto(user);
     }
 
 }

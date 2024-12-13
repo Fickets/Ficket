@@ -30,7 +30,9 @@ public class JwtFilter extends OncePerRequestFilter {
             Arrays.asList(
                     "/api/v1/users/logout",
                     "/api/v1/users/reissue",
-                    "/api/v1/users/delete"
+                    "/api/v1/users/delete",
+                    "/api/v1/users/additional-info",
+                    "/api/v1/users/my-info"
             )
     );
 
@@ -43,6 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String authorization = request.getHeader("Authorization");
+        log.info("TTTTTTTT", authorization);
         String access = null;
         if (authorization != null && authorization.startsWith("Bearer ")) {
             access = authorization.substring(7);

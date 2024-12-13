@@ -101,6 +101,20 @@ public class UserController {
     }
 
     /**
+     * ACCESS TOKEN 유저 조회
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-12
+     * 변경 이력:
+     * - 2024-12-12 최용수: 초기 작성
+     */
+    @GetMapping("/my-info")
+    public ResponseEntity<UserSimpleDto> getMyInfo() {
+        UserSimpleDto res = userService.getMyInfo();
+        return ResponseEntity.ok(res);
+    }
+
+    /**
      * 유저 정보 수정
      * <p>
      * 작업자: 오형상
