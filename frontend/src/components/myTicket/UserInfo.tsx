@@ -9,7 +9,6 @@ const UserInfo = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const user = useStore(userStore);
-
   const handleOpenDeleteModal = () => {
     setShowDeleteModal(true);
   };

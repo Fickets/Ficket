@@ -23,3 +23,20 @@ export const userAdditionalInfo = async (
         .then(Response)
         .catch(Error)
 }
+
+// 내 정보 조회
+export const getMyInfo = async (
+    Response: (Response: AxiosResponse<ResponseData>) => void,
+    Error: (Error: AxiosResponse<ResponseData>) => void) => {
+    await privateApi.get(`/${url}/my-info`)
+        .then(Response)
+        .catch(Error)
+}
+
+export const userLogout = async (
+    Response: (Response: AxiosResponse<ResponseData>) => void,
+    Error: (Error: AxiosResponse<ResponseData>) => void) => {
+    await privateApi.get(`/${url}/logout`)
+        .then(Response)
+        .catch(Error)
+}

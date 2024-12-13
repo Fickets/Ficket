@@ -4,9 +4,8 @@ import MyTicketList from "../../components/myTicket/MyTicketList.tsx";
 
 const MyTicket = () => {
   return (
-    <div>
+    <div className="p-6">
       <UserHeader />
-
       <UserInfo />
       <MyTicketList />
     </div>

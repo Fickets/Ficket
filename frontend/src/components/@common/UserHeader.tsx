@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 
+import { userLogout } from '../../service/user/userApi';
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
@@ -17,8 +18,22 @@ const UserHeader = () => {
     navi("/");
   };
 
-  const handleLoginToggle = () => {
-    user.setIsLogin(!user.isLogin);
+  const handleLoginToggle = async () => {
+    if (user.isLogin) {
+      localStorage.removeItem('USER_STORE');
+      await userLogout(
+        (response) => {
+          user.setIsLogin(false);
+          console.log("LOGOUT");
+          navi("/")
+        }, () => { }
+      )
+
+    } else {
+      // user.setIsLogin(true);
+      navi("/users/login")
+
+    }
   };
 
   return (
