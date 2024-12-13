@@ -7,7 +7,6 @@ import { eventDetailStore } from "../../stores/EventStore.tsx";
 
 const STORE_ID: string = import.meta.env.VITE_STORE_ID;
 const CHANNEL_KEY: string = import.meta.env.VITE_CHANNEL_KEY;
-const PORTONE_WEBHOOK_URL: string = import.meta.env.VITE_WEBHOOK_URL;
 
 const KakaoPay = () => {
   const navigate = useNavigate();
@@ -139,7 +138,9 @@ const KakaoPay = () => {
           pc: "IFRAME",
           mobile: "REDIRECTION",
         },
-        noticeUrls: [PORTONE_WEBHOOK_URL],
+        noticeUrls: [
+          "https://4967-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
+        ],
       });
 
       console.log("Payment request sent successfully!");

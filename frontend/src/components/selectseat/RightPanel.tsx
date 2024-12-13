@@ -90,12 +90,12 @@ const RightPanel = ({
 
       {/* 선택 좌석 테이블 (스크롤 가능) */}
       <div>
-        <h4 className="text-black font-bold text-sm mb-1">선택 좌석</h4>{" "}
+        <h4 className="text-black font-bold text-sm mb-1">선택 좌석</h4>
         <div className="overflow-y-auto max-h-[80px] border border-gray-300">
           <table className="table-auto w-full text-left text-xs text-gray-700">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-1 py-1 border-b border-gray-300">등급</th>{" "}
+                <th className="px-1 py-1 border-b border-gray-300">등급</th>
                 <th className="px-1 py-1 border-b border-gray-300">
                   좌석 번호
                 </th>
@@ -105,7 +105,7 @@ const RightPanel = ({
               {selectedSeats.length > 0 ? (
                 selectedSeats.map((seat, index) => (
                   <tr key={index} className="border-b">
-                    <td className="px-1 py-1">{seat.grade}</td>{" "}
+                    <td className="px-1 py-1">{seat.grade}</td>
                     <td className="px-1 py-1">
                       {seat.row}열-{seat.col}번
                     </td>

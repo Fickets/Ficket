@@ -4,42 +4,49 @@ import {
   FaAngleLeft,
   FaAngleRight,
   FaAngleDoubleRight,
-} from "react-icons/fa";
-import { useMemo } from "react";
-import { useTable, usePagination, Column, TableOptions } from "react-table";
-import { useNavigate } from "react-router-dom";
-import { Event, EventListProps } from "../../types/eventList";
+} from 'react-icons/fa';
+import { useMemo } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  flexRender,
+  ColumnDef,
+} from '@tanstack/react-table';
+import { useNavigate } from 'react-router-dom';
+import { Event, EventListProps } from '../../types/eventList';
 
-const EventList = ({ data, onPageChange }: EventListProps) => {
+const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
   const navigate = useNavigate();
 
-  const columns: Column<Event>[] = useMemo(
+  const columns: ColumnDef<Event>[] = useMemo(
     () => [
       {
-        Header: "ID",
-        accessor: "eventId",
+        header: 'NO',
+        cell: ({ row }) => row.index + 1 + data.page * data.size,
       },
       {
-        Header: "공연 제목",
-        accessor: "eventTitle",
+        header: '공연 제목',
+        accessorKey: 'eventTitle',
       },
       {
-        Header: "공연장",
-        accessor: "stageName",
+        header: '공연장',
+        accessorKey: 'stageName',
       },
       {
-        Header: "회사",
-        accessor: "companyName",
+        header: '회사',
+        accessorKey: 'companyName',
       },
       {
-        Header: "관리자",
-        accessor: "adminName",
+        header: '관리자',
+        accessorKey: 'adminName',
       },
       {
-        Header: "공연 날짜",
-        accessor: "eventDates",
-        Cell: ({ value }) => {
-          if (!value || value.length === 0) return null;
+        header: '공연 날짜',
+        accessorKey: 'eventDates',
+        cell: ({ getValue }) => {
+          const value = getValue() as string[]; // 반환값을 string[]로 타입 단언
+          if (!Array.isArray(value) || value.length === 0) return null;
 
           const uniqueDates = Array.from(
             new Set(
@@ -48,15 +55,15 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
                 return new Date(
                   localDate.getFullYear(),
                   localDate.getMonth(),
-                  localDate.getDate(),
+                  localDate.getDate()
                 ).toISOString();
-              }),
-            ),
+              })
+            )
           )
             .sort()
             .map((dateString) => new Date(dateString));
 
-          const formattedDates = [];
+          const formattedDates: string[] = [];
           let start = uniqueDates[0];
           let end = uniqueDates[0];
 
@@ -67,12 +74,12 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
                 new Date(end.getTime() + 24 * 60 * 60 * 1000).getTime()
             ) {
               if (start.getTime() === end.getTime()) {
-                formattedDates.push(start.toLocaleDateString("ko-KR"));
+                formattedDates.push(start.toLocaleDateString('ko-KR'));
               } else {
                 formattedDates.push(
                   `${start.toLocaleDateString(
-                    "ko-KR",
-                  )} ~ ${end.toLocaleDateString("ko-KR")}`,
+                    'ko-KR'
+                  )} ~ ${end.toLocaleDateString('ko-KR')}`
                 );
               }
               start = uniqueDates[i];
@@ -90,27 +97,33 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
         },
       },
     ],
-    [], // 의존성 배열: 빈 배열로 설정하여 한 번만 생성
+    [data.page, data.size]
   );
 
-  const tableOptions: TableOptions<Event> = {
-    columns,
+  const table = useReactTable({
     data: data.content,
-    manualPagination: true,
-    pageCount: data.totalPages,
-    initialState: { pageIndex: data.page, pageSize: data.size },
-  };
-
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable<Event>(tableOptions, usePagination);
+    columns,
+    state: {
+      pagination: {
+        pageIndex: data.page || 0,
+        pageSize: data.size || 10,
+      },
+    },
+    pageCount: data.totalPages, // 전체 페이지 수를 전달
+    manualPagination: true, // 페이지네이션을 수동으로 처리
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
 
   const renderPageControls = () => {
+    const { pageIndex } = table.getState().pagination;
+
     return (
       <div className="flex justify-center items-center space-x-2 mt-4">
         {/* 처음 페이지로 */}
         <button
           onClick={() => onPageChange(0)}
-          disabled={data.page === 0}
+          disabled={pageIndex === 0}
           className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
         >
           <FaAngleDoubleLeft />
@@ -118,8 +131,8 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
 
         {/* 이전 페이지로 */}
         <button
-          onClick={() => onPageChange(data.page - 1)}
-          disabled={data.page === 0}
+          onClick={() => onPageChange(pageIndex - 1)}
+          disabled={pageIndex === 0}
           className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
         >
           <FaAngleLeft />
@@ -131,9 +144,9 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
             key={i}
             onClick={() => onPageChange(i)}
             className={`px-3 py-2 rounded-md text-sm ${
-              data.page === i
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              pageIndex === i
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
             {i + 1}
@@ -142,8 +155,8 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
 
         {/* 다음 페이지로 */}
         <button
-          onClick={() => onPageChange(data.page + 1)}
-          disabled={data.page === data.totalPages - 1}
+          onClick={() => onPageChange(pageIndex + 1)}
+          disabled={pageIndex === data.totalPages - 1}
           className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
         >
           <FaAngleRight />
@@ -152,7 +165,7 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
         {/* 마지막 페이지로 */}
         <button
           onClick={() => onPageChange(data.totalPages - 1)}
-          disabled={data.page === data.totalPages - 1}
+          disabled={pageIndex === data.totalPages - 1}
           className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
         >
           <FaAngleDoubleRight />
@@ -171,53 +184,50 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
         <button
           type="button"
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
-          onClick={() => navigate("/admin/register-event")}
+          onClick={() => navigate('/admin/register-event')}
         >
           신규
         </button>
       </div>
       <hr className="mb-6 border-gray-300" />
 
-      <table
-        {...getTableProps()}
-        className="table-auto w-full border-collapse border border-gray-300"
-      >
+      <table className="table-auto w-full border-collapse border border-gray-300">
         <thead className="bg-gray-100">
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
                 <th
-                  {...column.getHeaderProps()}
+                  key={header.id}
                   className="border border-gray-300 px-4 py-2 text-left text-sm font-medium text-gray-700"
                 >
-                  {column.render("Header")}
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
                 </th>
               ))}
             </tr>
           ))}
         </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row);
-            return (
-              <tr
-                {...row.getRowProps()}
-                className="odd:bg-white even:bg-gray-50 cursor-pointer hover:bg-blue-50 hover:text-blue-700"
-                onClick={() =>
-                  navigate(`/admin/event-detail/${row.original.eventId}`)
-                }
-              >
-                {row.cells.map((cell) => (
-                  <td
-                    {...cell.getCellProps()}
-                    className="border border-gray-300 px-4 py-2 text-sm text-gray-800"
-                  >
-                    {cell.render("Cell")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr
+              key={row.id}
+              className="odd:bg-white even:bg-gray-50 cursor-pointer hover:bg-blue-50 hover:text-blue-700"
+              onClick={() =>
+                navigate(`/admin/event-detail/${row.original.eventId}`)
+              }
+            >
+              {row.getVisibleCells().map((cell) => (
+                <td
+                  key={cell.id}
+                  className="border border-gray-300 px-4 py-2 text-sm text-gray-800"
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
 

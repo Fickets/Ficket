@@ -181,7 +181,7 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
       responsive: true,
       plugins: {
         legend: {
-          display: false, // 범례 비활성화
+          display: false,
         },
         tooltip: {
           enabled: true,
@@ -253,11 +253,13 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
             </div>
             <div className="flex mb-[20px]">
               <h2 className="w-[90px]">장르</h2>
-              <p className="flex">
+              <div className="flex">
+                {' '}
+                {/* 외부 <p>를 <div>로 변경 */}
                 {event.genre.map((element, index) => (
-                  <p key={index}>{element.replaceAll('_', '/')}&nbsp;&nbsp;</p> // 각 항목을 <p> 태그로 렌더링
+                  <p key={index}>{element.replaceAll('_', '/')}&nbsp;&nbsp;</p>
                 ))}
-              </p>
+              </div>
             </div>
             <div className="flex mb-[20px]">
               <p className="text-[16px] w-[90px]">가격</p>
