@@ -10,7 +10,6 @@ import ViewRanking from "../../components/home/ViewRanking.tsx";
 const HomePage = () => {
   const [cookies] = useCookies(["isLogin"]);
   const user = useStore(userStore);
-  const event = useStore(eventDetailStore);
 
   useEffect(() => {
     getAccess();
