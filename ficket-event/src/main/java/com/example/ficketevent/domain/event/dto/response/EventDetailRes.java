@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -31,7 +32,7 @@ public class EventDetailRes {
     private String street;
     private String eventStageImg; // 공연장 좌석 배치도
 
-    private List<Genre> genre; // 장르 목록
+    private List<String> genre; // 장르 목록
     private Age age; // 관람 연령
     private String content; // 공연 상세 내용
     private String title; // 제목
@@ -43,6 +44,7 @@ public class EventDetailRes {
     private String posterMobileUrl; // 모바일 포스터 이미지 URL
     private String posterPcUrl; // PC 포스터 이미지 URL 작은거
     private String posterPcMainUrl; // PC 포스터 이미지 큰거
+    private String bannerOriginUrl;
     private List<Map<String, String>> partitionPrice;
     private Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap;
 
@@ -104,7 +106,9 @@ public class EventDetailRes {
                 .sigungu(event.getEventStage().getSigungu())
                 .street(event.getEventStage().getStreet())
                 .eventStageImg(event.getEventStage().getEventStageImg())
-                .genre(event.getGenre())
+                .genre(event.getGenre().stream()
+                        .map(Enum::name)
+                        .collect(Collectors.toList()))
                 .age(event.getAge())
                 .content(event.getContent())
                 .title(event.getTitle())
@@ -115,6 +119,7 @@ public class EventDetailRes {
                 .posterPcUrl(event.getEventImage().getPosterPcMain2Url())
                 .posterPcMainUrl(event.getEventImage().getPosterPcUrl())
                 .posterMobileUrl(event.getEventImage().getPosterMobileUrl())
+                .bannerOriginUrl(event.getEventImage().getBannerOriginUrl())
                 .partitionPrice(partitionList)
                 .scheduleMap(scheduleMap)
                 .build();

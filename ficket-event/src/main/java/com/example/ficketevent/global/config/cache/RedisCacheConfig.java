@@ -8,11 +8,12 @@ import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -20,7 +21,6 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
@@ -33,21 +33,47 @@ import static org.springframework.data.redis.serializer.RedisSerializationContex
 @RequiredArgsConstructor
 public class RedisCacheConfig {
 
-    private final Environment environment;
+    @Value("${spring.redis.cache.host}")
+    private String host;
+
+    @Value("${spring.redis.cache.port}")
+    private int port;
+
 
     /**
      * Redis Connection Factory 생성
      */
     @Bean(name = "redisCacheConnectionFactory")
+    @Primary
     public RedisConnectionFactory redisCacheConnectionFactory() {
 
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setPort(Integer.parseInt(environment.getProperty("spring.redis.cache.port")));
-        redisStandaloneConfiguration.setHostName(environment.getProperty("spring.redis.cache.host"));
+        redisStandaloneConfiguration.setPort(port);
+        redisStandaloneConfiguration.setHostName(host);
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }
 
-    // 설정 객체 default 설정 -- key/value를 어떻게 직렬화해서 redis에 저장할지를 정의함
+
+    /**
+     * RedisTemplate 설정
+     */
+    @Bean(name = "redisTemplate")
+    public RedisTemplate<String, Object> redisTemplate(
+            @Qualifier("redisCacheConnectionFactory") RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactory);
+
+        // Key Serializer 설정
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        // Value Serializer 설정
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper()));
+
+        return redisTemplate;
+    }
+
+    /**
+     * 기본 RedisCacheConfiguration 설정
+     */
     private RedisCacheConfiguration defaultCacheConfiguration() {
         return RedisCacheConfiguration
                 .defaultCacheConfig()
@@ -57,18 +83,19 @@ public class RedisCacheConfig {
                 .entryTtl(Duration.ofDays(1L));
     }
 
-    // 캐시에서 redis 사용하기 위한 Bean
+    /**
+     * CacheManager 설정
+     */
     @Bean
     public CacheManager redisCacheManager(@Qualifier("redisCacheConnectionFactory") RedisConnectionFactory connectionFactory) {
         return RedisCacheManager
                 .RedisCacheManagerBuilder
-                .fromConnectionFactory(connectionFactory)    // connection 적용
-                .cacheDefaults(defaultCacheConfiguration())  //  캐시 설정 적용
+                .fromConnectionFactory(connectionFactory)
+                .cacheDefaults(defaultCacheConfiguration())
                 .build();
     }
 
     private ObjectMapper objectMapper() {
-
         PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType(Object.class)
                 .build();

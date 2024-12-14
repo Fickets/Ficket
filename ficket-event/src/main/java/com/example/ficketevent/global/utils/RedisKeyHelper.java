@@ -19,4 +19,24 @@ public class RedisKeyHelper {
     public static String getLockKey(Long eventScheduleId, Long seatMappingId) {
         return KeyType.SEAT_LOCK.format(eventScheduleId, seatMappingId);
     }
+
+    public static String getEventDetailCacheKey(Long eventId) {
+        return KeyType.EVENT_DETAIL_CACHE.format(eventId);
+    }
+
+    public static String getViewRankingKey() {
+        return KeyType.EVENT_VIEW_RANKING.format();
+    }
+
+    public static String getReservationDailyKey() {
+        return KeyType.EVENT_RESERVATION_DAILY.format();
+    }
+
+    public static String getReservationWeeklyKey() {
+        return KeyType.EVENT_RESERVATION_WEEKLY.format();
+    }
+
+    public static String getReservationMonthlyKey() {
+        return KeyType.EVENT_RESERVATION_MONTHLY.format();
+    }
 }
