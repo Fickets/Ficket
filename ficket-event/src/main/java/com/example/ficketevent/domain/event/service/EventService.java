@@ -12,16 +12,24 @@ import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.AwsS3Service;
 import com.example.ficketevent.global.utils.FileUtils;
+import com.example.ficketevent.global.utils.RedisKeyHelper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -46,6 +54,11 @@ public class EventService {
     private final StageSeatRepository stageSeatRepository;
     private final AwsS3Service awsS3Service;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
+    @Qualifier("redisTemplate") // 캐시용 RedisTemplate
+    private final RedisTemplate<String, Object> redisTemplate;
+    @Qualifier("rankingRedisTemplate") // 랭킹용 RedisTemplate
+    private final RedisTemplate<String, Object> rankingRedisTemplate;
+
 
     /**
      * 이벤트 생성 메서드
@@ -456,13 +469,119 @@ public class EventService {
         return new EventSeatSummary(posterMobileUrl, reservationLimit, eventStageImg, seatGradeInfoList);
     }
 
-    public EventDetailRes getEventDetail(Long eventId) {
+    /**
+     * 이벤트 상세 조회 및 조회수 증가
+     */
+    public EventDetailRes getEventDetail(HttpServletRequest request, HttpServletResponse response, Long eventId) {
+        // 1. 캐시 키 생성
+        String cacheKey = RedisKeyHelper.getEventDetailCacheKey(eventId);
+
+        // 2. 캐시에서 데이터 확인
+        EventDetailRes cachedEvent = (EventDetailRes) redisTemplate.opsForValue().get(cacheKey);
+
+        // 3. 쿠키를 통해 중복 조회 확인
+        if (!isDuplicateView(request, response, eventId)) {
+            incrementViewCount(eventId); // 조회수 증가
+        }
+
+        // 4. 캐시가 존재하면 반환
+        if (cachedEvent != null) {
+            return cachedEvent;
+        }
+
+        // 5. 캐시가 없으면 DB 조회
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
-        EventDetailRes res = EventDetailRes.toEventDetailRes(event, "TEST");
-        return res;
 
+        // 6. 변환 및 캐시에 저장
+        EventDetailRes eventDetailRes = EventDetailRes.toEventDetailRes(event, "TEST");
+        redisTemplate.opsForValue().set(cacheKey, eventDetailRes, Duration.ofHours(24)); // 24시간 TTL
+
+        return eventDetailRes;
     }
+
+    /**
+     * 쿠키를 통해 중복 조회 방지
+     */
+    private boolean isDuplicateView(HttpServletRequest request, HttpServletResponse response, Long eventId) {
+        Cookie[] cookies = request.getCookies();
+        Cookie viewCountCookie = findCookie(cookies, "Event_View_Count");
+
+        if (viewCountCookie != null) {
+            // 쿠키에 해당 eventId가 포함되어 있는지 확인
+            if (viewCountCookie.getValue().contains("[" + eventId + "]")) {
+                return true; // 중복 조회
+            }
+
+            // 쿠키에 eventId 추가
+            viewCountCookie.setValue(viewCountCookie.getValue() + "[" + eventId + "]");
+            viewCountCookie.setPath("/");
+            viewCountCookie.setHttpOnly(true); // 보안 강화
+            viewCountCookie.setSecure(request.isSecure()); // HTTPS 요청만 Secure 설정
+            response.addCookie(viewCountCookie);
+        } else {
+            // 쿠키가 없는 경우 새로 생성
+            Cookie newCookie = new Cookie("Event_View_Count", "[" + eventId + "]");
+            newCookie.setPath("/");
+            newCookie.setHttpOnly(true); // 보안 강화
+            newCookie.setSecure(request.isSecure()); // HTTPS 요청만 Secure 설정
+            response.addCookie(newCookie);
+        }
+
+        return false; // 중복이 아님
+    }
+
+    /**
+     * 조회수 증가
+     */
+    private void incrementViewCount(Long eventId) {
+        String rankingKey = RedisKeyHelper.getViewRankingKey(); // 랭킹 키 생성
+        rankingRedisTemplate.opsForZSet().incrementScore(rankingKey, String.valueOf(eventId), 1);
+    }
+
+    /**
+     * 쿠키 찾기
+     */
+    private Cookie findCookie(Cookie[] cookies, String cookieName) {
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(cookieName)) {
+                return cookie;
+            }
+        }
+        return null;
+    }
+
+    public List<ViewRankResponse> getTopRankedEvents(int limit) {
+        List<Object> rawEventIds = new ArrayList<>(Objects.requireNonNull(rankingRedisTemplate.opsForZSet()
+                .reverseRange(RedisKeyHelper.getViewRankingKey(), 0, limit - 1)));
+
+        List<Long> eventIds = rawEventIds.stream()
+                .map(id -> Long.parseLong(id.toString())) // Object → String → Long 변환
+                .toList();
+
+        return eventIds.stream()
+                .map(eventId -> {
+                    String cacheKey = RedisKeyHelper.getEventDetailCacheKey(eventId);
+                    EventDetailRes cachedEvent = (EventDetailRes) redisTemplate.opsForValue().get(cacheKey);
+
+                    if (cachedEvent == null) {
+                        Event event = eventRepository.findById(eventId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+
+                        EventDetailRes eventDetailRes = EventDetailRes.toEventDetailRes(event, "TEST");
+                        redisTemplate.opsForValue().set(cacheKey, eventDetailRes, Duration.ofHours(24)); // 24시간 TTL
+                        return ViewRankResponse.toViewRankResponse(eventId, eventDetailRes);
+                    }
+
+                    return ViewRankResponse.toViewRankResponse(eventId, cachedEvent);
+                })
+                .filter(Objects::nonNull) // null 제거
+                .toList();
+    }
+
 
     public PagedResponse<EventSearchListRes> searchEvent(EventSearchCond eventSearchCond, Pageable pageable) {
         // 이벤트 검색 결과 가져오기

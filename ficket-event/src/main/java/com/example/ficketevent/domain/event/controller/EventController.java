@@ -8,6 +8,8 @@ import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
 import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.service.EventService;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -129,11 +132,25 @@ public class EventController {
         return ResponseEntity.ok(eventService.getEventByScheduleId(eventScheduleId));
     }
 
-
+    /**
+     * 행사 상세 정보 조회 API
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-03
+     * 변경 이력:
+     * - 2024-12-03 최용수: 초기 작성
+     * - 2024-12-13 오형상: 캐시, 조회수 랭킹 적용
+     */
     @GetMapping("detail/{eventId}")
-    public ResponseEntity<EventDetailRes> T(@PathVariable Long eventId) {
-        EventDetailRes res = eventService.getEventDetail(eventId);
+    public ResponseEntity<EventDetailRes> T(HttpServletRequest request, HttpServletResponse response, @PathVariable Long eventId) {
+        EventDetailRes res = eventService.getEventDetail(request, response, eventId);
         return ResponseEntity.ok(res);
+
+    }
+
+    @GetMapping("/detail/view-rank")
+    public ResponseEntity<List<ViewRankResponse>> getViewRank(@RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(eventService.getTopRankedEvents(limit));
 
     }
 
