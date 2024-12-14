@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { userStore } from "../../stores/UserStore";
 import { userTokenRefresh, getMyInfo } from "../../service/user/userApi";
-import { eventDetailStore } from "../../stores/EventStore";
 import { useStore } from "zustand";
 import UserHeader from "../../components/@common/UserHeader";
 import ViewRanking from "../../components/home/ViewRanking.tsx";
