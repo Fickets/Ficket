@@ -41,9 +41,11 @@ resilience4j:
         base-config: default
       getEventDateTimeCircuitBreaker:
         base-config: default
-      refundCircuitBreaker:
+      refundTicketCircuitBreaker:
         base-config: default
       getAvailableCountCircuitBreaker:
+        base-config: default
+      decreaseReservationRateCircuitBreaker:
         base-config: default
 
 logging:

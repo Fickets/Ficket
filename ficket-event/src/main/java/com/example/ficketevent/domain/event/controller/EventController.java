@@ -1,5 +1,6 @@
 package com.example.ficketevent.domain.event.controller;
 
+import com.example.ficketevent.domain.event.dto.common.TicketInfo;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoCreateDtoList;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
@@ -18,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -99,6 +99,7 @@ public class EventController {
      * 작업 날짜: 2024-11-27
      * 변경 이력:
      * - 2024-11-27 오형상: 초기 작성
+     * - 2024-12-16 오형상: 랭킹 삭제 로직 추가
      */
     @DeleteMapping("/admin/{eventId}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId) {
@@ -148,11 +149,6 @@ public class EventController {
 
     }
 
-    @GetMapping("/detail/view-rank")
-    public ResponseEntity<List<ViewRankResponse>> getViewRank(@RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(eventService.getTopRankedEvents(limit));
-
-    }
 
     @GetMapping("{eventId}/reservation")
     public ResponseEntity<Integer> TT() {
@@ -184,6 +180,32 @@ public class EventController {
     @GetMapping("/date/time/{eventScheduleId}")
     public ResponseEntity<LocalDateTime> getEventDateTime(@PathVariable Long eventScheduleId) {
         return ResponseEntity.ok(eventService.getEventDateTime(eventScheduleId));
+    }
+
+    /**
+     * 조회수 기준 랭킹 조회 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-14
+     * 변경 이력:
+     * - 2024-12-14 오형상: 초기 작성
+     */
+    @GetMapping("/detail/view-rank")
+    public ResponseEntity<List<ViewRankResponse>> getViewRank(@RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(eventService.getTopRankedEvents(limit));
+    }
+
+    /**
+     * 예매율 기준 랭킹 조회 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-15
+     * 변경 이력:
+     * - 2024-12-15 오형상: 초기 작성
+     */
+    @GetMapping("/detail/reservation-rate-rank")
+    public ResponseEntity<List<ReservationRateEventInfoResponse>> getReservationRateRank(@RequestParam(defaultValue = "뮤지컬") String genre, @RequestParam(defaultValue = "daily") String period) {
+        return ResponseEntity.ok(eventService.getTopFiftyReservationRateRank(genre, period));
     }
 
 }

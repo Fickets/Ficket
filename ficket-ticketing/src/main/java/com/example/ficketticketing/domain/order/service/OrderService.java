@@ -173,7 +173,9 @@ public class OrderService {
                 }
                 break;
             case "Transaction.Cancelled":
-                orderRepository.updateOrderStatusToRefunded(paymentId);
+                Long ticketIdByPaymentId = orderRepository.findTicketIdByPaymentId(paymentId);
+                ticketRepository.deleteByTicketId(ticketIdByPaymentId);
+                // TODO 얼굴 삭제
                 break;
             default:
                 log.warn("알 수 없는 이벤트 타입: {}", type);
@@ -216,7 +218,7 @@ public class OrderService {
 
         log.info(faceApiResponse.getMessage());
 
-        orderProducer.send("order-events", new OrderDto(createdOrder.getOrderId(), seatMappingIds, createdOrder.getTicket().getTicketId()));
+        orderProducer.send("order-events", new OrderDto(createOrderRequest.getEventScheduleId(), createdOrder.getOrderId(), seatMappingIds, createdOrder.getTicket().getTicketId()));
 
         return createdOrder.getOrderId();
     }
@@ -293,7 +295,7 @@ public class OrderService {
         // 1. 예매 당일 밤 12시 이전 취소 시 수수료 없음
         // 예매일(orderDateTime)과 현재일(currentDateTime)이 같으면 즉시 전체 환불 처리
         if (orderDateTime.toLocalDate().equals(currentDateTime.toLocalDate())) {
-            portOneApiClient.cancelOrder(order.getPaymentId()); // 결제 취소 API 호출
+            processFullRefund(order, order.getOrderPrice());
             return; // 환불 처리 완료 후 메서드 종료
         }
 
@@ -348,7 +350,7 @@ public class OrderService {
         ResponseEntity<Void> refundTicketCircuitBreaker = executeWithCircuitBreaker(
                 circuitBreakerRegistry,
                 "refundTicketCircuitBreaker",
-                () -> eventServiceClient.refundTicket(order.getTicket().getTicketId())
+                () -> eventServiceClient.refundTicket(new TicketInfo(order.getTicket().getTicketId(), order.getTicket().getEventScheduleId()))
         );
 
         if (refundTicketCircuitBreaker.getStatusCode().is2xxSuccessful()) {

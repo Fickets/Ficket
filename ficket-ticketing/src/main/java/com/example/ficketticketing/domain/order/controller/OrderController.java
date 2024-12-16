@@ -35,6 +35,7 @@ public class OrderController {
      * 변경 이력:
      * - 2024-12-07 오형상: 초기 작성
      * - 2024-12-08 오형상: 주문 검증 로직 추가
+     * - 2024-12-15 오형상: 주문 실패시 상태 원복 로직 및 예매율 랭킹 로직 추가
      */
     @PostMapping
     public ResponseEntity<Long> createOrder(@RequestPart CreateOrderRequest createOrderRequest, @RequestPart MultipartFile userFaceImg, @RequestHeader("X-User-Id") String userId) {

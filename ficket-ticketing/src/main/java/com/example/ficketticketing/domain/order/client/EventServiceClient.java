@@ -1,6 +1,7 @@
 package com.example.ficketticketing.domain.order.client;
 
 import com.example.ficketticketing.domain.order.dto.client.ReservedSeatsResponse;
+import com.example.ficketticketing.domain.order.dto.client.TicketInfo;
 import com.example.ficketticketing.domain.order.dto.client.TicketInfoDto;
 import com.example.ficketticketing.domain.order.dto.client.ValidSeatInfoResponse;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
@@ -33,8 +34,8 @@ public interface EventServiceClient {
     @GetMapping("/api/v1/events/date/time/{eventScheduleId}")
     LocalDateTime getEventDateTime(@PathVariable Long eventScheduleId);
 
-    @PostMapping("/api/v1/events/refund/{ticketId}")
-    ResponseEntity<Void> refundTicket(@PathVariable Long ticketId);
+    @PostMapping(value = "/api/v1/events/refund", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Void> refundTicket(@RequestBody TicketInfo ticketInfo);
 
     @PostMapping(value = "/api/v1/events/available-count", consumes = MediaType.APPLICATION_JSON_VALUE)
     Integer getAvailableCount(@RequestBody TicketDto ticketDto);

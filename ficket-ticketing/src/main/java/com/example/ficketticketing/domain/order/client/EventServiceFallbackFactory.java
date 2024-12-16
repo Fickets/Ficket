@@ -1,6 +1,7 @@
 package com.example.ficketticketing.domain.order.client;
 
 import com.example.ficketticketing.domain.order.dto.client.ReservedSeatsResponse;
+import com.example.ficketticketing.domain.order.dto.client.TicketInfo;
 import com.example.ficketticketing.domain.order.dto.client.TicketInfoDto;
 import com.example.ficketticketing.domain.order.dto.client.ValidSeatInfoResponse;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
@@ -44,7 +45,7 @@ public class EventServiceFallbackFactory implements FallbackFactory<EventService
             }
 
             @Override
-            public ResponseEntity<Void> refundTicket(Long ticketId) {
+            public ResponseEntity<Void> refundTicket(TicketInfo ticketInfo) {
                 throw new UnsupportedOperationException("Fallback not implemented for checkRequest");
             }
 

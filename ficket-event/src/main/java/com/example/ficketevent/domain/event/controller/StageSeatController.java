@@ -1,9 +1,6 @@
 package com.example.ficketevent.domain.event.controller;
 
-import com.example.ficketevent.domain.event.dto.common.CreateOrderRequest;
-import com.example.ficketevent.domain.event.dto.common.TicketDto;
-import com.example.ficketevent.domain.event.dto.common.ValidSeatInfoResponse;
-import com.example.ficketevent.domain.event.dto.common.ReservedSeatsResponse;
+import com.example.ficketevent.domain.event.dto.common.*;
 import com.example.ficketevent.domain.event.dto.request.SelectSeat;
 import com.example.ficketevent.domain.event.dto.request.UnSelectSeat;
 import com.example.ficketevent.domain.event.dto.response.SeatCntByGrade;
@@ -13,7 +10,6 @@ import com.example.ficketevent.domain.event.service.PreoccupyService;
 import com.example.ficketevent.domain.event.service.StageSeatService;
 import jakarta.ws.rs.QueryParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -128,11 +124,12 @@ public class StageSeatController {
      * 작업자: 오형상
      * 작업 날짜: 2024-12-10
      * 변경 이력:
-     * - 2024-12-10 오형상: 초기 작성
+     * - 2024-12-10 오형상: 초기 작성RedisKeyHelper
+     * - 2024-12-14 오형상: 환불 시 예매율 순위 업데이트 로직 추가
      */
-    @PostMapping("/refund/{ticketId}")
-    ResponseEntity<Void> refundTicket(@PathVariable Long ticketId) {
-        stageSeatService.openSeat(ticketId);
+    @PostMapping("/refund")
+    ResponseEntity<Void> refundTicket(@RequestBody TicketInfo ticketInfo) {
+        stageSeatService.openSeat(ticketInfo);
         return ResponseEntity.ok().build();
     }
 

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Repository
 public interface EventScheduleRepository extends JpaRepository<EventSchedule, Long> {
@@ -19,4 +20,10 @@ public interface EventScheduleRepository extends JpaRepository<EventSchedule, Lo
 
     @Query("SELECT es.event.reservationLimit FROM EventSchedule es WHERE es.eventScheduleId = :eventScheduleId")
     Integer findReservationLimit(@Param("eventScheduleId") Long eventScheduleId);
+
+    @Query("SELECT es.event.eventId FROM EventSchedule es WHERE es.eventScheduleId = :eventScheduleId")
+    Long findEventIdByEventScheduleId(@Param("eventScheduleId") Long eventScheduleId);
+
+    @Query("SELECT es.event FROM EventSchedule es WHERE es.eventScheduleId = :eventScheduleId")
+    Optional<Event> findEventByEventScheduleId(@Param("eventScheduleId") Long eventScheduleId);
 }

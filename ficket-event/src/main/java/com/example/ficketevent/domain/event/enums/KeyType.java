@@ -11,9 +11,8 @@ public enum KeyType {
 
     // 랭킹
     EVENT_VIEW_RANKING("ficket:event:ranking:view"),         // 조회 수 기준 랭킹
-    EVENT_RESERVATION_DAILY("ficket:event:ranking:reserve:daily"), // 일간 예매율 랭킹
-    EVENT_RESERVATION_WEEKLY("ficket:event:ranking:reserve:weekly"), // 주간 예매율 랭킹
-    EVENT_RESERVATION_MONTHLY("ficket:event:ranking:reserve:monthly"),
+    EVENT_RESERVATION_RANKING("ficket:event:ranking:reserve:%s:%s"), // 예매율 랭킹
+
     ; // 월간 예매율 랭킹
 
     private final String keyPattern;

@@ -38,7 +38,8 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse(o.orderStatus) FROM Orders o WHERE o.orderId = :orderId")
     Optional<OrderStatusResponse> findOrderStatusByOrderId(@Param("orderId") Long orderId);
 
-    boolean existsByPaymentIdAndOrderStatus(String paymentId, OrderStatus orderStatus);
+    @Query("SELECT o.ticket.ticketId FROM Orders o WHERE o.paymentId = :paymentId")
+    Long findTicketIdByPaymentId(@Param("paymentId") String paymentId);
 
     @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto(o.orderId, o.ticket.ticketId, o.createdAt) FROM Orders o WHERE o.userId = :userId AND o.orderStatus = 'COMPLETED'")
     List<TicketInfoCreateDto> findTicketIdsByUserId(@Param("userId") Long userId);
