@@ -78,9 +78,9 @@ public class UserController {
      * - 2024-11-28 최용수: 초기 작성
      */
     @DeleteMapping("/delete")
-    public ResponseEntity<Integer> deleteUser(HttpServletResponse response) {
+    public ResponseEntity<Void> deleteUser(HttpServletResponse response) {
         userService.deleteUser(response);
-        return null;
+        return ResponseEntity.noContent().build();
     }
 
 
