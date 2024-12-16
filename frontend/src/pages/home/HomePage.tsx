@@ -42,10 +42,19 @@ const HomePage = () => {
     }
   };
 
+  const handleQueueTest = () => {
+    // 새 창으로 대기열 화면 열기 (900x600 사이즈)
+    window.open("/ticketing/queue", "_blank", "width=900,height=600");
+  };
+
   return (
     <div className="p-6">
       <UserHeader />
       <ViewRanking />
+
+      <button onClick={handleQueueTest} className="bg-red-500 mt-3">
+        대기열 화면 테스트
+      </button>
     </div>
   );
 };
