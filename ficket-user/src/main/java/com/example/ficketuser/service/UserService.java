@@ -31,7 +31,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -199,19 +201,25 @@ public class UserService {
 
     }
 
+    @Transactional
     public void deleteUser(HttpServletResponse response) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = userDetails.getUserId();
 
-        // 유저 있으면 지우기
-        userRepository.findByUserId(userId)
-                .ifPresentOrElse(
-                        userRepository::delete,
-                        () -> {
-                            throw new BusinessException(ErrorCode.NOT_USER_FOUND);
-                        }  // 사용자 없음 시 예외 던짐
-                );
 
+        // 유저 있으면 지우기
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() ->  new BusinessException(ErrorCode.NOT_USER_FOUND));
+
+        List<TicketInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "getMyTicketCircuitBreaker2",
+                () -> ticketingServiceClient.getMyTickets(user.getUserId())
+        );
+
+        if (!ticketInfoDtoList.isEmpty()){
+            throw new BusinessException(ErrorCode.EXIST_USER_EVENT);
+        }
 
         // Redis Refresh 토큰 지우기
         userTokenRedisRepository.findByUserId(userId)
@@ -226,6 +234,13 @@ public class UserService {
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
+        Cookie cookie2 = new Cookie("isLogin", "false");
+        cookie2.setMaxAge(1209600000); // 2주
+        cookie2.setPath("/");
+        response.addCookie(cookie2);
+
+        userRepository.delete(user);
+
     }
 
     public UserSimpleDto getUser(Long userId) {
@@ -239,6 +254,7 @@ public class UserService {
      *
      * @param updateUserRequest 유저 변경 정보
      */
+    @Transactional
     public void updateUser(UpdateUserRequest updateUserRequest) {
         User user = userRepository.findByUserId(updateUserRequest.getUserId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));

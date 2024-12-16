@@ -24,6 +24,9 @@ public enum ErrorCode {
     DIFFERENT_BOTH_TOKEN_ID(400, "양쪽 토큰 ID값이 다릅니다."),
     TOKEN_EXPIRED(400, "토큰이 만료되었습니다."),
     DIFFERENT_REFRESH_TOKEN(400, "등록되지 않은 REFRESH_TOKEN 입니다."),
+
+    // TICKET
+    EXIST_USER_EVENT(409, "예약한 이벤트가 존재 합니다."),
     ;
 
     private final int status;

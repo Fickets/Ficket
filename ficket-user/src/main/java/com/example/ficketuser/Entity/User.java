@@ -15,7 +15,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Builder
 @Entity
 @SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE user SET deleted_at = CURRENT_TIMESTAMP WHERE event_id = ?")
+@SQLDelete(sql = "UPDATE user SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ?")
 public class User extends BaseEntity{
 
     @Id
