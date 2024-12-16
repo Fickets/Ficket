@@ -1,6 +1,8 @@
 package com.example.ficketevent.global.utils;
 
+import com.example.ficketevent.domain.event.enums.Genre;
 import com.example.ficketevent.domain.event.enums.KeyType;
+import com.example.ficketevent.domain.event.enums.Period;
 
 public class RedisKeyHelper {
 
@@ -28,12 +30,12 @@ public class RedisKeyHelper {
         return KeyType.EVENT_VIEW_RANKING.format();
     }
 
-    public static String getReservationKey(String period, String genre) {
-        return KeyType.EVENT_RESERVATION_RANKING.format(period, genre);
+    public static String getReservationKey(Period period, Genre genre) {
+        return KeyType.EVENT_RESERVATION_RANKING.format(period.getValue(), genre.name());
     }
 
-    public static String getTotalSeatCount(String period) {
-        return KeyType.SEAT_TOTAL_COUNT.format(period);
+    public static String getTotalSeatCount(Period period) {
+        return KeyType.SEAT_TOTAL_COUNT.format(period.getValue());
     }
 
 }

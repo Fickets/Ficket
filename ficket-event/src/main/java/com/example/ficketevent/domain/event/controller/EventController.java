@@ -7,6 +7,8 @@ import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
 import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
 import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
 import com.example.ficketevent.domain.event.dto.response.*;
+import com.example.ficketevent.domain.event.enums.Genre;
+import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.domain.event.service.EventService;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import jakarta.servlet.http.HttpServletRequest;
@@ -204,7 +206,10 @@ public class EventController {
      * - 2024-12-15 오형상: 초기 작성
      */
     @GetMapping("/detail/reservation-rate-rank")
-    public ResponseEntity<List<ReservationRateEventInfoResponse>> getReservationRateRank(@RequestParam(defaultValue = "뮤지컬") String genre, @RequestParam(defaultValue = "daily") String period) {
+    public ResponseEntity<List<ReservationRateEventInfoResponse>> getReservationRateRank(
+            @RequestParam(defaultValue = "뮤지컬") Genre genre,
+            @RequestParam(defaultValue = "DAILY") Period period) {
+
         return ResponseEntity.ok(eventService.getTopFiftyReservationRateRank(genre, period));
     }
 

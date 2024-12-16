@@ -1,5 +1,7 @@
 package com.example.ficketevent.global.config.scheduler;
 
+import com.example.ficketevent.domain.event.enums.Genre;
+import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.global.utils.RedisKeyHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,18 +36,18 @@ public class RankingResetScheduler {
      */
     @Scheduled(cron = "0 0 0 * * ?") // 매일 자정
     public void archiveAndResetPreviousData() {
-        // 장르 리스트
-        String[] genres = {"뮤지컬", "콘서트", "스포츠", "전시_행사", "클래식_무용", "아동_가족"};
 
-        for (String genre : genres) {
+        Genre[] genres = Genre.values();
+
+        for (Genre genre : genres) {
             // 전일 데이터 삭제 및 복사
-            String dailyKey = RedisKeyHelper.getReservationKey("daily", genre);
-            String previousDailyKey = RedisKeyHelper.getReservationKey("previous_daily", genre);
+            String dailyKey = RedisKeyHelper.getReservationKey(Period.DAILY, genre);
+            String previousDailyKey = RedisKeyHelper.getReservationKey(Period.PREVIOUS_DAILY, genre);
             archiveAndReset(dailyKey, previousDailyKey);
 
             // 주간 데이터 삭제 및 복사
-            String weeklyKey = RedisKeyHelper.getReservationKey("weekly", genre);
-            String previousWeeklyKey = RedisKeyHelper.getReservationKey("previous_weekly", genre);
+            String weeklyKey = RedisKeyHelper.getReservationKey(Period.WEEKLY, genre);
+            String previousWeeklyKey = RedisKeyHelper.getReservationKey(Period.PREVIOUS_WEEKLY, genre);
             archiveAndReset(weeklyKey, previousWeeklyKey);
         }
 

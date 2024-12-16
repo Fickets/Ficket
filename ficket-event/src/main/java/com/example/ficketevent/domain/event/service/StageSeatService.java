@@ -10,6 +10,7 @@ import com.example.ficketevent.domain.event.entity.EventSchedule;
 import com.example.ficketevent.domain.event.entity.EventStage;
 import com.example.ficketevent.domain.event.entity.SeatMapping;
 import com.example.ficketevent.domain.event.enums.Genre;
+import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.domain.event.mapper.StageSeatMapper;
 import com.example.ficketevent.domain.event.messagequeue.SeatMappingProducer;
 import com.example.ficketevent.domain.event.repository.EventScheduleRepository;
@@ -33,6 +34,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import static com.example.ficketevent.domain.event.enums.Period.*;
 
 /**
  * 행사장 좌석 정보를 관리하는 서비스 클래스.
@@ -305,13 +308,13 @@ public class StageSeatService {
      */
     private void updateReservationCount(Long eventId, List<Genre> eventGenre, int seatCount) {
         for (Genre genre : eventGenre) {
-            String reservationDailyKey = RedisKeyHelper.getReservationKey("daily", genre.name());
+            String reservationDailyKey = RedisKeyHelper.getReservationKey(DAILY, genre);
             rankingRedisTemplate.opsForZSet().incrementScore(reservationDailyKey, String.valueOf(eventId), seatCount);
 
-            String reservationWeeklyKey = RedisKeyHelper.getReservationKey("weekly", genre.name());
+            String reservationWeeklyKey = RedisKeyHelper.getReservationKey(WEEKLY, genre);
             rankingRedisTemplate.opsForZSet().incrementScore(reservationWeeklyKey, String.valueOf(eventId), seatCount);
 
-            String reservationMonthlyKey = RedisKeyHelper.getReservationKey("monthly", genre.name());
+            String reservationMonthlyKey = RedisKeyHelper.getReservationKey(MONTHLY, genre);
             rankingRedisTemplate.opsForZSet().incrementScore(reservationMonthlyKey, String.valueOf(eventId), seatCount);
         }
     }
