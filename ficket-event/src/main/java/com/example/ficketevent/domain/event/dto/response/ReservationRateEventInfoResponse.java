@@ -20,6 +20,7 @@ import java.util.TreeSet;
 @AllArgsConstructor
 public class ReservationRateEventInfoResponse {
     private Long eventId;
+    private String eventTitle;
     private String eventMobilePosterUrl;
     private String eventPcPosterUrl;
     private String eventStageName;
@@ -49,6 +50,7 @@ public class ReservationRateEventInfoResponse {
         return ReservationRateEventInfoResponse
                 .builder()
                 .eventId(eventId)
+                .eventTitle(eventDetailRes.getTitle())
                 .eventMobilePosterUrl(eventDetailRes.getPosterMobileUrl())
                 .eventPcPosterUrl(eventDetailRes.getPosterPcUrl())
                 .eventStageName(eventDetailRes.getStageName())

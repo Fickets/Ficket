@@ -32,4 +32,8 @@ public class RedisKeyHelper {
         return KeyType.EVENT_RESERVATION_RANKING.format(period, genre);
     }
 
+    public static String getTotalSeatCount(String period) {
+        return KeyType.SEAT_TOTAL_COUNT.format(period);
+    }
+
 }

@@ -13,7 +13,9 @@ public enum KeyType {
     EVENT_VIEW_RANKING("ficket:event:ranking:view"),         // 조회 수 기준 랭킹
     EVENT_RESERVATION_RANKING("ficket:event:ranking:reserve:%s:%s"), // 예매율 랭킹
 
-    ; // 월간 예매율 랭킹
+    // 좌석 수
+    SEAT_TOTAL_COUNT("total_seat_count:%s"),
+    ;
 
     private final String keyPattern;
 

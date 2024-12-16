@@ -612,7 +612,7 @@ public class EventService {
     /**
      * 특정 장르와 기간에 대한 상위 50개의 예매율 순위를 조회합니다.
      *
-     * @param genre 조회할 이벤트의 장르 (예: "뮤지컬", "콘서트").
+     * @param genre  조회할 이벤트의 장르 (예: "뮤지컬", "콘서트").
      * @param period 조회할 기간 (예: "daily", "weekly", "monthly").
      *               오전 10시 30분 이전에는 "previous_daily" 또는 "previous_weekly"로 변경됩니다.
      * @return 이벤트 세부 정보와 예매율 정보를 포함한 ReservationRateEventInfoResponse 목록.
@@ -689,7 +689,7 @@ public class EventService {
      * @return 해당 기간 동안의 전체 좌석 수 (BigDecimal).
      */
     public BigDecimal getTotalSeatCountForPeriod(String period) {
-        String cacheKey = "total_seat_count:" + period;
+        String cacheKey = RedisKeyHelper.getTotalSeatCount(period);
 
         // Redis 캐시에서 좌석 수 조회
         BigDecimal totalSeatCount = (BigDecimal) redisTemplate.opsForValue().get(cacheKey);
@@ -700,35 +700,37 @@ public class EventService {
         // 캐시에 없으면 DB에서 좌석 수 계산
         switch (period) {
             case "daily":
-                totalSeatCount = stageSeatRepository.findTotalSeatsForToday();
+                totalSeatCount = stageSeatRepository.findTotalSeatsForToday(LocalDateTime.now());
                 break;
 
             case "previous_daily":
                 LocalDate yesterday = LocalDate.now().minusDays(1);
-                totalSeatCount = stageSeatRepository.findTotalSeatsForPreviousDay(yesterday);
+                LocalDateTime startOfYesterDayDay = yesterday.atStartOfDay(); // 어제의 00:00
+                LocalDateTime endOfYesterDay = yesterday.atTime(LocalTime.MAX);
+                totalSeatCount = stageSeatRepository.findTotalSeatsForPreviousDay(startOfYesterDayDay, endOfYesterDay);
                 break;
 
             case "weekly":
-                LocalDate[] currentWeek = getStartAndEndOfWeek(LocalDate.now());
+                LocalDateTime[] currentWeek = getStartAndEndOfWeek(LocalDate.now());
                 totalSeatCount = stageSeatRepository.findTotalSeatsForWeek(currentWeek[0], currentWeek[1]);
                 break;
 
             case "previous_weekly":
-                LocalDate[] previousWeek = getStartAndEndOfWeek(LocalDate.now().minusWeeks(1));
+                LocalDateTime[] previousWeek = getStartAndEndOfWeek(LocalDate.now().minusWeeks(1));
                 totalSeatCount = stageSeatRepository.findTotalSeatsForWeek(previousWeek[0], previousWeek[1]);
                 break;
 
             case "monthly":
-                LocalDate[] currentMonth = getStartAndEndOfMonth(LocalDate.now());
+                LocalDateTime[] currentMonth = getStartAndEndOfMonth(LocalDate.now());
                 totalSeatCount = stageSeatRepository.findTotalSeatsForMonth(currentMonth[0], currentMonth[1]);
                 break;
 
             default:
-                throw new IllegalArgumentException("Invalid period: " + period);
+                throw new BusinessException(ErrorCode.INPUT_VALUE_INVALID);
         }
 
-        // 계산된 좌석 수를 Redis 캐시에 저장 (36시간 TTL)
-        redisTemplate.opsForValue().set(cacheKey, totalSeatCount, Duration.ofHours(36));
+        // 계산된 좌석 수를 Redis 캐시에 저장 (1시간 TTL)
+        redisTemplate.opsForValue().set(cacheKey, totalSeatCount, Duration.ofHours(1));
 
         return totalSeatCount;
     }
@@ -737,24 +739,32 @@ public class EventService {
      * 지정된 날짜를 기준으로 주의 시작일(월요일)과 종료일(일요일)을 계산합니다.
      *
      * @param date 기준 날짜.
-     * @return 주의 시작일(월요일)과 종료일(일요일)을 포함한 LocalDate 배열.
+     * @return 주의 시작일(월요일)과 종료일(일요일)을 포함한 LocalDateTime 배열.
      */
-    public LocalDate[] getStartAndEndOfWeek(LocalDate date) {
+    public LocalDateTime[] getStartAndEndOfWeek(LocalDate date) {
         LocalDate startOfWeek = date.with(DayOfWeek.MONDAY); // 주 시작일 (월요일)
         LocalDate endOfWeek = date.with(DayOfWeek.SUNDAY);  // 주 종료일 (일요일)
-        return new LocalDate[]{startOfWeek, endOfWeek};
+
+        LocalDateTime startDateTime = startOfWeek.atStartOfDay();          // 시작일의 00:00:00
+        LocalDateTime endDateTime = endOfWeek.atTime(LocalTime.MAX);       // 종료일의 23:59:59.999999999
+
+        return new LocalDateTime[]{startDateTime, endDateTime};
     }
 
     /**
      * 지정된 날짜를 기준으로 월의 시작일(1일)과 종료일(말일)을 계산합니다.
      *
      * @param date 기준 날짜.
-     * @return 월의 시작일(1일)과 종료일(말일)을 포함한 LocalDate 배열.
+     * @return 월의 시작일(1일)과 종료일(말일)을 포함한 LocalDateTime 배열.
      */
-    public LocalDate[] getStartAndEndOfMonth(LocalDate date) {
+    public LocalDateTime[] getStartAndEndOfMonth(LocalDate date) {
         LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth()); // 월 시작일 (1일)
         LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());   // 월 종료일 (말일)
-        return new LocalDate[]{startOfMonth, endOfMonth};
+
+        LocalDateTime startDateTime = startOfMonth.atStartOfDay();         // 시작일의 00:00:00
+        LocalDateTime endDateTime = endOfMonth.atTime(LocalTime.MAX);      // 종료일의 23:59:59.999999999
+
+        return new LocalDateTime[]{startDateTime, endDateTime};
     }
 
 

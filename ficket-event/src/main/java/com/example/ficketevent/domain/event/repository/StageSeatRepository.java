@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -20,27 +21,28 @@ public interface StageSeatRepository extends JpaRepository<StageSeat, Long> {
     @Query("SELECT COALESCE(SUM(es.stageSize), 0) FROM Event e " +
             "JOIN EventStage es ON e.eventStage = es " +
             "JOIN EventSchedule esc ON e.eventId = esc.event.eventId " +
-            "WHERE e.ticketingTime <= CURRENT_DATE AND esc.eventDate >= CURRENT_DATE")
-    BigDecimal findTotalSeatsForToday();
+            "WHERE e.ticketingTime <= :now AND esc.eventDate >= :now")
+    BigDecimal findTotalSeatsForToday(@Param("now") LocalDateTime now);
 
-    @Query("SELECT COALESCE(SUM(es.stageSize), 0) " +
-            "FROM Event e " +
+    @Query("SELECT COALESCE(SUM(es.stageSize), 0) FROM Event e " +
             "JOIN EventStage es ON e.eventStage = es " +
             "JOIN EventSchedule esc ON e.eventId = esc.event.eventId " +
-            "WHERE e.ticketingTime <= :yesterday AND esc.eventDate >= :yesterday")
-    BigDecimal findTotalSeatsForPreviousDay(@Param("yesterday") LocalDate yesterday);
+            "WHERE e.ticketingTime <= :endOfDay AND esc.eventDate BETWEEN :startOfDay AND :endOfDay")
+    BigDecimal findTotalSeatsForPreviousDay(@Param("startOfDay") LocalDateTime startOfDay,
+                                            @Param("endOfDay") LocalDateTime endOfDay);
+
 
     @Query("SELECT COALESCE(SUM(es.stageSize), 0) " +
             "FROM Event e " +
             "JOIN EventStage es ON e.eventStage = es " +
             "JOIN EventSchedule esc ON e.eventId = esc.event.eventId " +
             "WHERE e.ticketingTime <= :endOfWeek AND esc.eventDate >= :startOfWeek")
-    BigDecimal findTotalSeatsForWeek(@Param("startOfWeek") LocalDate startOfWeek, @Param("endOfWeek") LocalDate endOfWeek);
+    BigDecimal findTotalSeatsForWeek(@Param("startOfWeek") LocalDateTime startOfWeek, @Param("endOfWeek") LocalDateTime endOfWeek);
 
     @Query("SELECT COALESCE(SUM(es.stageSize), 0) " +
             "FROM Event e " +
             "JOIN EventStage es ON e.eventStage = es " +
             "JOIN EventSchedule esc ON e.eventId = esc.event.eventId " +
             "WHERE e.ticketingTime <= :endOfMonth AND esc.eventDate >= :startOfMonth")
-    BigDecimal findTotalSeatsForMonth(@Param("startOfMonth") LocalDate startOfMonth, @Param("endOfMonth") LocalDate endOfMonth);
+    BigDecimal findTotalSeatsForMonth(@Param("startOfMonth") LocalDateTime startOfMonth, @Param("endOfMonth") LocalDateTime endOfMonth);
 }
