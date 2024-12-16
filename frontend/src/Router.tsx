@@ -1,9 +1,6 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
-import { useEffect } from "react";
-
 import HomePage from "./pages/home/HomePage";
-
 import UserLogin from "./pages/login/UserLogin.tsx";
 import RegisterEvent from "./pages/register/RegisterEvent";
 import RegisterFace from "./pages/registerface/RegisterFace.tsx";
@@ -12,7 +9,6 @@ import NotFound from "./pages/errorpage/NotFound.tsx";
 import UserAdditionalInfo from "./pages/login/UserAdditionalInfo.tsx";
 import AdminLogin from "./pages/login/AdminLogin.tsx";
 import { userStore } from "./stores/UserStore";
-import SelectSession from "./pages/selectsession/SelectSession.tsx";
 import SelectSeat from "./pages/selectseat/SelectSeat.tsx";
 import SeleteDate from "./pages/ticketing/SelectDate.tsx";
 import EventDetailPage from "./pages/event/EventDetail.tsx";
@@ -20,6 +16,7 @@ import AdminEventList from "./pages/eventlist/AdminEventList.tsx";
 import TemporaryUrlPage from "./pages/temporaryurl/TemporaryUrlPage.tsx";
 import AdminEventDetail from "./pages/adminEventDetail/AdminEventDetail.tsx";
 import MyTicket from "./pages/myTicket/MyTicket.tsx";
+import ReservationRateRanking from "./pages/reservationRateRanking/ReservationRateRanking.tsx";
 
 export default function Router() {
   const user = useStore(userStore);
@@ -53,6 +50,8 @@ export default function Router() {
 
       {/* FICKET USER EVENT  */}
       <Route path="events/detail/:eventId" element={<EventDetailPage />} />
+      <Route path="contents/ranking" element={<ReservationRateRanking />} />
+
       {/* FICKET USER TICKETING*/}
       <Route path="/my-ticket" element={<MyTicket />} />
 
