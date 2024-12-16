@@ -10,6 +10,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDto {
+    private Long eventScheduleId;
     private Long orderId;
     private Set<Long> seatMappingIds;
     private Long ticketId;

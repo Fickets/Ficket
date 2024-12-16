@@ -1,16 +1,15 @@
 package com.example.ficketevent.domain.event.service;
 
-import com.example.ficketevent.domain.event.dto.common.CreateOrderRequest;
-import com.example.ficketevent.domain.event.dto.common.ReservedSeatsResponse;
-import com.example.ficketevent.domain.event.dto.common.TicketDto;
-import com.example.ficketevent.domain.event.dto.common.ValidSeatInfoResponse;
+import com.example.ficketevent.domain.event.dto.common.*;
 import com.example.ficketevent.domain.event.dto.kafka.OrderDto;
 import com.example.ficketevent.domain.event.dto.kafka.SeatMappingUpdatedEvent;
 import com.example.ficketevent.domain.event.dto.request.SelectSeatInfo;
 import com.example.ficketevent.domain.event.dto.response.*;
+import com.example.ficketevent.domain.event.entity.Event;
 import com.example.ficketevent.domain.event.entity.EventSchedule;
 import com.example.ficketevent.domain.event.entity.EventStage;
 import com.example.ficketevent.domain.event.entity.SeatMapping;
+import com.example.ficketevent.domain.event.enums.Genre;
 import com.example.ficketevent.domain.event.mapper.StageSeatMapper;
 import com.example.ficketevent.domain.event.messagequeue.SeatMappingProducer;
 import com.example.ficketevent.domain.event.repository.EventScheduleRepository;
@@ -24,7 +23,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +50,8 @@ public class StageSeatService {
     private final RedissonClient redissonClient;
     private final SeatMappingProducer seatMappingProducer;
     private final EventScheduleRepository eventScheduleRepository;
+    @Qualifier("rankingRedisTemplate") // 랭킹용 RedisTemplate
+    private final RedisTemplate<String, Object> rankingRedisTemplate;
 
     /**
      * 주어진 행사장(stageId)에 대한 좌석 목록을 조회하고, 결과를 캐싱합니다.
@@ -226,8 +229,9 @@ public class StageSeatService {
     public void handleOrderCreatedEvent(OrderDto orderEvent) {
         log.info("Processing OrderCreatedEvent: {}", orderEvent);
 
+        List<Long> successfullyUpdatedSeats = new ArrayList<>(); // 업데이트 성공한 좌석 추적
+
         try {
-            // OrderDto에서 데이터 추출
             List<Long> seatMappingIds = new ArrayList<>(orderEvent.getSeatMappingIds());
             Long ticketId = orderEvent.getTicketId();
 
@@ -240,12 +244,32 @@ public class StageSeatService {
                         });
 
                 seatMapping.setTicketId(ticketId);
+                successfullyUpdatedSeats.add(seatMappingId); // 업데이트 성공한 좌석 ID 저장
             }
+
+            // 랭킹 업데이트
+            Event event = eventScheduleRepository.findEventByEventScheduleId(orderEvent.getEventScheduleId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+            updateReservationCount(event.getEventId(), event.getGenre(), seatMappingIds.size());
 
             log.info("OrderCreatedEvent processed successfully");
 
         } catch (BusinessException e) {
             log.error("Failed to process OrderCreatedEvent", e);
+
+            // 성공적으로 업데이트된 좌석만 원복
+            for (Long seatMappingId : successfullyUpdatedSeats) {
+                SeatMapping seatMapping = seatMappingRepository.findById(seatMappingId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
+                seatMapping.setTicketId(null); // ticketId를 NULL로 설정
+            }
+
+            // Redis 랭킹 데이터 복구 (랭킹이 업데이트된 경우에만)
+            if (!successfullyUpdatedSeats.isEmpty()) {
+                Event event = eventScheduleRepository.findEventByEventScheduleId(orderEvent.getEventScheduleId())
+                        .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+                updateReservationCount(event.getEventId(), event.getGenre(), -successfullyUpdatedSeats.size());
+            }
 
             // 실패 이벤트 발행
             Long orderId = orderEvent.getOrderId();
@@ -274,11 +298,36 @@ public class StageSeatService {
     }
 
     /**
-     * 
-     * @param ticketId 환불 요청 티켓
+     * 구매한 좌석 수만큼 예매 순위 업데이트
+     *
+     * @param eventId   구매한 eventId
+     * @param seatCount 구매한 좌석 수
+     */
+    private void updateReservationCount(Long eventId, List<Genre> eventGenre, int seatCount) {
+        for (Genre genre : eventGenre) {
+            String reservationDailyKey = RedisKeyHelper.getReservationKey("daily", genre.name());
+            rankingRedisTemplate.opsForZSet().incrementScore(reservationDailyKey, String.valueOf(eventId), seatCount);
+
+            String reservationWeeklyKey = RedisKeyHelper.getReservationKey("weekly", genre.name());
+            rankingRedisTemplate.opsForZSet().incrementScore(reservationWeeklyKey, String.valueOf(eventId), seatCount);
+
+            String reservationMonthlyKey = RedisKeyHelper.getReservationKey("monthly", genre.name());
+            rankingRedisTemplate.opsForZSet().incrementScore(reservationMonthlyKey, String.valueOf(eventId), seatCount);
+        }
+    }
+
+    /**
+     * @param ticketInfo 환불 티켓 정보
      */
     @Transactional
-    public void openSeat(Long ticketId) {
+    public void openSeat(TicketInfo ticketInfo) {
+        Long ticketId = ticketInfo.getTicketId();
+        int seatCount = seatMappingRepository.countSeatMappingByTicketId(ticketId);
+        Event event = eventScheduleRepository.findEventByEventScheduleId(ticketInfo.getEventScheduleId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+
+        updateReservationCount(event.getEventId(), event.getGenre(), -seatCount);
+
         seatMappingRepository.openSeat(ticketId);
     }
 
@@ -290,7 +339,7 @@ public class StageSeatService {
      *                  - ticketIds: 조회할 티켓 ID 목록
      *                  - eventScheduleId: 이벤트 스케줄 ID
      * @return 구매 가능 티켓 수 (예약 제한 수 - 이미 구매된 티켓 수)
-     *         만약 구매 가능 수량이 없으면 0을 반환합니다.
+     * 만약 구매 가능 수량이 없으면 0을 반환합니다.
      */
     public Integer getAvailableCount(TicketDto ticketDto) {
         // 입력받은 DTO에서 티켓 ID 목록과 이벤트 스케줄 ID를 추출

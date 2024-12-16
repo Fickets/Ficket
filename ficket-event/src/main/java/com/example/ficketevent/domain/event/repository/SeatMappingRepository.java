@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -47,4 +48,7 @@ public interface SeatMappingRepository extends JpaRepository<SeatMapping, Long> 
 
     @Query("SELECT COUNT(sm.ticketId) FROM SeatMapping sm WHERE sm.ticketId in :ticketIds")
     int countPurchasedSeatsByTicketId(@Param("ticketIds") List<Long> ticketIds);
+
+    @Query("SELECT COUNT(sm.ticketId) FROM SeatMapping sm WHERE sm.ticketId = :ticketId")
+    int countSeatMappingByTicketId(@Param("ticketId") Long ticketId);
 }

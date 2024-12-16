@@ -8,6 +8,7 @@ import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.mapper.EventMapper;
 import com.example.ficketevent.domain.event.mapper.TicketMapper;
 import com.example.ficketevent.domain.event.repository.*;
+import com.example.ficketevent.global.common.Pair;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.AwsS3Service;
@@ -19,19 +20,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.math.BigDecimal;
+import java.time.*;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -396,8 +397,29 @@ public class EventService {
         // 이미지 삭제 처리
         deleteEventImages(eventImage);
 
+        // 랭킹 삭제 처리
+        deleteEventFromRankings(eventId);
+
         // 이벤트 삭제
         eventRepository.delete(findEvent);
+    }
+
+    /**
+     * Redis의 모든 랭킹 데이터에서 특정 이벤트를 제거합니다.
+     *
+     * @param eventId 삭제할 이벤트 ID.
+     */
+    private void deleteEventFromRankings(Long eventId) {
+        String[] periods = {"daily", "previous_daily", "weekly", "previous_weekly", "monthly"};
+        String[] genres = {"뮤지컬", "콘서트", "스포츠", "전시_행사", "클래식_무용", "아동_가족"};
+
+        for (String period : periods) {
+            for (String genre : genres) {
+                String rankingKey = RedisKeyHelper.getReservationKey(period, genre);
+                rankingRedisTemplate.opsForZSet().remove(rankingKey, eventId.toString());
+                log.info("Removed eventId {} from ranking: {}", eventId, rankingKey);
+            }
+        }
     }
 
     // 이벤트 이미지 삭제 처리
@@ -554,6 +576,10 @@ public class EventService {
         return null;
     }
 
+    /**
+     * @param limit 조회할 랭크 개수 (default : 10)
+     * @return limit개의 이벤트 순위 정보
+     */
     public List<ViewRankResponse> getTopRankedEvents(int limit) {
         List<Object> rawEventIds = new ArrayList<>(Objects.requireNonNull(rankingRedisTemplate.opsForZSet()
                 .reverseRange(RedisKeyHelper.getViewRankingKey(), 0, limit - 1)));
@@ -580,6 +606,155 @@ public class EventService {
                 })
                 .filter(Objects::nonNull) // null 제거
                 .toList();
+    }
+
+
+    /**
+     * 특정 장르와 기간에 대한 상위 50개의 예매율 순위를 조회합니다.
+     *
+     * @param genre 조회할 이벤트의 장르 (예: "뮤지컬", "콘서트").
+     * @param period 조회할 기간 (예: "daily", "weekly", "monthly").
+     *               오전 10시 30분 이전에는 "previous_daily" 또는 "previous_weekly"로 변경됩니다.
+     * @return 이벤트 세부 정보와 예매율 정보를 포함한 ReservationRateEventInfoResponse 목록.
+     */
+    public List<ReservationRateEventInfoResponse> getTopFiftyReservationRateRank(String genre, String period) {
+        LocalTime now = LocalTime.now();
+        LocalTime cutoffTime = LocalTime.of(10, 30); // 기준 시간: 오전 10시 30분
+
+        // 기준 시간 이전에는 기간(period)을 전일 또는 전주로 변경
+        if (now.isBefore(cutoffTime)) {
+            switch (period) {
+                case "daily":
+                    period = "previous_daily";
+                    break;
+                case "weekly":
+                    period = "previous_weekly";
+                    break;
+                default:
+                    break; // monthly는 변경하지 않음
+            }
+        }
+
+        // Redis에서 랭킹 데이터 조회 (이벤트 ID와 점수 포함)
+        Set<ZSetOperations.TypedTuple<Object>> rankedEvents = rankingRedisTemplate.opsForZSet()
+                .reverseRangeWithScores(RedisKeyHelper.getReservationKey(period, genre), 0, 49);
+
+        if (rankedEvents == null || rankedEvents.isEmpty()) {
+            return Collections.emptyList(); // 조회할 데이터가 없는 경우 빈 리스트 반환
+        }
+
+        // 이벤트 ID와 점수로 리스트 생성
+        List<Pair<Long, BigDecimal>> eventIdWithScores = rankedEvents.stream()
+                .map(tuple -> Pair.of(
+                        Long.parseLong(tuple.getValue().toString()),  // 이벤트 ID
+                        BigDecimal.valueOf(tuple.getScore())          // 점수를 BigDecimal로 변환
+                ))
+                .toList();
+
+        // 해당 기간의 전체 좌석 수 계산
+        BigDecimal totalSeatCount = getTotalSeatCountForPeriod(period);
+
+        // 이벤트 세부 정보를 조회하고 응답 데이터 생성
+        return eventIdWithScores.stream()
+                .map(eventWithScore -> {
+                    Long eventId = eventWithScore.getKey();
+                    BigDecimal score = eventWithScore.getValue();
+
+                    // Redis 캐시에서 이벤트 세부 정보 조회
+                    String cacheKey = RedisKeyHelper.getEventDetailCacheKey(eventId);
+                    EventDetailRes cachedEvent = (EventDetailRes) redisTemplate.opsForValue().get(cacheKey);
+
+                    if (cachedEvent == null) {
+                        // 캐시에 없으면 DB에서 조회
+                        Event event = eventRepository.findById(eventId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+
+                        EventDetailRes eventDetailRes = EventDetailRes.toEventDetailRes(event, "TEST");
+
+                        // 캐시에 이벤트 세부 정보 저장 (24시간 TTL)
+                        redisTemplate.opsForValue().set(cacheKey, eventDetailRes, Duration.ofHours(24));
+                        return ReservationRateEventInfoResponse.toReservationRateEventInfoResponse(eventId, eventDetailRes, score, totalSeatCount);
+                    }
+
+                    return ReservationRateEventInfoResponse.toReservationRateEventInfoResponse(eventId, cachedEvent, score, totalSeatCount);
+                })
+                .filter(Objects::nonNull) // null 값 제거
+                .toList();
+    }
+
+    /**
+     * 특정 기간 동안의 전체 좌석 수를 계산합니다.
+     *
+     * @param period 좌석 수를 계산할 기간 (예: "daily", "previous_daily", "weekly").
+     * @return 해당 기간 동안의 전체 좌석 수 (BigDecimal).
+     */
+    public BigDecimal getTotalSeatCountForPeriod(String period) {
+        String cacheKey = "total_seat_count:" + period;
+
+        // Redis 캐시에서 좌석 수 조회
+        BigDecimal totalSeatCount = (BigDecimal) redisTemplate.opsForValue().get(cacheKey);
+        if (totalSeatCount != null) {
+            return totalSeatCount; // 캐시된 데이터 반환
+        }
+
+        // 캐시에 없으면 DB에서 좌석 수 계산
+        switch (period) {
+            case "daily":
+                totalSeatCount = stageSeatRepository.findTotalSeatsForToday();
+                break;
+
+            case "previous_daily":
+                LocalDate yesterday = LocalDate.now().minusDays(1);
+                totalSeatCount = stageSeatRepository.findTotalSeatsForPreviousDay(yesterday);
+                break;
+
+            case "weekly":
+                LocalDate[] currentWeek = getStartAndEndOfWeek(LocalDate.now());
+                totalSeatCount = stageSeatRepository.findTotalSeatsForWeek(currentWeek[0], currentWeek[1]);
+                break;
+
+            case "previous_weekly":
+                LocalDate[] previousWeek = getStartAndEndOfWeek(LocalDate.now().minusWeeks(1));
+                totalSeatCount = stageSeatRepository.findTotalSeatsForWeek(previousWeek[0], previousWeek[1]);
+                break;
+
+            case "monthly":
+                LocalDate[] currentMonth = getStartAndEndOfMonth(LocalDate.now());
+                totalSeatCount = stageSeatRepository.findTotalSeatsForMonth(currentMonth[0], currentMonth[1]);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid period: " + period);
+        }
+
+        // 계산된 좌석 수를 Redis 캐시에 저장 (36시간 TTL)
+        redisTemplate.opsForValue().set(cacheKey, totalSeatCount, Duration.ofHours(36));
+
+        return totalSeatCount;
+    }
+
+    /**
+     * 지정된 날짜를 기준으로 주의 시작일(월요일)과 종료일(일요일)을 계산합니다.
+     *
+     * @param date 기준 날짜.
+     * @return 주의 시작일(월요일)과 종료일(일요일)을 포함한 LocalDate 배열.
+     */
+    public LocalDate[] getStartAndEndOfWeek(LocalDate date) {
+        LocalDate startOfWeek = date.with(DayOfWeek.MONDAY); // 주 시작일 (월요일)
+        LocalDate endOfWeek = date.with(DayOfWeek.SUNDAY);  // 주 종료일 (일요일)
+        return new LocalDate[]{startOfWeek, endOfWeek};
+    }
+
+    /**
+     * 지정된 날짜를 기준으로 월의 시작일(1일)과 종료일(말일)을 계산합니다.
+     *
+     * @param date 기준 날짜.
+     * @return 월의 시작일(1일)과 종료일(말일)을 포함한 LocalDate 배열.
+     */
+    public LocalDate[] getStartAndEndOfMonth(LocalDate date) {
+        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth()); // 월 시작일 (1일)
+        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());   // 월 종료일 (말일)
+        return new LocalDate[]{startOfMonth, endOfMonth};
     }
 
 

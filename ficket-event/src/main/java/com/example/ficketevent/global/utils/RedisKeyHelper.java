@@ -28,15 +28,8 @@ public class RedisKeyHelper {
         return KeyType.EVENT_VIEW_RANKING.format();
     }
 
-    public static String getReservationDailyKey() {
-        return KeyType.EVENT_RESERVATION_DAILY.format();
+    public static String getReservationKey(String period, String genre) {
+        return KeyType.EVENT_RESERVATION_RANKING.format(period, genre);
     }
 
-    public static String getReservationWeeklyKey() {
-        return KeyType.EVENT_RESERVATION_WEEKLY.format();
-    }
-
-    public static String getReservationMonthlyKey() {
-        return KeyType.EVENT_RESERVATION_MONTHLY.format();
-    }
 }
