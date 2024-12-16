@@ -4,14 +4,16 @@ import { fetchReservationRateRanking } from "../../service/reservationRateRankin
 import {
   ReservationRateRankingResponse,
   RankingItem,
+  Genre,
+  Period,
 } from "../../types/ReservationRateRanking";
 
 const RankingTop50ByGenre = ({
   genre,
   period,
 }: {
-  genre: string;
-  period: string;
+  genre: Genre;
+  period: Period;
 }) => {
   const navigate = useNavigate();
   const [rankingData, setRankingData] = useState<RankingItem[]>([]);

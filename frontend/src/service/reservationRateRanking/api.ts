@@ -1,17 +1,20 @@
 import { publicApi } from "../../utils/http-common.ts";
 import { AxiosResponse } from "axios";
-import { ReservationRateRankingResponse } from "../../types/ReservationRateRanking.ts";
+import {
+  Genre,
+  Period,
+  ReservationRateRankingResponse,
+} from "../../types/ReservationRateRanking.ts";
 
 export const fetchReservationRateRanking = async ({
   genre,
   period,
 }: {
-  genre?: string | null;
-  period?: string | null;
+  genre?: Genre | null;
+  period?: Period | null;
 }): Promise<ReservationRateRankingResponse[]> => {
   try {
-    // params 객체에서 값이 있는 경우에만 추가
-    const params: { genre?: string; period?: string } = {};
+    const params: { genre?: Genre; period?: Period } = {};
     if (genre) params.genre = genre;
     if (period) params.period = period;
 

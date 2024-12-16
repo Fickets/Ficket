@@ -139,7 +139,7 @@ const KakaoPay = () => {
           mobile: "REDIRECTION",
         },
         noticeUrls: [
-          "https://4967-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
+          "https://f3b1-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
         ],
       });
 

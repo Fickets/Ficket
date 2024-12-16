@@ -3,6 +3,7 @@ import RankingTop50ByGenre from "../../components/reservatinRateRanking/RankingT
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import MobileHeader from "../../components/@common/MobileHeader.tsx";
+import { Genre, Period } from "../../types/ReservationRateRanking.ts";
 
 const ReservationRateRanking = () => {
   const [isMobile, setIsMobile] = useState<boolean>(
@@ -10,23 +11,16 @@ const ReservationRateRanking = () => {
   );
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") || "뮤지컬";
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
-  const [period, setPeriod] = useState<string>("daily");
+  const initialTab = (searchParams.get("tab") as Genre) || Genre.뮤지컬;
+  const initialPeriod = (searchParams.get("period") as Period) || Period.DAILY;
 
-  const tabs = [
-    "뮤지컬",
-    "콘서트",
-    "스포츠",
-    "전시/행사",
-    "클래식/무용",
-    "아동/가족",
-  ];
+  const [activeTab, setActiveTab] = useState<Genre>(initialTab);
+  const [period, setPeriod] = useState<Period>(initialPeriod);
 
   const periods = [
-    { label: "일간", value: "daily" },
-    { label: "주간", value: "weekly" },
-    { label: "월간", value: "monthly" },
+    { label: "일간", value: Period.DAILY },
+    { label: "주간", value: Period.WEEKLY },
+    { label: "월간", value: Period.MONTHLY },
   ];
 
   useEffect(() => {
@@ -40,20 +34,20 @@ const ReservationRateRanking = () => {
     };
   }, []);
 
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = (tab: Genre) => {
     setActiveTab(tab);
     setSearchParams({ tab });
   };
 
   const getPeriodLabel = () => {
     const now = new Date();
-    if (period === "daily") {
+    if (period === Period.DAILY) {
       return `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${now.getHours()}시 ${now.getMinutes()}분 기준`;
-    } else if (period === "weekly") {
+    } else if (period === Period.WEEKLY) {
       const monday = new Date();
       monday.setDate(now.getDate() - now.getDay() + 1);
       return `${monday.getFullYear()}년 ${monday.getMonth() + 1}월 ${monday.getDate()}일 ~ ${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 기준`;
-    } else if (period === "monthly") {
+    } else if (period === Period.MONTHLY) {
       return `${now.getFullYear()}년 ${now.getMonth() + 1}월 1일 ~ ${now.getDate()}일 기준`;
     }
   };
@@ -82,7 +76,7 @@ const ReservationRateRanking = () => {
                 : "grid grid-cols-6 border"
             }`}
           >
-            {tabs.map((tab) => (
+            {Object.values(Genre).map((tab) => (
               <button
                 key={tab}
                 onClick={() => handleTabChange(tab)}
@@ -99,7 +93,6 @@ const ReservationRateRanking = () => {
         </div>
 
         {/* 기준 시간과 필터 메뉴 */}
-        {/* 기준 시간과 필터 메뉴 */}
         <div className="flex justify-between items-center mt-4 text-sm">
           {/* 기준 시간 */}
           <div className="text-gray-500 text-xs">{getPeriodLabel()}</div>
@@ -110,7 +103,7 @@ const ReservationRateRanking = () => {
             {isMobile ? (
               <select
                 value={period}
-                onChange={(e) => setPeriod(e.target.value)}
+                onChange={(e) => setPeriod(e.target.value as Period)}
                 className="border rounded px-2 py-1 text-gray-600"
               >
                 {periods.map((p) => (
