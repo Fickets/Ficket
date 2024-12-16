@@ -11,6 +11,7 @@ import SearchBar from "./SearchBar";
 const UserHeader = () => {
   const [query, setQuery] = useState<string>(""); // 검색 입력 값
   const [results, setResults] = useState<SearchResult[]>([]); // 검색 결과
+  const [cookies] = useCookies(['isLogin']);
   const navi = useNavigate();
   const user = useStore(userStore);
 
@@ -19,14 +20,14 @@ const UserHeader = () => {
   };
 
   const handleLoginToggle = async () => {
-    if (user.isLogin) {
+    if (Boolean(cookies.isLogin)) {
       await userLogout(
         (response) => {
           console.log("LOGOUT");
           user.resetState();
           navi("/");
         },
-        () => {},
+        () => { },
       );
     } else {
       // user.setIsLogin(true);
@@ -52,7 +53,7 @@ const UserHeader = () => {
         </div>
         <div className="flex">
           {/* 로그인 상태에 따라 버튼 변경 */}
-          {user.isLogin ? (
+          {Boolean(cookies.isLogin) ? (
             <div>
               <button onClick={handleLoginToggle}>로그아웃</button>
             </div>

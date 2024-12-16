@@ -16,7 +16,7 @@ const HomePage = () => {
 
   const getAccess = async () => {
     if (Boolean(cookies.isLogin) && user.accessToken === "") {
-      localStorage.removeItem("USER_STORE");
+      user.resetState();
       await userTokenRefresh(
         (response) => {
           console.log("HERE");
