@@ -437,4 +437,22 @@ public class UserService {
                 () -> ticketingServiceClient.getCustomerTicket(userId));
         return res;
     }
+
+    public void customerDelete(Long userId){
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
+
+        List<OrderInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "getCustomerOrderTicket",
+                () -> ticketingServiceClient.getCustomerTicket(user.getUserId())
+        );
+        if (!ticketInfoDtoList.isEmpty()){
+            throw new BusinessException(ErrorCode.EXIST_USER_EVENT);
+        }
+        userRepository.delete(user);
+    }
+
+
+
 }

@@ -598,7 +598,7 @@ public class OrderService {
     }
 
     public List<OrderInfoDto> getCustomerTickets(Long userId){
-        log.info("TEST FFFFFFFF", userId);
+
         List<OrderInfoDto> res = new ArrayList<>();
         List<Orders> customerOrders = orderRepository.findAllByUserId(userId);
 
