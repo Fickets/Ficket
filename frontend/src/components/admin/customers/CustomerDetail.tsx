@@ -3,7 +3,7 @@ import { useMemo, useState, useEffect } from 'react';
 
 import { refundMyTicket } from '../../../service/myTicket/api'
 import { customerTicket } from '../../../types/admins/customer/CustomerTicket';
-import { customerTicketList } from "../../../service/admin/customer/customerService"
+import { customerTicketList, customerDelete } from "../../../service/admin/customer/customerService"
 import closeButtonimg from '../../../assets/customerDetail/closebutton.png';
 import myinfoimg from '../../../assets/customerDetail/myid.png';
 import ticketimg from '../../../assets/customerDetail/ticket.png';
@@ -44,6 +44,18 @@ const CustomerDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) =>
         }
     };
 
+    const deleteCustomer = async (userId: string) => {
+        await customerDelete(userId,
+            (response) => {
+                console.log(response.status, " SUCCESS ")
+                alert("유저가 제거 되었습니다.");
+                onClose();
+                window.location.reload();
+            }, (error) => {
+                console.log(error);
+                alert("모든 예약을 취소해 주세요.");
+            })
+    }
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -61,7 +73,7 @@ const CustomerDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) =>
                         <h2 className="ml-[10px] text-lg font-bold">고객 정보</h2>
                     </div>
                     <button className='w-[45px] bg-red-500 text-white rounded'
-                    // onClick={}
+                        onClick={() => deleteCustomer(data.userId)}
                     >탈퇴</button>
                 </div>
                 <div className='ml-[70px] mr-[300px] flex flex-col '>

@@ -47,3 +47,13 @@ export const customerTicketList = async (
         .then(Response)
         .catch(Error);
 };
+
+export const customerDelete = async (
+    userId: string,
+    Response: (Response: AxiosResponse<ResponseData>) => void,
+    Error: (Error: AxiosResponse<ResponseData>) => void,
+) => {
+    await adminPrivateApi.delete(`/${url}/customers/delete/${userId}`)
+        .then(Response)
+        .catch(Error);
+}
