@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PictureBox from "../../components/registerface/PictureBox";
 import PolicyAgree from "../../components/registerface/PolicyAgree";
@@ -6,12 +6,14 @@ import { unLockSeats } from "../../service/selectseat/api";
 import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
 import { eventDetailStore } from "../../stores/EventStore.tsx";
 import { useStore } from "zustand";
+import { releaseSlot } from "../../service/queue/api.ts";
 
 function RegisterFace() {
   const navigate = useNavigate();
 
   const event = useStore(eventDetailStore);
 
+  const eventId = event.eventId;
   const faceImg = event.faceImg;
   const setFaceImg = event.setFaceImg;
   const selectedSeats = event.selectedSeats;
@@ -51,6 +53,26 @@ function RegisterFace() {
     }
     navigate("/ticketing/order");
   };
+
+  useEffect(() => {
+    // 창 닫힘 이벤트 처리
+    const handleReleaseSlot = async () => {
+      if (eventScheduleId) {
+        try {
+          await releaseSlot(eventId);
+          console.log("Slot released successfully.");
+        } catch (error) {
+          console.error("Error releasing slot:", error);
+        }
+      }
+    };
+
+    window.addEventListener("unload", handleReleaseSlot);
+
+    return () => {
+      window.removeEventListener("unload", handleReleaseSlot);
+    };
+  }, []);
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">

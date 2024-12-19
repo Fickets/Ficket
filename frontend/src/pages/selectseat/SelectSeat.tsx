@@ -7,6 +7,7 @@ import {
   fetchSeatCntGrade,
   lockSeats,
 } from "../../service/selectseat/api";
+import { releaseSlot } from "../../service/queue/api.ts";
 import {
   EventSeatSummary,
   SeatCntGrade,
@@ -28,7 +29,7 @@ const SelectSeat = () => {
 
   const event = useStore(eventDetailStore);
   console.log(event);
-  // const eventId = event.eventId;
+  const eventId = event.eventId;
   const eventScheduleId = event.scheduleId;
   const eventTitle = event.title;
   const eventDate = event.choiceDate;
@@ -99,6 +100,22 @@ const SelectSeat = () => {
     };
 
     loadEventData();
+
+    // 창 닫힘 이벤트 처리
+    const handleReleaseSlot = async () => {
+      try {
+        await releaseSlot(eventId);
+        console.log("Slot released successfully.");
+      } catch (error) {
+        console.error("Error releasing slot:", error);
+      }
+    };
+
+    window.addEventListener("unload", handleReleaseSlot);
+
+    return () => {
+      window.removeEventListener("unload", handleReleaseSlot);
+    };
   }, [eventScheduleId]);
 
   if (!eventSummary || !seatCntGrade || !seatStatusResponse || !gradeColors) {

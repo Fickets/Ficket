@@ -1,10 +1,36 @@
-import { useEventStore } from '../../types/StoreType/EventState';
-import TicketingHeader from '../../components/ticketing/TicketingHeader.tsx';
-import OrderConfirmation from '../../components/order/OrderConfirmation.tsx';
+import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
+import OrderConfirmation from "../../components/order/OrderConfirmation.tsx";
+import { useEffect } from "react";
+import { releaseSlot } from "../../service/queue/api.ts";
+import { useStore } from "zustand/index";
+import { eventDetailStore } from "../../stores/EventStore.tsx";
 
 function Order() {
-  const { faceImg, eventScheduleId, selectedSeats } = useEventStore();
-  console.log('넘겨받은 데이터:', { faceImg, eventScheduleId, selectedSeats });
+  const event = useStore(eventDetailStore);
+
+  const eventId = event.eventId;
+  const faceImg = event.faceImg;
+  const eventScheduleId = event.scheduleId;
+  const selectedSeats = event.selectedSeats;
+  console.log("넘겨받은 데이터:", { faceImg, eventScheduleId, selectedSeats });
+
+  useEffect(() => {
+    // 창 닫힘 이벤트 처리
+    const handleReleaseSlot = async () => {
+      try {
+        await releaseSlot(eventId);
+        console.log("Slot released successfully.");
+      } catch (error) {
+        console.error("Error releasing slot:", error);
+      }
+    };
+
+    window.addEventListener("unload", handleReleaseSlot);
+
+    return () => {
+      window.removeEventListener("unload", handleReleaseSlot);
+    };
+  }, []);
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
