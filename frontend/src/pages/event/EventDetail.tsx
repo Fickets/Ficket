@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useStore } from 'zustand';
-import moment from 'moment';
-import { Bar } from 'react-chartjs-2';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useStore } from "zustand";
+import moment from "moment";
+import { Bar } from "react-chartjs-2";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,29 +13,29 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-import MobileHeader from '../../components/@common/MobileHeader';
-import { GenderStatisticRes } from '../../types/ApiResponseType';
-import { enterQueue } from '../../service/queue/api.ts';
+} from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import MobileHeader from "../../components/@common/MobileHeader";
+import { GenderStatisticRes } from "../../types/ApiResponseType";
+import { canEnterTicketingPage, occupySlot } from "../../service/queue/api.ts";
 import {
   checkEnterTicketing,
   eventDetail,
   genderStatistic,
-} from '../../service/event/eventApi';
-import { eventDetailStore } from '../../stores/EventStore';
-import { useEventStore } from '../../types/StoreType/EventState';
-import Calendar from 'react-calendar';
-import './CustomDetailCalendar.css';
-import 'react-calendar/dist/Calendar.css';
-import { eventScheduleDto } from '../../types/StoreType/EventDetailStore';
-import { userStore } from '../../stores/UserStore';
-import UserHeader from '../../components/@common/UserHeader';
-import manImg from '../../assets/detail/man.png';
-import womanImg from '../../assets/detail/woman.png';
-import mappin from '../../assets/detail/MapPin.png';
-import calendar from '../../assets/detail/Calendar.png';
-import calculator from '../../assets/detail/Calculator.png';
+} from "../../service/event/eventApi";
+import { eventDetailStore } from "../../stores/EventStore";
+import { useEventStore } from "../../types/StoreType/EventState";
+import Calendar from "react-calendar";
+import "./CustomDetailCalendar.css";
+import "react-calendar/dist/Calendar.css";
+import { eventScheduleDto } from "../../types/StoreType/EventDetailStore";
+import { userStore } from "../../stores/UserStore";
+import UserHeader from "../../components/@common/UserHeader";
+import manImg from "../../assets/detail/man.png";
+import womanImg from "../../assets/detail/woman.png";
+import mappin from "../../assets/detail/MapPin.png";
+import calendar from "../../assets/detail/Calendar.png";
+import calculator from "../../assets/detail/Calculator.png";
 const EventDetail: React.FC = () => {
   const { eventId } = useParams();
   const navi = useNavigate();
@@ -51,7 +51,7 @@ const EventDetail: React.FC = () => {
   ]);
 
   const [choiceRound, setChoiceRound] = useState<number>();
-  const [activeTab, setActiveTab] = useState('performance');
+  const [activeTab, setActiveTab] = useState("performance");
   // const [selectedButton, setSelectedButton] = React.useState(null);
 
   // Chart.js 모듈 등록
@@ -62,7 +62,7 @@ const EventDetail: React.FC = () => {
     Title,
     Tooltip,
     Legend,
-    ChartDataLabels
+    ChartDataLabels,
   );
 
   const togglePrice = () => {
@@ -72,13 +72,13 @@ const EventDetail: React.FC = () => {
     useEventStore();
 
   const chartData = {
-    labels: ['10대', '20대', '30대', '40대', '50대'], // x축에 표시될 레이블
+    labels: ["10대", "20대", "30대", "40대", "50대"], // x축에 표시될 레이블
     datasets: [
       {
-        label: 'Sales', // 범례에 표시될 라벨
+        label: "Sales", // 범례에 표시될 라벨
         data: genderStatisticData.slice(2), // 데이터의 슬라이스
-        backgroundColor: '#5B4DFF', // 바 색상
-        borderColor: '#5B4DFF', // 테두리 색상
+        backgroundColor: "#5B4DFF", // 바 색상
+        borderColor: "#5B4DFF", // 테두리 색상
         borderWidth: 1, // 테두리 두께
       },
     ],
@@ -89,14 +89,14 @@ const EventDetail: React.FC = () => {
     plugins: {
       legend: {
         display: false, // 범례 활성화
-        position: 'top', // 범례 위치
+        position: "top", // 범례 위치
         labels: {
           font: {
             size: 14, // 범례 텍스트 크기
-            family: 'Arial', // 텍스트 폰트
-            weight: 'bold', // 텍스트 두께
+            family: "Arial", // 텍스트 폰트
+            weight: "bold", // 텍스트 두께
           },
-          color: '#5B4DFF', // 범례 텍스트 색상
+          color: "#5B4DFF", // 범례 텍스트 색상
           padding: 10, // 범례 항목 간격
         },
       },
@@ -104,9 +104,9 @@ const EventDetail: React.FC = () => {
         enabled: false, // 툴팁 비활성화
       },
       datalabels: {
-        color: '#5B4DFF', // 데이터 레이블 색상
-        anchor: 'end', // 데이터 레이블 위치
-        align: 'end', // 데이터 레이블 정렬
+        color: "#5B4DFF", // 데이터 레이블 색상
+        anchor: "end", // 데이터 레이블 위치
+        align: "end", // 데이터 레이블 정렬
         formatter: (value) => `${value}%`, // 데이터 레이블 형식
         font: {
           size: 12, // 데이터 레이블 글씨 크기
@@ -116,7 +116,7 @@ const EventDetail: React.FC = () => {
     scales: {
       x: {
         display: true, // x축을 표시
-        labels: ['10대', '20대', '30대', '40대', '50대'], // x축의 레이블 설정
+        labels: ["10대", "20대", "30대", "40대", "50대"], // x축의 레이블 설정
       },
       y: {
         display: false, // y축 숨김
@@ -138,7 +138,7 @@ const EventDetail: React.FC = () => {
 
   // 예매 가능 날짜 설정
   const availableDates = eventDates.map((dateString) => {
-    const [year, month, day] = dateString.split('-').map(Number);
+    const [year, month, day] = dateString.split("-").map(Number);
     return new Date(year, month - 1, day); // month는 0부터 시작하므로 -1 필요
   });
   // 처음 선택 날자
@@ -150,7 +150,7 @@ const EventDetail: React.FC = () => {
   const handleDateClick = (date) => {
     if (availableDates.some((d) => d.toDateString() === date.toDateString())) {
       setChoiceDate(date);
-      const formattedDate = date.toLocaleDateString('en-CA');
+      const formattedDate = date.toLocaleDateString("en-CA");
       const selectedEventRounds = event.scheduleMap[formattedDate];
       event.setChoiceDate(formattedDate);
       // event.setChoicetime()
@@ -165,24 +165,24 @@ const EventDetail: React.FC = () => {
   };
   // 클릭 불가능한 날짜 설정
   const tileDisabled = ({ date, view }) => {
-    if (view === 'month') {
+    if (view === "month") {
       // `availableDates`에 포함되지 않은 날짜는 클릭 비활성화
       return !availableDates.some(
-        (d) => d.toDateString() === date.toDateString()
+        (d) => d.toDateString() === date.toDateString(),
       );
     }
     return false;
   };
   // 날짜별 스타일 적용
   const tileClassName = ({ date, view }) => {
-    if (view === 'month') {
+    if (view === "month") {
       if (choiceDate && date.toDateString() === choiceDate.toDateString()) {
-        return 'selected-date'; // 선택된 날짜 스타일
+        return "selected-date"; // 선택된 날짜 스타일
       }
       if (
         availableDates.some((d) => d.toDateString() === date.toDateString())
       ) {
-        return 'available-date'; // 예매 가능 날짜 스타일
+        return "available-date"; // 예매 가능 날짜 스타일
       }
     }
     return null;
@@ -190,7 +190,7 @@ const EventDetail: React.FC = () => {
 
   // 달력 함수 END LINE ------------------------------------------------
   const roundButtonClick = (e) => {
-    const key = parseInt(e.currentTarget.getAttribute('data-key') || ''); // data-key 값을 숫자로 변환
+    const key = parseInt(e.currentTarget.getAttribute("data-key") || ""); // data-key 값을 숫자로 변환
     setSelectedButton(key); // 상태 업데이트
     console.log(`Clicked key: ${key}`);
     event.setRound(key + 1);
@@ -212,9 +212,9 @@ const EventDetail: React.FC = () => {
         const statisticData = res.slice(0, 2);
         const sum = statisticData.reduce(
           (acc, currentValue) => acc + currentValue,
-          0
+          0,
         );
-        console.log('TT', sum);
+        console.log("TT", sum);
         res.slice(2).forEach((value) => {
           const ageStatistic = (value / sum) * 100;
           statisticData.push(ageStatistic);
@@ -222,7 +222,7 @@ const EventDetail: React.FC = () => {
         setGenderStatisticData(statisticData);
         console.log(response);
       },
-      (error) => {}
+      (error) => {},
     );
   };
 
@@ -256,46 +256,66 @@ const EventDetail: React.FC = () => {
         event.setScheduleMap(res.scheduleMap);
         setEventId(Number(eventId));
       },
-      (error) => {}
+      (error) => {},
     );
   };
 
   const goTicketing = async () => {
     if (user.isLogin) {
-      let url = '';
+      let url = "";
       if (event.ticketingStep) {
         try {
           const availableCount = await checkEnterTicketing(event.scheduleId);
           event.setReservationLimit(availableCount);
-          await enterQueue(eventId as string);
-          url = `/ticketing/queue/${eventId}`;
+          const canEnter = await canEnterTicketingPage(eventId as string);
+          if (canEnter) {
+            const occupied = await occupySlot(eventId as string);
+            if (occupied) {
+              url = "/ticketing/select-seat";
+            } else {
+              alert("슬롯 점유 실패. 다시 시도해 주세요.");
+              return;
+            }
+          } else {
+            url = `/ticketing/queue/${eventId}`;
+          }
         } catch (error: any) {
           alert(`${error.message}`); // API에서 에러 발생 시 처리
           return; // 에러 발생 시 새 창 열기를 중단
         }
-        // url = "/ticketing/select-seat";
       } else {
-        url = '/ticketing/select-date';
+        const canEnter = await canEnterTicketingPage(eventId as string);
+        if (canEnter) {
+          const occupied = await occupySlot(eventId as string);
+          if (occupied) {
+            url = "/ticketing/select-seat";
+          } else {
+            alert("슬롯 점유 실패. 다시 시도해 주세요.");
+            return;
+          }
+        } else {
+          url = `/ticketing/queue/${eventId}`;
+        }
       }
       window.open(
         url,
-        '_blank', // 새 창 이름
-        `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`
+        "_blank", // 새 창 이름
+        `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`,
       );
     } else {
       if (event.choiceDate && event.round) {
-        navi('/users/login');
+        navi("/users/login");
       }
     }
   };
 
   const mobileGo = async () => {
-    console.log('FUCK YOU');
+    console.log("FUCK YOU");
     if (user.isLogin) {
-      navi('/ticketing/select-date');
+      navi("/ticketing/select-date");
     } else {
-      toast.error('로그인이 필요합니다.', {
-        position: 'top-center',
+      toast.error("로그인이 필요합니다.", {
+        position: "top-center",
         autoClose: 1000, // 3초 후 자동으로 닫힘
         hideProgressBar: false,
         closeOnClick: true,
@@ -327,14 +347,14 @@ const EventDetail: React.FC = () => {
               <div className="flex mb-[20px]">
                 <p className="text-[16px] w-[90px]">공연기간</p>
                 <p className="text-[16px]">
-                  {(Object.keys(event.scheduleMap).at(-1) || '').replace(
+                  {(Object.keys(event.scheduleMap).at(-1) || "").replace(
                     /-/g,
-                    '.'
+                    ".",
                   ) +
-                    ' ~ ' +
-                    (Object.keys(event.scheduleMap)[0] || '').replace(
+                    " ~ " +
+                    (Object.keys(event.scheduleMap)[0] || "").replace(
                       /-/g,
-                      '.'
+                      ".",
                     )}
                 </p>
               </div>
@@ -344,14 +364,14 @@ const EventDetail: React.FC = () => {
               </div>
               <div className="flex mb-[20px]">
                 <p className="text-[16px] w-[90px]">관람연령</p>
-                <p>{event.age.replaceAll('_', ' ')}</p>
+                <p>{event.age.replaceAll("_", " ")}</p>
               </div>
               <div className="flex mb-[20px]">
                 <h2 className="w-[90px]">장르</h2>
                 <p className="flex">
                   {event.genre.map((element, index) => (
                     <p key={index}>
-                      {element.replaceAll('_', '/')}&nbsp;&nbsp;
+                      {element.replaceAll("_", "/")}&nbsp;&nbsp;
                     </p> // 각 항목을 <p> 태그로 렌더링
                   ))}
                 </p>
@@ -372,12 +392,14 @@ const EventDetail: React.FC = () => {
                       {event.partitionPrice.map((element, index) => (
                         <div className="flex" key={index}>
                           <p className=" my-[5px] ">
-                            {element['partitionName']}석&nbsp;
+                            {element["partitionName"]}석&nbsp;
                           </p>
                           <p className=" my-[5px]">
                             {Intl.NumberFormat().format(
-                              Number(element['partitionPrice'].replace(',', ''))
-                            )}{' '}
+                              Number(
+                                element["partitionPrice"].replace(",", ""),
+                              ),
+                            )}{" "}
                             원
                           </p>
                         </div>
@@ -396,7 +418,7 @@ const EventDetail: React.FC = () => {
                   onChange={handleDateClick}
                   value={Object.keys(event.scheduleMap).at(-1)} // 초기 날짜 설정 (예매 가능 첫 날짜)
                   locale="ko-KR" // 한국어 설정
-                  formatDay={(locale, date) => moment(date).format('D')}
+                  formatDay={(locale, date) => moment(date).format("D")}
                   tileClassName={tileClassName}
                   tileDisabled={tileDisabled} // 클릭 비활성화 로직 추가
                   next2Label={null} // 다음 달 화살표 숨기기
@@ -413,17 +435,17 @@ const EventDetail: React.FC = () => {
                         data-key={index}
                         className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
                           selectedButton === index
-                            ? 'bg-[#8E43E7] text-white'
-                            : 'bg-white'
+                            ? "bg-[#8E43E7] text-white"
+                            : "bg-white"
                         }`}
                         onClick={(e) => roundButtonClick(e)}
                         // onClick={setSelectedButton(key)}
                       >
-                        <p>{value['round']}회</p> &nbsp;
+                        <p>{value["round"]}회</p> &nbsp;
                         <p>
-                          {value['eventDate'].split('T')[1].split(':')[0] +
-                            ':' +
-                            value['eventDate'].split('T')[1].split(':')[1]}
+                          {value["eventDate"].split("T")[1].split(":")[0] +
+                            ":" +
+                            value["eventDate"].split("T")[1].split(":")[1]}
                         </p>
                       </button>
                     ))}
@@ -450,21 +472,21 @@ const EventDetail: React.FC = () => {
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
                 className={`flex-1 text-center py-2 ${
-                  activeTab === 'performance'
-                    ? 'border-b-2 border-black font-semibold'
-                    : 'text-gray-500'
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab('performance')}
+                onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
                 className={`flex-1 text-center py-2 ${
-                  activeTab === 'sales'
-                    ? 'border-b-2 border-black font-semibold'
-                    : 'text-gray-500'
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab('sales')}
+                onClick={() => setActiveTab("sales")}
               >
                 판매 정보
               </button>
@@ -472,7 +494,7 @@ const EventDetail: React.FC = () => {
 
             {/* Tab Content */}
             <div className="mt-6">
-              {activeTab === 'performance' && (
+              {activeTab === "performance" && (
                 <div>
                   <div dangerouslySetInnerHTML={{ __html: event.content }} />
                   <br></br>
@@ -524,7 +546,7 @@ const EventDetail: React.FC = () => {
                 </div>
               )}
 
-              {activeTab === 'sales' && (
+              {activeTab === "sales" && (
                 <div>
                   <h2 className="text-xl font-bold">판매 정보</h2>
                   <div className="max-w-4xl">
@@ -563,7 +585,7 @@ const EventDetail: React.FC = () => {
                                   관람연령
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] w-[300px] border">
-                                  {event.age.replaceAll('_', ' ')}
+                                  {event.age.replaceAll("_", " ")}
                                 </p>
                               </div>
                               <div className="flex">
@@ -577,7 +599,7 @@ const EventDetail: React.FC = () => {
                                   공연장
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] w-[300px] border">
-                                  {event.sido} {event.sigungu} {event.street}{' '}
+                                  {event.sido} {event.sigungu} {event.street}{" "}
                                   {event.stageName}
                                 </p>
                               </div>
@@ -586,7 +608,7 @@ const EventDetail: React.FC = () => {
                                   예매시작시간
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] w-[300px] border">
-                                  {event.ticketingTime.replace('T', ' ')}
+                                  {event.ticketingTime.replace("T", " ")}
                                 </p>
                                 <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">
                                   예매가능기간
@@ -699,7 +721,7 @@ const EventDetail: React.FC = () => {
                                   환불안내
                                 </h2>
                                 <p className="ml-[20px] w-[820px] font-medium">
-                                  신용카드 결제의 경우{' '}
+                                  신용카드 결제의 경우{" "}
                                 </p>
                                 <p className="ml-[20px] w-[820px]">
                                   - 일반적으로 당사의 취소 처리가 완료되고 4~5일
@@ -713,7 +735,7 @@ const EventDetail: React.FC = () => {
                                 <p className="ml-[20px] w-[820px]">
                                   &nbsp;&nbsp;예매 취소시 기존에 결제하였던
                                   내역을 취소하며 최초 결제하셨던 동일카드로
-                                  취소 시점에 따라 취소수수료와{' '}
+                                  취소 시점에 따라 취소수수료와{" "}
                                 </p>
                                 <p className="ml-[20px] w-[820px]">
                                   &nbsp;&nbsp;배송료를 재승인 합니다.
@@ -746,7 +768,7 @@ const EventDetail: React.FC = () => {
             <p className="flex">
               {event.genre.map((element, index) => (
                 <p key={index} className="text-[#666666] text-[10px]">
-                  {element.replaceAll('_', '/')}&nbsp;&nbsp;
+                  {element.replaceAll("_", "/")}&nbsp;&nbsp;
                 </p> // 각 항목을 <p> 태그로 렌더링
               ))}
             </p>
@@ -754,7 +776,7 @@ const EventDetail: React.FC = () => {
               {event.runningTime}분&nbsp;
             </p>
             <p className="text-[#666666] text-[10px]">
-              {event.age.replaceAll('_', ' ')}
+              {event.age.replaceAll("_", " ")}
             </p>
           </div>
           <div className="flex">
@@ -767,14 +789,14 @@ const EventDetail: React.FC = () => {
               <div className="flex mb-[10px]">
                 <img src={calendar} alt="" />
                 <p className="ml-[5px] text-[12px]">
-                  {(Object.keys(event.scheduleMap).at(-1) || '').replace(
+                  {(Object.keys(event.scheduleMap).at(-1) || "").replace(
                     /-/g,
-                    '.'
+                    ".",
                   ) +
-                    ' ~ ' +
-                    (Object.keys(event.scheduleMap)[0] || '').replace(
+                    " ~ " +
+                    (Object.keys(event.scheduleMap)[0] || "").replace(
                       /-/g,
-                      '.'
+                      ".",
                     )}
                 </p>
               </div>
@@ -796,14 +818,14 @@ const EventDetail: React.FC = () => {
                           {event.partitionPrice.map((element, index) => (
                             <div className="flex" key={index}>
                               <p className="my-[5px]">
-                                {element['partitionName']}석&nbsp;
+                                {element["partitionName"]}석&nbsp;
                               </p>
                               <p className="my-[5px]">
                                 {Intl.NumberFormat().format(
                                   Number(
-                                    element['partitionPrice'].replace(',', '')
-                                  )
-                                )}{' '}
+                                    element["partitionPrice"].replace(",", ""),
+                                  ),
+                                )}{" "}
                                 원
                               </p>
                             </div>
@@ -831,21 +853,21 @@ const EventDetail: React.FC = () => {
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
                 className={`flex-1 text-center py-2 ${
-                  activeTab === 'performance'
-                    ? 'border-b-2 border-black font-semibold'
-                    : 'text-gray-500'
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab('performance')}
+                onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
                 className={`flex-1 text-center py-2 ${
-                  activeTab === 'sales'
-                    ? 'border-b-2 border-black font-semibold'
-                    : 'text-gray-500'
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab('sales')}
+                onClick={() => setActiveTab("sales")}
               >
                 판매 정보
               </button>
@@ -854,7 +876,7 @@ const EventDetail: React.FC = () => {
             {/* Tab Content */}
             <div className="mt-6">
               {/** 공연정보 */}
-              {activeTab === 'performance' && (
+              {activeTab === "performance" && (
                 <div>
                   <div dangerouslySetInnerHTML={{ __html: event.content }} />
                   <br></br>
@@ -906,7 +928,7 @@ const EventDetail: React.FC = () => {
                 </div>
               )}
               {/** 판매정보 */}
-              {activeTab === 'sales' && (
+              {activeTab === "sales" && (
                 <div>
                   <div className="">
                     {/** 시작  */}
@@ -951,7 +973,7 @@ const EventDetail: React.FC = () => {
                                   관람연령
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] ">
-                                  {event.age.replaceAll('_', ' ')}
+                                  {event.age.replaceAll("_", " ")}
                                 </p>
                               </div>
                               <hr className="mx-[10px]" />
@@ -969,7 +991,7 @@ const EventDetail: React.FC = () => {
                                   공연장
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] ">
-                                  {event.sido} {event.sigungu} {event.street}{' '}
+                                  {event.sido} {event.sigungu} {event.street}{" "}
                                   {event.stageName}
                                 </p>
                               </div>
@@ -979,7 +1001,7 @@ const EventDetail: React.FC = () => {
                                   예매시작시간
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px]  ">
-                                  {event.ticketingTime.replace('T', ' ')}
+                                  {event.ticketingTime.replace("T", " ")}
                                 </p>
                               </div>
                               <hr className="mx-[10px]" />
@@ -988,7 +1010,7 @@ const EventDetail: React.FC = () => {
                                   예매가능기간
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px]  ">
-                                  &nbsp;&nbsp;{eventDates.at(-1)} ~{' '}
+                                  &nbsp;&nbsp;{eventDates.at(-1)} ~{" "}
                                   {eventDates[0]} 오전 11시
                                 </p>
                               </div>
@@ -1094,7 +1116,7 @@ const EventDetail: React.FC = () => {
                               <div>
                                 <h2 className="text-[14px] ">환불안내</h2>
                                 <p className="ml-[20px]  font-medium text-[14px]">
-                                  신용카드 결제의 경우{' '}
+                                  신용카드 결제의 경우{" "}
                                 </p>
                                 <p className="ml-[20px] text-[14px]">
                                   - 일반적으로 당사의 취소 처리가 완료되고 4~5일
@@ -1108,7 +1130,7 @@ const EventDetail: React.FC = () => {
                                 <p className="ml-[20px] text-[14px]">
                                   &nbsp;&nbsp;예매 취소시 기존에 결제하였던
                                   내역을 취소하며 최초 결제하셨던 동일카드로
-                                  취소 시점에 따라 취소수수료와{' '}
+                                  취소 시점에 따라 취소수수료와{" "}
                                 </p>
                                 <p className="ml-[20px] text-[14px]">
                                   &nbsp;&nbsp;배송료를 재승인 합니다.

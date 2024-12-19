@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useStore } from 'zustand';
-import { useNavigate, useParams } from 'react-router-dom';
-import { eventDetailStore } from '../../stores/EventStore.tsx';
-import { MyQueueStatusResponse, QueueStatus } from '../../types/queue.ts';
-import { userStore } from '../../stores/UserStore.tsx';
-import { getQueueStatus } from '../../service/queue/api.ts';
+import { useEffect, useState } from "react";
+import { useStore } from "zustand";
+import { useNavigate, useParams } from "react-router-dom";
+import { eventDetailStore } from "../../stores/EventStore.tsx";
+import { MyQueueStatusResponse, QueueStatus } from "../../types/queue.ts";
+import { userStore } from "../../stores/UserStore.tsx";
+import { getQueueStatus, enterQueue } from "../../service/queue/api.ts";
 
 type Params = {
-  eventId: string; // 경로 파라미터의 이름과 타입 정의
+  eventId: string;
 };
 
 const Queue = () => {
   const { eventId } = useParams<Params>();
 
   if (!eventId) {
-    return <div>No Event ID found</div>; // 타입 안전하게 처리
+    return <div>No Event ID found</div>;
   }
 
   const event = useStore(eventDetailStore);
@@ -24,18 +24,18 @@ const Queue = () => {
 
   // 상태 관리
   const [message, setMessage] = useState<MyQueueStatusResponse>(
-    {} as MyQueueStatusResponse
+    {} as MyQueueStatusResponse,
   );
-  const [initialQueueNumber, setInitialQueueNumber] = useState<number>(0);
   const [socket, setSocket] = useState<WebSocket | null>(null); // WebSocket 인스턴스
 
+  // WebSocket 연결 함수
   const connectWebSocket = (token: string) => {
     const encodedToken = encodeURIComponent(token);
     const WEBSOCKET_URL = `ws://localhost:9000/queue-status/${eventId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {
-      console.log('WebSocket 연결 성공');
+      console.log("WebSocket 연결 성공");
     };
 
     ws.onmessage = (event: any) => {
@@ -47,48 +47,53 @@ const Queue = () => {
         }));
 
         if (data.queueStatus === QueueStatus.COMPLETED) {
-          navigate(choiceDate ? '/ticket/select-seat' : '/ticket/select-date');
+          navigate(
+            choiceDate ? "/ticketing/select-seat" : "/ticketing/select-date",
+          );
         }
       } catch (error) {
-        console.error('WebSocket 메시지 파싱 실패:', error);
+        console.error("WebSocket 메시지 파싱 실패:", error);
       }
     };
 
     ws.onclose = (event: any) => {
-      console.log('WebSocket 연결 종료:', event.reason);
+      console.log("WebSocket 연결 종료:", event.reason);
     };
 
     ws.onerror = (error: any) => {
-      console.error('WebSocket 오류:', error);
+      console.error("WebSocket 오류:", error);
     };
 
     setSocket(ws);
     return ws;
   };
 
-  const fetchAndConnect = async () => {
+  // 대기열 재진입 함수
+  const reenterQueue = async () => {
     try {
-      // 초기 API 호출
-      const data = await getQueueStatus(eventId);
+      await enterQueue(eventId); // 대기열 재진입 API 호출
+      const data = await getQueueStatus(eventId); // 새로운 대기열 상태 가져오기
       setMessage(data);
-      setInitialQueueNumber(data.myWaitingNumber);
 
-      // WebSocket 연결 시작
+      // WebSocket 재연결
       connectWebSocket(user.accessToken);
     } catch (error) {
-      console.error('대기열 상태 조회 실패:', error);
+      console.error("대기열 재진입 실패:", error);
     }
   };
 
   useEffect(() => {
-    fetchAndConnect();
+    // 대기열 재진입 및 WebSocket 연결
+    reenterQueue();
 
+    // 컴포넌트 언마운트 시 WebSocket 연결 닫기
     return () => {
       if (socket) {
         socket.close();
+        console.log("WebSocket 연결 해제");
       }
     };
-  }, []);
+  }, []); // 빈 의존성 배열로 새로고침 시 초기화
 
   return (
     <div className="w-full flex justify-center mt-10 px-4 sm:px-6 lg:px-8">
@@ -123,25 +128,25 @@ const Queue = () => {
         <div className="border border-gray-300 rounded-lg p-4">
           <h4 className="font-bold mb-2 text-center">나의 대기 순서</h4>
           <h1 className="text-5xl text-center font-bold text-black">
-            {message.myWaitingNumber?.toLocaleString() || '-'}
+            {message.myWaitingNumber?.toLocaleString() || "-"}
           </h1>
 
           <div className="relative w-full h-5 bg-gray-200 rounded-full mt-4">
             <div
               className={`absolute top-0 left-0 h-full rounded-full ${
                 message.queueStatus === QueueStatus.ALMOST_DONE
-                  ? 'bg-red-500'
-                  : 'bg-purple-500'
+                  ? "bg-red-500"
+                  : "bg-purple-500"
               }`}
               style={{
-                width: `$${
-                  initialQueueNumber && message.myWaitingNumber
+                width: `${
+                  message.myWaitingNumber
                     ? Math.min(
                         100,
                         100 -
-                          ((initialQueueNumber - message.myWaitingNumber) /
-                            initialQueueNumber) *
-                            100
+                          ((message.myWaitingNumber - 1) /
+                            (message.myWaitingNumber + 1)) *
+                            100,
                       )
                     : 0
                 }%`,
@@ -154,7 +159,7 @@ const Queue = () => {
           <div className="flex justify-between mt-2 text-sm text-gray-500">
             <span>현재 대기인원</span>
             <span className="font-bold">
-              {message.totalWaitingNumber?.toLocaleString() || '-'}명
+              {message.totalWaitingNumber?.toLocaleString() || "-"}명
             </span>
           </div>
         </div>
