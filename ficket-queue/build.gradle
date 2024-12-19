@@ -28,12 +28,34 @@ ext {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+//	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// JUnit (테스트용)
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Eureka-Client
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+	// Spring WebFlux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Reactor Test (WebFlux 비동기 테스트용)
+	testImplementation 'io.projectreactor:reactor-test'
+
+	// WebSocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.projectlombok:lombok'
+
+	// MapStruct
+	implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+
 	// Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 
@@ -45,6 +67,32 @@ dependencies {
 
 	// actuator
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// Feign Client
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2'
+
+	// Resilience4j
+	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
+	// Micrometer Observation and Tracing with Brave
+	implementation 'io.micrometer:micrometer-observation'
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+
+	// Brave Instrumentation for Spring Web
+	implementation 'io.zipkin.brave:brave-instrumentation-spring-web'
+
+	// Zipkin Reporter for Brave
+	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+	// Feign Micrometer integration
+	implementation 'io.github.openfeign:feign-micrometer'
+
+	// Kafka
+	implementation 'org.springframework.kafka:spring-kafka'
+
+	// Redis
+//	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
 }
 
 dependencyManagement {

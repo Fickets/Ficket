@@ -1,5 +1,6 @@
 package com.example.ficketticketing.infrastructure.payment.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ public class WebhookPayload {
     private WebhookData data;   // 데이터 객체
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class WebhookData {
         private String transactionId;  // 거래 ID
         private String paymentId;      // 결제 ID
