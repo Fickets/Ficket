@@ -165,10 +165,10 @@ public class OrderController {
     /**
      * 해당 유저 예매 티켓 정보 전체 조회
      * <p>
-     * 작업자: 오형상
-     * 작업 날짜: 2024-12-11
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-19
      * 변경 이력:
-     * - 2024-12-11 오형상: 초기 작성
+     * - 2024-12-19 최용수: 초기 작성
      */
     @GetMapping("/customer")
     public List<OrderInfoDto> getCustomerTicket(@RequestParam Long userId){

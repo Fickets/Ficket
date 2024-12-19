@@ -74,7 +74,13 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
                                      @Param("endOfWeek") LocalDateTime endOfWeek);
 
 
-    List<Orders> findAllByUserId(Long userId);
+    @Query("SELECT o " +
+            "FROM Orders o JOIN o.ticket t " +
+            "WHERE o.orderStatus = com.example.ficketticketing.domain.order.entity.OrderStatus.COMPLETED " +
+            "AND t.viewingStatus = com.example.ficketticketing.domain.order.entity.ViewingStatus.NOT_WATCHED " +
+            "AND o.userId = :userId")
+    List<Orders> findAllByUserId(@Param("userId") Long userId);
+
 
 
 }

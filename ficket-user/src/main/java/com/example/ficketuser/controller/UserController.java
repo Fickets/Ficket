@@ -208,4 +208,11 @@ public class UserController {
         List<OrderInfoDto> res = userService.getCustomerTicket(userId);
         return ResponseEntity.ok(res);
     }
+
+    @DeleteMapping("/customers/delete/{userId}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long userId){
+        userService.customerDelete(userId);
+
+        return ResponseEntity.noContent().build();
+    }
 }
