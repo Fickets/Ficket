@@ -1,12 +1,10 @@
 package com.example.ficketqueue.global.websocket;
 
-import com.example.ficketqueue.enums.QueueStatus;
-import com.example.ficketqueue.global.utils.KeyHelper;
+import com.example.ficketqueue.queue.enums.QueueStatus;
+import com.example.ficketqueue.queue.service.QueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.ReactiveListOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
@@ -27,16 +25,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @RequiredArgsConstructor
 public class MyWebSocketHandler extends TextWebSocketHandler {
 
-    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
+    private final QueueService queueService;
     private final ConcurrentHashMap<String, CopyOnWriteArraySet<WebSocketSession>> eventSessions = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> sessionUserMap = new ConcurrentHashMap<>(); // 세션 ID -> 사용자 ID 매핑
 
-    /**
-     * WebSocket 연결이 설정되었을 때 호출됩니다.
-     * 헤더에서 사용자 ID를 추출하고 이벤트 세션에 등록합니다.
-     *
-     * @param session WebSocket 세션
-     */
     @Override
     public void afterConnectionEstablished(@NotNull WebSocketSession session) throws Exception {
         String eventId = getEventIdFromUri(session);
@@ -57,13 +49,6 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         session.sendMessage(new TextMessage("{\"message\": \"연결이 성공적으로 설정되었습니다.\"}"));
     }
 
-    /**
-     * 클라이언트로부터 메시지를 수신했을 때 호출됩니다.
-     * 현재는 'queue-status' 메시지에 대해 대기열 상태를 전송합니다.
-     *
-     * @param session WebSocket 세션
-     * @param message 수신된 메시지
-     */
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) {
         String payload = message.getPayload();
@@ -75,26 +60,21 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    /**
-     * WebSocket 연결이 종료되었을 때 호출됩니다.
-     * 세션 및 사용자 매핑을 제거합니다.
-     *
-     * @param session WebSocket 세션
-     * @param status 연결 종료 상태
-     */
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) {
         String eventId = getEventIdFromUri(session);
-        sessionUserMap.remove(session.getId()); // 세션 ID 제거
+        String userId = sessionUserMap.remove(session.getId());
         eventSessions.getOrDefault(eventId, new CopyOnWriteArraySet<>()).remove(session);
+
+        if (userId != null) {
+            // Redis에서 사용자 제거
+            queueService.leaveQueue(userId, eventId).subscribe();
+            log.info("사용자 제거: Redis에서 사용자 ID={}, 이벤트 ID={}", userId, eventId);
+        }
 
         log.info("WebSocket 연결 종료: 세션 ID={}, 이벤트 ID={}", session.getId(), eventId);
     }
 
-    /**
-     * 주기적으로 대기열 상태를 모든 세션에 전송합니다.
-     * 5초마다 실행됩니다.
-     */
     @Scheduled(fixedRate = 5000)
     public void sendPeriodicQueueUpdates() {
         for (String eventId : eventSessions.keySet()) {
@@ -106,69 +86,72 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    /**
-     * 대기열 상태를 전송합니다.
-     * Redis에서 사용자 대기 위치를 조회하고 상태를 클라이언트에 전송합니다.
-     *
-     * @param session WebSocket 세션
-     * @param eventId 이벤트 ID
-     * @return Mono<Void> 비동기 작업
-     */
     private Mono<Void> sendQueueStatus(WebSocketSession session, String eventId) {
-        String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        ReactiveListOperations<String, String> listOps = reactiveRedisTemplate.opsForList();
-
         String userId = sessionUserMap.get(session.getId());
         if (userId == null) {
             log.warn("세션 ID에 대한 사용자 ID를 찾을 수 없습니다: 세션 ID={}", session.getId());
             return Mono.empty();
         }
 
-        return listOps.size(redisKey)
-                .flatMap(totalQueue -> listOps.indexOf(redisKey, userId) // Redis 리스트에서 사용자 ID의 위치 조회
-                        .defaultIfEmpty(-1L) // 찾지 못하면 -1L 반환
+        return queueService.getQueueSize(eventId)
+                .flatMap(totalQueue -> queueService.getUserPosition(eventId, userId)
                         .flatMap(position -> {
-                            long userPosition = position >= 0 ? position + 1 : -1;
+                            QueueStatus status = getQueueStatus(position);
 
-                            QueueStatus status = getQueueStatus(userPosition);
+                            // 작업 가능한 슬롯이 비었고 사용자가 순번 1번일 때
+                            if (status == QueueStatus.ALMOST_DONE && position == 1 && queueService.canEnterQueue(eventId)) {
+                                if (queueService.occupySlot(eventId)) { // 슬롯 점유 성공
+//                                     사용자 대기열에서 제거
+//                                    queueService.leaveQueue(userId, eventId).subscribe();
+                                    log.info("사용자가 작업 슬롯으로 입장: 사용자 ID={}, 이벤트 ID={}", userId, eventId);
 
+                                    // 사용자에게 작업 가능 메시지 전송
+                                    String completeMessage = String.format(
+                                            "{\"userId\": \"%s\", \"eventId\": \"%s\", \"myWaitingNumber\": %d, \"totalWaitingNumber\": %d, \"queueStatus\": \"%s\"}",
+                                            userId,
+                                            eventId,
+                                            position,
+                                            totalQueue,
+                                            QueueStatus.COMPLETED.getDescription()
+                                    );
+
+                                    sendWebSocketMessage(session, completeMessage).subscribe();
+
+                                    // WebSocket 연결 종료
+                                    try {
+                                        session.close(CloseStatus.NORMAL);
+                                        log.info("WebSocket 연결 종료: 사용자 ID={}, 이벤트 ID={}", userId, eventId);
+                                    } catch (IOException e) {
+                                        log.error("WebSocket 연결 종료 실패: {}", e.getMessage());
+                                    }
+                                }
+                                return Mono.empty();
+                            }
+
+                            // 대기 상태 메시지 전송
                             String jsonResponse = String.format(
                                     "{\"userId\": \"%s\", \"eventId\": \"%s\", \"myWaitingNumber\": %d, \"totalWaitingNumber\": %d, \"queueStatus\": \"%s\"}",
                                     userId,
                                     eventId,
-                                    userPosition,
+                                    position,
                                     totalQueue,
                                     status.getDescription()
                             );
-
                             return sendWebSocketMessage(session, jsonResponse);
                         })
                 ).then();
     }
 
-    /**
-     * 대기 상태에 따른 QueueStatus를 반환합니다.
-     *
-     * @param userPosition 사용자 위치
-     * @return QueueStatus 대기 상태
-     */
     private QueueStatus getQueueStatus(long userPosition) {
         if (userPosition == -1) {
             return QueueStatus.CANCELLED;
-        } else if (userPosition <= 1000) { // 대기 순서가 1000 이하일 때 거의 완료 상태
+        } else if (userPosition <= 1000) {
             return QueueStatus.ALMOST_DONE;
         } else {
             return QueueStatus.WAITING;
         }
     }
 
-    /**
-     * WebSocket 메시지를 클라이언트에 전송합니다.
-     *
-     * @param session WebSocket 세션
-     * @param message 전송할 메시지
-     * @return Mono<Void> 비동기 작업
-     */
     private Mono<Void> sendWebSocketMessage(WebSocketSession session, String message) {
         return Mono.fromRunnable(() -> {
             try {
@@ -179,15 +162,9 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         });
     }
 
-    /**
-     * WebSocket URI에서 이벤트 ID를 추출합니다.
-     *
-     * @param session WebSocket 세션
-     * @return 이벤트 ID
-     */
     private String getEventIdFromUri(WebSocketSession session) {
         String uri = Objects.requireNonNull(session.getUri()).toString();
         String[] parts = uri.split("/");
-        return parts[parts.length - 1]; // URL 마지막 부분이 eventId라고 가정
+        return parts[parts.length - 1];
     }
 }

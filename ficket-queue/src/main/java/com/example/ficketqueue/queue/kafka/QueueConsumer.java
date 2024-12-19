@@ -1,4 +1,4 @@
-package com.example.ficketqueue.kafka;
+package com.example.ficketqueue.queue.kafka;
 
 import com.example.ficketqueue.global.utils.KeyHelper;
 import lombok.RequiredArgsConstructor;

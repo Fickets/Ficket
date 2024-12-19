@@ -1,6 +1,6 @@
-package com.example.ficketqueue.dto.response;
+package com.example.ficketqueue.queue.dto.response;
 
-import com.example.ficketqueue.enums.QueueStatus;
+import com.example.ficketqueue.queue.enums.QueueStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
