@@ -5,10 +5,7 @@ import com.example.ficketevent.domain.event.dto.kafka.OrderDto;
 import com.example.ficketevent.domain.event.dto.kafka.SeatMappingUpdatedEvent;
 import com.example.ficketevent.domain.event.dto.request.SelectSeatInfo;
 import com.example.ficketevent.domain.event.dto.response.*;
-import com.example.ficketevent.domain.event.entity.Event;
-import com.example.ficketevent.domain.event.entity.EventSchedule;
-import com.example.ficketevent.domain.event.entity.EventStage;
-import com.example.ficketevent.domain.event.entity.SeatMapping;
+import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.enums.Genre;
 import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.domain.event.mapper.StageSeatMapper;
@@ -365,5 +362,33 @@ public class StageSeatService {
 
         // 예약 제한에서 이미 구매된 티켓 수를 차감하여 남은 구매 가능 티켓 수를 계산
         return reservationLimit - count;
+    }
+
+    public TicketSimpleInfo getTicketSimpleInfo(Long ticketId){
+        List<SeatMapping> seatMappings = seatMappingRepository.findAllByTicketId(ticketId);
+        if (!seatMappings.isEmpty()){
+            SeatMapping seatMapping = seatMappings.get(0);
+            EventSchedule eventSchedule = seatMapping.getEventSchedule();
+            Event event = eventSchedule.getEvent();
+            String title = event.getTitle();
+            String stageName = event.getEventStage().getStageName();
+            List<String> seatName = new ArrayList<>();
+            seatMappings.stream()
+                    .map((seat) -> {
+                        String row = seat.getStageSeat().getSeatRow();
+                        String col = seat.getStageSeat().getSeatCol();
+                        seatName.add(row+"열"+col+"번");
+                        return null;
+                    });
+            return TicketSimpleInfo.builder()
+                    .seatLoc(seatName)
+                    .eventTitle(title)
+                    .stageName(stageName)
+                    .build();
+        }
+        return TicketSimpleInfo.builder().build();
+
+
+
     }
 }

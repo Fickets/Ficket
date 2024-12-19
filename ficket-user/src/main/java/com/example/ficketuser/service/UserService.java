@@ -4,15 +4,18 @@ import com.example.ficketuser.Entity.User;
 import com.example.ficketuser.Entity.UserTokenRedis;
 import com.example.ficketuser.client.TicketingServiceClient;
 import com.example.ficketuser.dto.UserSimpleDto;
+import com.example.ficketuser.dto.client.OrderInfoDto;
 import com.example.ficketuser.dto.client.TicketInfoDto;
 import com.example.ficketuser.dto.response.*;
 import com.example.ficketuser.dto.resquest.CustomOAuth2User;
+import com.example.ficketuser.dto.resquest.CustomerReq;
 import com.example.ficketuser.dto.resquest.UpdateUserRequest;
 import com.example.ficketuser.global.jwt.JwtUtils;
 import com.example.ficketuser.global.result.error.ErrorCode;
 import com.example.ficketuser.global.result.error.exception.BusinessException;
 import com.example.ficketuser.global.utils.CircuitBreakerUtils;
 import com.example.ficketuser.mapper.TicketMapper;
+import com.example.ficketuser.repository.UserCustomRepository;
 import com.example.ficketuser.repository.UserRepository;
 import com.example.ficketuser.dto.resquest.AdditionalInfoDto;
 import com.example.ficketuser.mapper.UserMapper;
@@ -50,6 +53,7 @@ public class UserService {
     private final TicketingServiceClient ticketingServiceClient;
     private final TicketMapper ticketMapper;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final UserCustomRepository userCustomRepository;
 
     @Value("${jwt.refresh.header}")
     private String REFRESH_HEADER;
@@ -400,4 +404,37 @@ public class UserService {
         return userMapper.toUserSimpleDto(user);
     }
 
+    public List<String> getAllUser(){
+        List<String> res = userRepository.findAll().stream()
+                .map(user -> user.getUserName())
+                .toList();
+        return res;
+    }
+    public PageResponse<UserSimpleDto> getCustomerSearch(CustomerReq customerReq, Pageable pageable){
+        List<UserSimpleDto> results = userCustomRepository.getUserPage(customerReq, pageable);
+
+        // 페이징 처리
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), results.size());
+        List<UserSimpleDto> pagedResults = results.subList(start, end);
+
+        return new PageResponse<>(
+                pagedResults,
+                pageable. getPageNumber(),
+                pageable.getPageSize(),
+                results.size(),
+                (int) Math.ceil((double) results.size() / pageable.getPageSize())
+        );
+    }
+
+    public List<OrderInfoDto> getCustomerTicket(Long userId){
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
+
+        List<OrderInfoDto> res = CircuitBreakerUtils.executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "getCustomerTicket",
+                () -> ticketingServiceClient.getCustomerTicket(userId));
+        return res;
+    }
 }

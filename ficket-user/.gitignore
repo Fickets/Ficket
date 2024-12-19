@@ -39,5 +39,8 @@ out/
 ### Key ###
 /src/main/resources/apiEncryptionKey.jks
 
+### QClass ###
+src/main/generated/
+
 ### Key ###
 /src/main/resources/apiEncryptionKey.jks

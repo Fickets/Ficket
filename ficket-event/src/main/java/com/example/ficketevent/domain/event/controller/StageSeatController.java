@@ -146,4 +146,17 @@ public class StageSeatController {
     ResponseEntity<Integer> getAvailableCount(@RequestBody TicketDto ticketDto) {
         return ResponseEntity.ok(stageSeatService.getAvailableCount(ticketDto));
     }
+
+    /**
+     * 티켓아이디로 이벤트정보, 좌석정보 반환 API
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-19
+     * 변경 이력:
+     * - 2024-12-19 최용수: 초기 작성
+     */
+    @GetMapping("/customer-ticket-info")
+    public TicketSimpleInfo getTicketSimpleInfo(@RequestParam Long ticketId){
+        return  stageSeatService.getTicketSimpleInfo(ticketId);
+    }
 }
