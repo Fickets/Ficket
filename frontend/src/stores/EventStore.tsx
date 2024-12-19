@@ -9,6 +9,7 @@ export const eventDetailStore = create(
   subscribeWithSelector(
     persist<eventDetail>(
       (set) => ({
+        eventId: "",
         adminId: 0,
         companyId: 0,
         companyName: "",
@@ -61,6 +62,7 @@ export const eventDetailStore = create(
         ) => set(() => ({ selectedSeats: newSeats })),
 
         // set 함수들
+        setEventId: (newId: string) => set(() => ({ eventId: newId })),
         setAdminId: (newId: number) => set(() => ({ adminId: newId })),
         setCompanyId: (newId: number) => set(() => ({ companyId: newId })),
         setCompanyName: (newName: string) =>

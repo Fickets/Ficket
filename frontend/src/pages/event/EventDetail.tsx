@@ -231,6 +231,7 @@ const EventDetail: React.FC = () => {
       Number(eventId),
       (response) => {
         const res = response.data;
+        event.setEventId(eventId);
         event.setAdminId(res.adminId);
         event.setCompanyId(res.companyId);
         event.setCompanyName(res.companyName);

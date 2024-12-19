@@ -19,6 +19,7 @@ import MyTicket from './pages/myTicket/MyTicket.tsx';
 import ReservationRateRanking from './pages/reservationRateRanking/ReservationRateRanking.tsx';
 import Queue from './pages/queue/Queue.tsx';
 
+import UserManagePage from "./pages/admin/Customers.tsx"
 export default function Router() {
   const user = useStore(userStore);
   const navi = useNavigate();
@@ -42,6 +43,7 @@ export default function Router() {
         element={<AdminEventDetail />}
       />
       <Route path="/events/:eventId/access" element={<TemporaryUrlPage />} />
+      <Route path="/admin/customers" element={<UserManagePage />} />
 
       {/* FICKET USER TICKETING*/}
       <Route path="ticketing/queue/:eventId" element={<Queue />} />
