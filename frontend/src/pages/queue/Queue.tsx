@@ -1,89 +1,99 @@
-import { useEffect, useState } from "react";
-import { useStore } from "zustand";
-import { useNavigate } from "react-router-dom";
-import { eventDetailStore } from "../../stores/EventStore.tsx";
+import { useEffect, useState } from 'react';
+import { useStore } from 'zustand';
+import { useNavigate, useParams } from 'react-router-dom';
+import { eventDetailStore } from '../../stores/EventStore.tsx';
+import { MyQueueStatusResponse, QueueStatus } from '../../types/queue.ts';
+import { userStore } from '../../stores/UserStore.tsx';
+import { getQueueStatus } from '../../service/queue/api.ts';
 
-// 웹소켓 설정
-const WEBSOCKET_URL = "ws://your-websocket-url";
-
-// 임의의 랜덤 값 생성 함수
-const getRandomNumber = (min: number, max: number): number => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+type Params = {
+  eventId: string; // 경로 파라미터의 이름과 타입 정의
 };
 
 const Queue = () => {
-  const event = useStore(eventDetailStore);
-  const navigate = useNavigate(); // 페이지 이동을 위해 사용
+  const { eventId } = useParams<Params>();
 
+  if (!eventId) {
+    return <div>No Event ID found</div>; // 타입 안전하게 처리
+  }
+
+  const event = useStore(eventDetailStore);
+  const user = useStore(userStore);
+  const navigate = useNavigate();
   const choiceDate: string = event.choiceDate;
 
   // 상태 관리
-  const [queueNumber, setQueueNumber] = useState<number>(
-    getRandomNumber(1, 100000),
+  const [message, setMessage] = useState<MyQueueStatusResponse>(
+    {} as MyQueueStatusResponse
   );
-  const [totalQueue, setTotalQueue] = useState<number>(
-    getRandomNumber(1000, 5000000),
-  );
-  const [status, setStatus] = useState<"waiting" | "imminent" | "end">(
-    "waiting",
-  );
+  const [initialQueueNumber, setInitialQueueNumber] = useState<number>(0);
+  const [socket, setSocket] = useState<WebSocket | null>(null); // WebSocket 인스턴스
 
-  useEffect(() => {
-    const socket = new WebSocket(WEBSOCKET_URL);
+  const connectWebSocket = (token: string) => {
+    const encodedToken = encodeURIComponent(token);
+    const WEBSOCKET_URL = `ws://localhost:9000/queue-status/${eventId}?Authorization=${encodedToken}`;
+    const ws = new WebSocket(WEBSOCKET_URL);
 
-    socket.onopen = () => {
-      console.log("WebSocket connected");
+    ws.onopen = () => {
+      console.log('WebSocket 연결 성공');
     };
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+    ws.onmessage = (event: any) => {
+      try {
+        const data: MyQueueStatusResponse = JSON.parse(event.data);
+        setMessage((prevMessage) => ({
+          ...prevMessage,
+          ...data,
+        }));
 
-      // 상태 업데이트
-      if (data.status) setStatus(data.status);
-      if (data.queueNumber) setQueueNumber(data.queueNumber);
-      if (data.totalQueue) setTotalQueue(data.totalQueue);
-
-      // 상태가 'end'이면 좌석 선택 페이지로 이동
-      if (data.status === "end") {
-        if (choiceDate) {
-          navigate("/ticket/select-seat");
-        } else {
-          navigate("/ticket/select-date");
+        if (data.queueStatus === QueueStatus.COMPLETED) {
+          navigate(choiceDate ? '/ticket/select-seat' : '/ticket/select-date');
         }
+      } catch (error) {
+        console.error('WebSocket 메시지 파싱 실패:', error);
       }
     };
 
-    socket.onclose = () => {
-      console.log("WebSocket disconnected");
+    ws.onclose = (event: any) => {
+      console.log('WebSocket 연결 종료:', event.reason);
     };
 
-    // 페이지 종료 또는 새로고침 제어
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      // 사용자 창 닫기/새로고침 시 서버에 알림 메시지 전송
-      socket.send(
-        JSON.stringify({ type: "disconnect", reason: "user_closed" }),
-      );
-      socket.close();
-
-      // 사용자에게 경고 메시지 표시
-      event.preventDefault();
-      event.returnValue = ""; // 표준 경고 메시지 표시
+    ws.onerror = (error: any) => {
+      console.error('WebSocket 오류:', error);
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    setSocket(ws);
+    return ws;
+  };
+
+  const fetchAndConnect = async () => {
+    try {
+      // 초기 API 호출
+      const data = await getQueueStatus(eventId);
+      setMessage(data);
+      setInitialQueueNumber(data.myWaitingNumber);
+
+      // WebSocket 연결 시작
+      connectWebSocket(user.accessToken);
+    } catch (error) {
+      console.error('대기열 상태 조회 실패:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAndConnect();
 
     return () => {
-      socket.close();
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (socket) {
+        socket.close();
+      }
     };
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="w-full flex justify-center mt-10 px-4 sm:px-6 lg:px-8">
-      {/* 메인 컨테이너 */}
       <div className="w-full max-w-sm text-left">
-        {status === "imminent" ? (
-          // 상태가 imminent일 때
+        {message.queueStatus === QueueStatus.ALMOST_DONE ? (
           <div>
             <h1 className="text-xl font-bold text-black mb-1">
               곧 고객님의 순서가 다가옵니다!
@@ -91,7 +101,6 @@ const Queue = () => {
             <h2 className="text-lg text-red-500 mb-1">예매를 준비해주세요.</h2>
           </div>
         ) : (
-          // 상태가 waiting일 때
           <div>
             <h1 className="text-xl font-bold mb-1 text-black">
               접속 인원이 많아 대기 중입니다.
@@ -102,7 +111,6 @@ const Queue = () => {
           </div>
         )}
 
-        {/* 이벤트 제목과 포스터 */}
         <h3 className="text-sm font-normal text-gray-500 mb-2">
           {event.title}
         </h3>
@@ -112,23 +120,29 @@ const Queue = () => {
           className="w-[120px] h-[150px] mb-6 border border-gray-300 mx-auto"
         />
 
-        {/* 대기 상태 박스 */}
         <div className="border border-gray-300 rounded-lg p-4">
           <h4 className="font-bold mb-2 text-center">나의 대기 순서</h4>
           <h1 className="text-5xl text-center font-bold text-black">
-            {queueNumber?.toLocaleString()}
+            {message.myWaitingNumber?.toLocaleString() || '-'}
           </h1>
 
-          {/* 진행률 바 */}
           <div className="relative w-full h-5 bg-gray-200 rounded-full mt-4">
             <div
               className={`absolute top-0 left-0 h-full rounded-full ${
-                status === "imminent" ? "bg-red-500" : "bg-purple-500"
+                message.queueStatus === QueueStatus.ALMOST_DONE
+                  ? 'bg-red-500'
+                  : 'bg-purple-500'
               }`}
               style={{
-                width: `${
-                  totalQueue
-                    ? Math.min(100, 100 - (queueNumber / totalQueue) * 100)
+                width: `$${
+                  initialQueueNumber && message.myWaitingNumber
+                    ? Math.min(
+                        100,
+                        100 -
+                          ((initialQueueNumber - message.myWaitingNumber) /
+                            initialQueueNumber) *
+                            100
+                      )
                     : 0
                 }%`,
               }}
@@ -137,14 +151,14 @@ const Queue = () => {
 
           <div className="border-t border-gray-300 mt-4"></div>
 
-          {/* 총 대기 인원 */}
           <div className="flex justify-between mt-2 text-sm text-gray-500">
             <span>현재 대기인원</span>
-            <span className="font-bold">{totalQueue?.toLocaleString()}명</span>
+            <span className="font-bold">
+              {message.totalWaitingNumber?.toLocaleString() || '-'}명
+            </span>
           </div>
         </div>
 
-        {/* 안내 문구 */}
         <p className="mt-4 text-xs text-gray-500 leading-relaxed">
           * 잠시만 기다리시면 예매하기 페이지로 연결됩니다. <br />*
           새로고침하거나 재접속하시면 대기순서가 초기화되어 더 길어질 수
