@@ -3,6 +3,7 @@ import { Customer } from "../../../types/admins/Customers";
 import { adminPrivateApi } from "../../../utils/http-common";
 import { ResponseData } from '../../../types/ApiResponseType';
 import { ApiResponse } from '../../../types/eventList';
+import { customerTicket } from "../../../types/admins/customer/CustomerTicket"
 
 const url = "users"
 
@@ -35,4 +36,14 @@ export const fetchCustomers = async (): Promise<String[]> => {
         );
         throw new Error(error?.response?.statusText || 'Failed to fetch customers');
     }
+};
+
+export const customerTicketList = async (
+    userId: string,
+    Response: (Response: AxiosResponse<customerTicket>) => void,
+    Error: (Error: AxiosResponse<ResponseData>) => void,
+) => {
+    await adminPrivateApi.get(`/${url}/customers/ticket/${userId}`)
+        .then(Response)
+        .catch(Error);
 };
