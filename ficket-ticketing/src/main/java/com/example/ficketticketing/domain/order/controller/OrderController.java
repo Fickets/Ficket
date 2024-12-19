@@ -2,6 +2,7 @@ package com.example.ficketticketing.domain.order.controller;
 
 import com.example.ficketticketing.domain.order.dto.client.DailyRevenueResponse;
 import com.example.ficketticketing.domain.order.dto.client.DayCountResponse;
+import com.example.ficketticketing.domain.order.dto.client.OrderInfoDto;
 import com.example.ficketticketing.domain.order.dto.client.TicketInfoDto;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
@@ -158,5 +159,19 @@ public class OrderController {
     @GetMapping("/enter-ticketing/{eventScheduleId}")
     public ResponseEntity<Integer> enterTicketing(@RequestHeader("X-User-Id") String userId, @PathVariable Long eventScheduleId) {
         return ResponseEntity.ok(orderService.enterTicketing(Long.parseLong(userId), eventScheduleId));
+    }
+
+
+    /**
+     * 해당 유저 예매 티켓 정보 전체 조회
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-11
+     * 변경 이력:
+     * - 2024-12-11 오형상: 초기 작성
+     */
+    @GetMapping("/customer")
+    public List<OrderInfoDto> getCustomerTicket(@RequestParam Long userId){
+        return orderService.getCustomerTickets(userId);
     }
 }

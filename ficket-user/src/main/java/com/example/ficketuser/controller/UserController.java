@@ -1,16 +1,20 @@
 package com.example.ficketuser.controller;
 
 import com.example.ficketuser.dto.UserSimpleDto;
+import com.example.ficketuser.dto.client.OrderInfoDto;
 import com.example.ficketuser.dto.response.MyTicketResponse;
+import com.example.ficketuser.dto.response.PageResponse;
 import com.example.ficketuser.dto.response.PagedResponse;
 import com.example.ficketuser.dto.response.UserDto;
 import com.example.ficketuser.dto.resquest.AdditionalInfoDto;
+import com.example.ficketuser.dto.resquest.CustomerReq;
 import com.example.ficketuser.dto.resquest.UpdateUserRequest;
 import com.example.ficketuser.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -148,10 +152,60 @@ public class UserController {
             @RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(userService.getMyTicket(Long.parseLong(userId), page, size, sort, sidoFilter));
     }
-
+    
+    
+    /**
+     * 단체 유저 정보 조회
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-12
+     * 변경 이력:
+     * - 2024-12-12 최용수: 초기 작성
+     */
     @PostMapping("/all-ticketing-user")
     public List<UserSimpleDto> getTicketingUsers(@RequestBody List<Long> userIds){
         List<UserSimpleDto> res = userService.getTicketingUsers(userIds);
         return res;
+    }
+
+    /**
+     * 모든 유저 조회
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-17
+     * 변경 이력:
+     * - 2024-12-17 최용수: 초기 작성
+     */
+    @GetMapping()
+    public List<String> findALlUser(){
+        return userService.getAllUser();
+    }
+
+
+    /**
+     * 유저 조건 검색
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-17
+     * 변경 이력:
+     * - 2024-12-17 최용수: 초기 작성
+     */
+    @GetMapping("/customers")
+    public ResponseEntity<PageResponse<UserSimpleDto>> customerSearch(CustomerReq customerReq, Pageable pageable) {
+        return ResponseEntity.ok(userService.getCustomerSearch(customerReq, pageable));
+    }
+
+    /**
+     * 고객 예매 티켓 조회
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-18
+     * 변경 이력:
+     * - 2024-12-18 최용수: 초기 작성
+     */
+    @GetMapping("/customers/ticket/{userId}")
+    public ResponseEntity<List<OrderInfoDto>> getCustomersTicket(@PathVariable Long userId){
+        List<OrderInfoDto> res = userService.getCustomerTicket(userId);
+        return ResponseEntity.ok(res);
     }
 }

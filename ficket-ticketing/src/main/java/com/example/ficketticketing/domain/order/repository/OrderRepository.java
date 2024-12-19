@@ -72,5 +72,10 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     List<Object[]> calculateDayCount(@Param("ticketIds") Set<Long> ticketIds,
                                      @Param("startOfWeek") LocalDateTime startOfWeek,
                                      @Param("endOfWeek") LocalDateTime endOfWeek);
+
+
+    List<Orders> findAllByUserId(Long userId);
+
+
 }
 

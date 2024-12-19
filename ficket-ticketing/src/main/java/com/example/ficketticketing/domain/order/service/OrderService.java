@@ -17,6 +17,7 @@ import com.example.ficketticketing.domain.order.repository.TicketRepository;
 import com.example.ficketticketing.domain.order.repository.RefundPolicyRepository;
 import com.example.ficketticketing.global.result.error.ErrorCode;
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
+import com.example.ficketticketing.global.utils.CircuitBreakerUtils;
 import com.example.ficketticketing.infrastructure.payment.PortOneApiClient;
 import com.example.ficketticketing.infrastructure.payment.dto.WebhookPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -596,4 +597,26 @@ public class OrderService {
         return new DayCountResponse(dayCountMap);
     }
 
+    public List<OrderInfoDto> getCustomerTickets(Long userId){
+        log.info("TEST FFFFFFFF", userId);
+        List<OrderInfoDto> res = new ArrayList<>();
+        List<Orders> customerOrders = orderRepository.findAllByUserId(userId);
+
+        for (Orders order : customerOrders) {
+            TicketSimpleInfo ticketInfo = CircuitBreakerUtils.executeWithCircuitBreaker(
+                    circuitBreakerRegistry,
+                    "getTicketSimpleInfo",
+                    () -> eventServiceClient.getTicketSimpleInfo(order.getOrderId()));
+
+            res.add(OrderInfoDto.builder()
+                    .orderId(order.getOrderId())
+                    .ticketTotalPrice(order.getOrderPrice())
+                    .eventTitle(ticketInfo.getEventTitle())
+                    .seatLoc(ticketInfo.getSeatLoc())
+                    .stageName(ticketInfo.getStageName())
+                    .createdAt(order.getCreatedAt())
+                    .build());
+        }
+        return res;
+    }
 }
