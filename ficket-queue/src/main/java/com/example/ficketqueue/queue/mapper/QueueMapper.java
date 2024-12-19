@@ -1,7 +1,7 @@
-package com.example.ficketqueue.mapper;
+package com.example.ficketqueue.queue.mapper;
 
-import com.example.ficketqueue.dto.response.MyQueueStatusResponse;
-import com.example.ficketqueue.enums.QueueStatus;
+import com.example.ficketqueue.queue.dto.response.MyQueueStatusResponse;
+import com.example.ficketqueue.queue.enums.QueueStatus;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

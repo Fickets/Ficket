@@ -213,4 +213,30 @@ public class EventController {
         return ResponseEntity.ok(eventService.getTopFiftyReservationRateRank(genre, period));
     }
 
+    /**
+     * 오늘 예매 가능한 이벤트 ID 리스트 조회 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-19
+     * 변경 이력:
+     * - 2024-12-19 오형상: 초기 작성
+     */
+    @GetMapping("/today-open-events")
+    public ResponseEntity<List<Long>> getTodayOpenEvents() {
+        return ResponseEntity.ok(eventService.getTodayOpenEvents());
+    }
+
+    /**
+     * 어제자 예매 이벤트 ID 리스트 조회 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-19
+     * 변경 이력:
+     * - 2024-12-19 오형상: 초기 작성
+     */
+    @GetMapping("/yesterday-open-events")
+    public ResponseEntity<List<Long>> getYesterdayOpenEvents() {
+        return ResponseEntity.ok(eventService.getYesterdayOpenEvents());
+    }
+
 }

@@ -1,6 +1,6 @@
-package com.example.ficketqueue.scheduler;
+package com.example.ficketqueue.queue.scheduler;
 
-import com.example.ficketqueue.service.QueueService;
+import com.example.ficketqueue.queue.service.QueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

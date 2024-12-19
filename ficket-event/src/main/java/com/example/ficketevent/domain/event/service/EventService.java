@@ -901,4 +901,18 @@ public class EventService {
     public LocalDateTime getEventDateTime(Long eventScheduleId) {
         return eventScheduleRepository.findEventDateByEventScheduleId(eventScheduleId);
     }
+
+    public List<Long> getTodayOpenEvents() {
+        LocalDate now = LocalDate.now();
+        LocalDateTime startOfToday = now.atStartOfDay();
+        LocalDateTime endOfToday = LocalDateTime.of(now, LocalTime.MAX);
+        return eventRepository.findOpenEvents(startOfToday, endOfToday);
+    }
+
+    public List<Long> getYesterdayOpenEvents() {
+        LocalDate now = LocalDate.now().minusDays(1);
+        LocalDateTime startOfToday = now.atStartOfDay();
+        LocalDateTime endOfToday = LocalDateTime.of(now, LocalTime.MAX);
+        return eventRepository.findOpenEvents(startOfToday, endOfToday);
+    }
 }

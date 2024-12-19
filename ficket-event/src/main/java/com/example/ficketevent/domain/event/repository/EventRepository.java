@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -36,5 +37,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             "WHERE sm.ticketId in :ticketIds ")
     List<TicketEventResponse> getMyTicketInfo(@Param("ticketIds") List<Long> ticketIds);
 
+    @Query("SELECT e.eventId FROM Event e WHERE e.ticketingTime BETWEEN :startOfDay AND :endOfDay")
+    List<Long> findOpenEvents(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
 
 }

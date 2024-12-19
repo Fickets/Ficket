@@ -1,4 +1,4 @@
-package com.example.ficketqueue.enums;
+package com.example.ficketqueue.queue.enums;
 
 import lombok.Getter;
 

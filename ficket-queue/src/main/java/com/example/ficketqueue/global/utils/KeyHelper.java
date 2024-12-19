@@ -1,7 +1,7 @@
 package com.example.ficketqueue.global.utils;
 
 
-import com.example.ficketqueue.enums.KeyType;
+import com.example.ficketqueue.queue.enums.KeyType;
 
 public class KeyHelper {
 
