@@ -1,4 +1,9 @@
 import React from 'react';
+import { useMemo, useState, useEffect } from 'react';
+
+import { refundMyTicket } from '../../../service/myTicket/api'
+import { customerTicket } from '../../../types/admins/customer/CustomerTicket';
+import { customerTicketList } from "../../../service/admin/customer/customerService"
 import closeButtonimg from '../../../assets/customerDetail/closebutton.png';
 import myinfoimg from '../../../assets/customerDetail/myid.png';
 import ticketimg from '../../../assets/customerDetail/ticket.png';
@@ -10,10 +15,34 @@ interface ModalProps {
 
 const CustomerDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) => {
     if (!isOpen) return null;
+    const [ticketInfo, setTicketInfo] = useState<customerTicket[]>([]);
+    useEffect(() => {
+        if (data.userId) {
+            // data.userId가 있을 때만 API 호출
+            getCustomerTicketList();
+        }
+    }, [data.userId]); // data.userId가 변경될 때마다 재호출
 
+    const getCustomerTicketList = async () => {
+        await customerTicketList(
+            data.userId,
+            (response) => {
+                console.log(response.data)
+                setTicketInfo(response.data);
+            }, (error) => { },
+        )
+    }
 
-
-
+    const orderCancel = async (orderId: string) => {
+        try {
+            const response = await refundMyTicket(Number(orderId));
+            if (response === 204) {
+                alert("환불 완료 되었습니다.");
+            }
+        } catch (error: any) {
+            alert(error.message);
+        }
+    };
 
 
     return (
@@ -58,16 +87,32 @@ const CustomerDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) =>
                         <img src={ticketimg} alt="" />
                         <h2 className="ml-[10px]  font-bold">티켓 리스트</h2>
                     </div>
-                    <div className='flex mt-[15px] ml-[70px] mr-[250px] text-center  bg-gray-100'>
+                    <div className='flex mt-[15px] ml-[70px] mr-[200px] text-center  bg-gray-100'>
                         <p className='w-[50px] border border-black'>No</p>
-                        <p className='w-1/5 border border-black'>티켓 식별 번호</p>
-                        <p className='w-1/5 border border-black'>고객 이름</p>
-                        <p className='w-1/5 border border-black'>가입일</p>
-                        <p className='w-1/5 border border-black'>출생연도</p>
-                        <p className='w-1/5 border border-black'>성별</p>
+                        <p className='w-1/6 border border-black'>티켓 식별 번호</p>
+                        <p className='w-1/6 border border-black'>티켓 위치</p>
+                        <p className='w-1/6 border border-black'>티켓가격</p>
+                        <p className='w-1/6 border border-black'>공연 제목</p>
+                        <p className='w-1/6 border border-black'>공연장</p>
+                        <p className='w-1/6 border border-black'>구매 일시</p>
+                        <p className='w-1/6 border border-black'>강제 취소</p>
                     </div>
-                    <div className='flex text-center'>
-
+                    <div className='h-[500px] flex overflow-y-auto  ml-[70px] mr-[200px] flex-col text-center'>
+                        {ticketInfo.map((ticket, index) => (
+                            <div key={ticket.orderId} className='flex'>
+                                <p className='w-[50px] border border-black'>{index + 1}</p>
+                                <p className='w-1/6 border border-black '>{ticket.orderId || "N/A"}</p>
+                                <p className='w-1/6 border border-black '>{ticket.seatLoc || "N/A"}</p>
+                                <p className='w-1/6 border border-black'>{ticket.ticketTotalPrice.toLocaleString() || 0}원</p>
+                                <p className='w-1/6 border border-black '>{ticket.eventTitle || "N/A"}</p>
+                                <p className='w-1/6 border border-black'>{ticket.stageName || "N/A"}</p>
+                                <p className='w-1/6 border border-black'>{ticket.createdAt.split("T")[0] || "N/A"}</p>
+                                <div className='w-1/6 border border-black'>
+                                    <button className='m-1 bg-red-400 border border-black'
+                                        onClick={() => orderCancel(ticket.orderId)}>예약강제취소</button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

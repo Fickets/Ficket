@@ -20,6 +20,7 @@ const CustomerList: React.FC<EventListProps> = ({ data, onPageChange }) => {
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedData, setSelectedData] = useState<any>(null); // 선택된 고객 데이터
+    
     const columns: ColumnDef<Event>[] = useMemo(
         () => [
             {
