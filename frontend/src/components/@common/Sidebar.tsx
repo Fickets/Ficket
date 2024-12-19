@@ -25,7 +25,7 @@ const Sidebar = ({ currentStep }: { currentStep: string }) => {
       key: 'customers',
       label: '고객관리',
       icon: <FaUserFriends />,
-      path: '/customers',
+      path: '/admin/customers',
     },
     {
       key: 'finance',
@@ -86,11 +86,10 @@ const Sidebar = ({ currentStep }: { currentStep: string }) => {
           <Link
             key={item.key}
             to={item.path}
-            className={`relative flex items-center w-full px-4 py-2 text-base font-medium rounded-lg transition-colors ${
-              currentStep === item.key
+            className={`relative flex items-center w-full px-4 py-2 text-base font-medium rounded-lg transition-colors ${currentStep === item.key
                 ? 'bg-gray-600 text-white'
                 : 'hover:bg-gray-600'
-            }`}
+              }`}
           >
             {/* 활성화된 메뉴의 색상 막대 */}
             {currentStep === item.key && (

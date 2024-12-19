@@ -2,6 +2,7 @@ export interface eventDetail {
   adminId: number; // 관리자 ID
   companyId: number; // 회사 ID
   companyName: string; // 회사 이름
+  eventId: string;
   stageId: number; // 공연장 ID
   stageName: string;
   sido: string;
@@ -54,6 +55,7 @@ export interface eventDetail {
     }[],
   ) => void;
 
+  setEventId: (newId: string) => void;
   setAdminId: (newId: number) => void;
   setCompanyId: (newId: number) => void;
   setCompanyName: (newName: string) => void;
