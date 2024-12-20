@@ -17,4 +17,8 @@ public class KeyHelper {
         return KeyType.FICKET_REDIS_QUEUE_KEY.format(eventId);
     }
 
+    public static String getFicketWorkSpace(String eventId, String userId) {
+        return KeyType.FICKET_WORK_SPACE_REDIS_KEY.format(eventId, userId);
+    }
+
 }

@@ -44,6 +44,8 @@ public class Orders extends BaseEntity {
     }
 
     public static Orders createOrder(CreateOrderRequest createOrderRequest, Long userId) {
+        BigDecimal SEAT_FEE = new BigDecimal("2000");
+
         Ticket ticket = Ticket.builder()
                 .eventScheduleId(createOrderRequest.getEventScheduleId())
                 .viewingStatus(ViewingStatus.NOT_WATCHED)
@@ -55,7 +57,8 @@ public class Orders extends BaseEntity {
                 .refundPrice(BigDecimal.ZERO)
                 .orderPrice(createOrderRequest.getSelectSeatInfoList().stream()
                         .map(SelectSeatInfo::getSeatPrice)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .add(SEAT_FEE.multiply(new BigDecimal(createOrderRequest.getSelectSeatInfoList().size()))))
                 .userId(userId)
                 .build();
 

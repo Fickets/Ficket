@@ -32,7 +32,7 @@ public class QueueProducer {
     }
 
     private void sendMessageWithAsyncRetry(String topic, String userId, String eventId, int retryCount, long backoff) {
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, userId, userId);
+        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, eventId, userId);
 
         future.whenComplete((result, ex) -> {
             if (ex == null) {

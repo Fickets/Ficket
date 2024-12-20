@@ -94,15 +94,13 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         }
 
         return queueService.getQueueSize(eventId)
-                .flatMap(totalQueue -> queueService.getUserPosition(eventId, userId)
+                .flatMap(totalQueue -> queueService.getUserPosition(userId, eventId)
                         .flatMap(position -> {
                             QueueStatus status = getQueueStatus(position);
 
                             // 작업 가능한 슬롯이 비었고 사용자가 순번 1번일 때
                             if (status == QueueStatus.ALMOST_DONE && position == 1 && queueService.canEnterQueue(eventId)) {
-                                if (queueService.occupySlot(eventId)) { // 슬롯 점유 성공
-//                                     사용자 대기열에서 제거
-//                                    queueService.leaveQueue(userId, eventId).subscribe();
+                                if (queueService.occupySlot(userId, eventId)) { // 슬롯 점유 성공
                                     log.info("사용자가 작업 슬롯으로 입장: 사용자 ID={}, 이벤트 ID={}", userId, eventId);
 
                                     // 사용자에게 작업 가능 메시지 전송
