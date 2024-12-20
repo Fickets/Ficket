@@ -1,5 +1,6 @@
 package com.example.ficketuser.global.jwt;
 
+import com.example.ficketuser.Entity.State;
 import com.example.ficketuser.Entity.User;
 import com.example.ficketuser.Entity.UserTokenRedis;
 import com.example.ficketuser.dto.resquest.CustomOAuth2User;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -20,7 +22,7 @@ import java.io.IOException;
 
 
 @Component
-
+@Slf4j
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtUtils jwtUtils;
@@ -57,6 +59,18 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String access = jwtUtils.createAccessToken(customOAuth2User);
         String refresh = jwtUtils.createRefreshToken(customOAuth2User);
 
+        User user = userRepository.findByDeletedSocialId(socialId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
+        if(user.getState().equals(State.SUSPENDED)){
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("User is suspended.");
+            response.sendRedirect("http://localhost:5173/users/suspended");
+            return;
+        }
+        if(user.getDeletedAt() != null){
+            userRepository.updateUserDeletedAt(user.getUserId());
+        }
+
         response.addCookie(createCookie("isLogin", "true"));
         response.addCookie(createCookie(REFRESH_HEADER, refresh));
         response.setHeader(ACCESS_HEADER, "Bearer " + access);
@@ -67,8 +81,6 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .refreshToken(refresh)
                 .build();
         userTokenRedisRepository.save(userTokenRedis);
-        User user = userRepository.findByUserId(userId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
         if (user.getGender() == null){
 
             response.sendRedirect("http://localhost:5173/users/addition-info");

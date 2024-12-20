@@ -15,7 +15,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Builder
 @Entity
 @SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE user SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ?")
+@SQLDelete(sql = "UPDATE user SET deleted_at = CURRENT_TIMESTAMP, state = 1 WHERE user_id = ?")
 public class User extends BaseEntity{
 
     @Id
@@ -33,6 +33,9 @@ public class User extends BaseEntity{
 
     @Column(name = "SOCIAL_ID", nullable = false)
     private Long socialId;
+
+    @Column(name= "STATE", nullable= false)
+    private State state;
 
     public void addAdditionalInfo(AdditionalInfoDto additionalInfoDto){
         this.birth = additionalInfoDto.getBirth();
