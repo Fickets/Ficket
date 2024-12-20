@@ -10,12 +10,16 @@ import com.example.ficketqueue.queue.mapper.QueueMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,13 +32,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @Transactional
 @RequiredArgsConstructor
 public class QueueService {
+    private static final Long WORKSPACE_TTL_SECONDS = 20 * 60L;
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final QueueProducer queueProducer;
-    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final QueueMapper queueMapper;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final EventServiceClient eventServiceClient;
+    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
+    @Qualifier("redisTemplate")
+    private final RedisTemplate<String, String> redisTemplate;
 
     /**
      * 현재 활성 슬롯 수.
@@ -78,9 +85,10 @@ public class QueueService {
      * @param eventId 이벤트 ID
      * @return 슬롯 점유 성공 시 true, 실패 시 false 반환
      */
-    public synchronized boolean occupySlot(String eventId) {
+    public synchronized boolean occupySlot(String userId, String eventId) {
         if (canEnterQueue(eventId)) {
             activeSlots.put(eventId, activeSlots.getOrDefault(eventId, 0) + 1);
+            enterWorkSpace(userId, eventId);
             return true;
         }
         return false;
@@ -118,21 +126,22 @@ public class QueueService {
     public Mono<MyQueueStatusResponse> getMyQueueStatus(String userId, String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
 
-        return reactiveRedisTemplate.opsForList()
+        return reactiveRedisTemplate.opsForZSet()
                 .size(redisKey)
-                .flatMap(totalQueue -> reactiveRedisTemplate.opsForList()
-                        .indexOf(redisKey, userId)
-                        .map(position -> {
-                            long userPosition = position + 1;
-                            QueueStatus status = userPosition <= 1000 ? QueueStatus.ALMOST_DONE : QueueStatus.WAITING;
+                .flatMap(totalQueue -> reactiveRedisTemplate.opsForZSet()
+                        .rank(redisKey, userId)
+                        .map(rank -> {
+                            long position = rank + 1; // 0-based index → 1-based index
+                            QueueStatus status = position <= 1000 ? QueueStatus.ALMOST_DONE : QueueStatus.WAITING;
 
                             return queueMapper.toMyQueueStatusResponse(
-                                    userId, eventId, userPosition, totalQueue, status
+                                    userId, eventId, position, totalQueue, status
                             );
                         })
                         .defaultIfEmpty(new MyQueueStatusResponse(userId, eventId, -1L, totalQueue, QueueStatus.CANCELLED))
                 );
     }
+
 
     /**
      * 대기열에서 사용자 제거.
@@ -143,8 +152,8 @@ public class QueueService {
      */
     public Mono<Void> leaveQueue(String userId, String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        return reactiveRedisTemplate.opsForList()
-                .remove(redisKey, 1, userId)
+        return reactiveRedisTemplate.opsForZSet()
+                .remove(redisKey, userId)
                 .flatMap(count -> {
                     if (count > 0) {
                         log.info("사용자가 대기열에서 제거되었습니다: userId={}, eventId={}", userId, eventId);
@@ -163,12 +172,12 @@ public class QueueService {
      * @param userId  사용자 ID
      * @return 사용자 위치를 담은 Mono 객체
      */
-    public Mono<Long> getUserPosition(String eventId, String userId) {
+    public Mono<Long> getUserPosition(String userId, String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        return reactiveRedisTemplate.opsForList()
-                .indexOf(redisKey, userId)
+        return reactiveRedisTemplate.opsForZSet()
+                .rank(redisKey, userId)
                 .defaultIfEmpty(-1L)
-                .map(position -> position >= 0 ? position + 1 : -1L);
+                .map(rank -> rank >= 0 ? rank + 1 : -1L); // 0-based index → 1-based index
     }
 
     /**
@@ -179,7 +188,7 @@ public class QueueService {
      */
     public Mono<Long> getQueueSize(String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        return reactiveRedisTemplate.opsForList().size(redisKey);
+        return reactiveRedisTemplate.opsForZSet().size(redisKey);
     }
 
     /**
@@ -190,8 +199,9 @@ public class QueueService {
      */
     public Mono<Boolean> checkCanEnter(String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        return reactiveRedisTemplate.opsForList()
+        return reactiveRedisTemplate.opsForZSet()
                 .size(redisKey)
+                .publishOn(Schedulers.boundedElastic())
                 .map(queueSize -> queueSize == 0 && canEnterQueue(eventId));
     }
 
@@ -202,7 +212,7 @@ public class QueueService {
         List<Long> yesterdayOpenEvents = CircuitBreakerUtils.executeWithCircuitBreaker(
                 circuitBreakerRegistry,
                 "getYesterdayOpenEventsCircuitBreaker",
-                () -> eventServiceClient.getYesterdayOpenEvents()
+                eventServiceClient::getYesterdayOpenEvents
         );
 
         for (Long yesterdayOpenEventId : yesterdayOpenEvents) {
@@ -214,7 +224,7 @@ public class QueueService {
         List<Long> todayOpenEvents = CircuitBreakerUtils.executeWithCircuitBreaker(
                 circuitBreakerRegistry,
                 "getTodayOpenEventsCircuitBreaker",
-                () -> eventServiceClient.getTodayOpenEvents()
+                eventServiceClient::getTodayOpenEvents
         );
 
         for (Long todayOpenEventId : todayOpenEvents) {
@@ -225,5 +235,13 @@ public class QueueService {
             setMaxSlots(String.valueOf(todayOpenEventId), 100); // 예시로 최대 100 슬롯 설정
             log.info("슬롯 초기화 완료: 이벤트 ID={}, 최대 슬롯=100", todayOpenEventId);
         }
+    }
+
+
+    private void enterWorkSpace(String userId, String eventId) {
+        String redisKey = KeyHelper.getFicketWorkSpace(eventId, userId);
+        redisTemplate.opsForValue().set(redisKey, "active", Duration.ofSeconds(WORKSPACE_TTL_SECONDS));
+        log.info("사용자가 작업 공간에 진입했습니다: 사용자 ID={}, 이벤트 ID={}, TTL={}초",
+                userId, eventId, WORKSPACE_TTL_SECONDS);
     }
 }

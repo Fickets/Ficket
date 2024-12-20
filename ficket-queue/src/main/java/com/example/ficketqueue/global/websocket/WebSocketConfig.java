@@ -12,10 +12,14 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final MyWebSocketHandler myWebSocketHandler;
+    private final MyWorkWebSocketHandler myWorkWebSocketHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(myWebSocketHandler, "/queue-status/*") // WebSocket 핸들러 등록
-                .setAllowedOrigins("http://localhost:5173"); // 허용할 클라이언트 도메인 (프론트엔드)
+        registry.addHandler(myWebSocketHandler, "/queue-status/*")
+                .setAllowedOrigins("http://localhost:5173");
+
+        registry.addHandler(myWorkWebSocketHandler, "/work-status/*")
+                .setAllowedOrigins("http://localhost:5173");
     }
 }

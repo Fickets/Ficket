@@ -66,8 +66,8 @@ public class QueueController {
      * - 2024-12-19 오형상: 초기 작성
      */
     @PostMapping("/{eventId}/occupy-slot")
-    public Mono<Boolean> occupySlot(@PathVariable String eventId) {
-        return Mono.just(queueService.occupySlot(eventId));
+    public Mono<Boolean> occupySlot(@RequestHeader("X-User-Id") String userId, @PathVariable String eventId) {
+        return Mono.just(queueService.occupySlot(userId, eventId));
     }
 
 

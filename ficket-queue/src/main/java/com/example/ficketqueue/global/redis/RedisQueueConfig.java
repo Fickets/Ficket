@@ -1,5 +1,6 @@
 package com.example.ficketqueue.global.redis;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +12,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-public class RedisConfig {
+public class RedisQueueConfig {
 
     @Value("${spring.data.redis.host}")
     private String host;
@@ -20,15 +21,16 @@ public class RedisConfig {
     private int port;
 
     // Redis Connection 설정
-    @Bean
+    @Bean(name = "defaultReactiveRedisConnectionFactory")
     @Primary
     public ReactiveRedisConnectionFactory reactiveRedisConnectionFactory() {
         return new LettuceConnectionFactory(host, port); // Redis 서버 주소와 포트 설정
     }
 
     // ReactiveRedisTemplate 설정
-    @Bean
-    public ReactiveRedisTemplate<String, String> reactiveRedisTemplate(ReactiveRedisConnectionFactory factory) {
+    @Bean(name = "reactiveRedisTemplate")
+    @Primary
+    public ReactiveRedisTemplate<String, String> reactiveRedisTemplate(@Qualifier("defaultReactiveRedisConnectionFactory") ReactiveRedisConnectionFactory factory) {
         RedisSerializationContext<String, String> serializationContext =
                 RedisSerializationContext.<String, String>newSerializationContext(new StringRedisSerializer())
                         .key(new StringRedisSerializer())    // 키 직렬화

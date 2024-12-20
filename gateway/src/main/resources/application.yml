@@ -163,6 +163,13 @@ spring:
           filters:
             - QueryTokenExtractionFilter
             - RemoveRequestParameter=Authorization
+        - id: websocket-route
+          uri: lb:ws://queue-service
+          predicates:
+            - Path=/work-status/**
+          filters:
+            - QueryTokenExtractionFilter
+            - RemoveRequestParameter=Authorization
         - id: queue-service
           uri: lb://queue-service
           predicates:
