@@ -4,7 +4,9 @@ import LoginBtn from "../../assets/Login/kakaoLoginBtn.png";
 
 
 const UserLogin: React.FC = () => {
-    const login = () => {
+
+
+    const login = async () => {
         window.location.href = "http://localhost:8777/oauth2/authorization/kakao"
     }
 

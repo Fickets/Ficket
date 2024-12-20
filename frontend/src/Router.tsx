@@ -18,7 +18,7 @@ import AdminEventDetail from './pages/adminEventDetail/AdminEventDetail.tsx';
 import MyTicket from './pages/myTicket/MyTicket.tsx';
 import ReservationRateRanking from './pages/reservationRateRanking/ReservationRateRanking.tsx';
 import Queue from './pages/queue/Queue.tsx';
-
+import SuspendedUserPage from './pages/login/Suspended.tsx';
 import UserManagePage from "./pages/admin/Customers.tsx"
 export default function Router() {
   const user = useStore(userStore);
@@ -33,6 +33,7 @@ export default function Router() {
       {/* USER LOGIN */}
       <Route path="/users/login" element={<UserLogin />} />
       <Route path="/users/addition-info" element={<UserAdditionalInfo />} />
+      <Route path="/users/suspended" element={<SuspendedUserPage />} />
       {/* ADMIN LOGIN*/}
       <Route path="/admin/login" element={<AdminLogin />} />
       {/* FICKET ADMIN */}
