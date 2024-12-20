@@ -110,7 +110,7 @@ const RankingTop50ByGenre = ({
 
                 {/* 예매율 */}
                 <div className="text-purple-500 font-semibold sm:text-right w-[80px]">
-                  예매율 {item.reservationRate}%
+                  {item.reservationRate}%
                 </div>
               </div>
             </div>

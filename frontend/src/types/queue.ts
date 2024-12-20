@@ -13,3 +13,8 @@ export interface MyQueueStatusResponse {
   totalWaitingNumber: number;
   queueStatus: QueueStatus;
 }
+
+export enum WorkStatus {
+  ORDER_RIGHT_LOST = "User lost the right to place an order",
+  SEAT_RESERVATION_RELEASED = "Seat reservation has been released",
+}

@@ -1,9 +1,10 @@
-import PortOne from "@portone/browser-sdk/v2";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { createOrder } from "../../service/order/api.ts";
-import { useStore } from "zustand/index";
-import { eventDetailStore } from "../../stores/EventStore.tsx";
+import PortOne from '@portone/browser-sdk/v2';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createOrder } from '../../service/order/api.ts';
+import { useStore } from 'zustand/index';
+import { eventDetailStore } from '../../stores/EventStore.tsx';
+import { releaseSlot } from '../../service/queue/api.ts';
 
 const STORE_ID: string = import.meta.env.VITE_STORE_ID;
 const CHANNEL_KEY: string = import.meta.env.VITE_CHANNEL_KEY;
@@ -20,27 +21,31 @@ const KakaoPay = () => {
   const eventDate = event.choiceDate;
   const eventTime = event.choiceTime;
   const eventStage = event.stageName;
+  const eventId = event.eventId;
 
   const [isWaitingPayment, setWaitingPayment] = useState<boolean>(false);
-  const [paymentStatus, setPaymentStatus] = useState<string>("IDLE");
-  const totalAmount = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+  const [paymentStatus, setPaymentStatus] = useState<string>('IDLE');
+  const SEAT_FEE = 2000; // 수수료 per seat
+  const totalAmount =
+    selectedSeats.reduce((sum, seat) => sum + seat.price, 0) +
+    selectedSeats.length * SEAT_FEE;
   const customMessage = selectedSeats
     .map((seat) => `${seat.grade}석 ${seat.row}열 ${seat.col}번`)
-    .join(", ");
+    .join(', ');
 
   const randomId = () => {
     return Array.from(crypto.getRandomValues(new Uint32Array(2)))
-      .map((word) => word.toString(16).padStart(8, "0"))
-      .join("");
+      .map((word) => word.toString(16).padStart(8, '0'))
+      .join('');
   };
 
   useEffect(() => {
-    if (paymentStatus === "PAID") {
-      alert("결제가 성공적으로 완료되었습니다!");
-    } else if (paymentStatus === "FAILED") {
-      alert("결제가 실패하였습니다. 다시 시도해주세요.");
-    } else if (paymentStatus === "ERROR") {
-      alert("결제 중 오류가 발생했습니다. 다시 시도해주세요.");
+    if (paymentStatus === 'PAID') {
+      alert('결제가 성공적으로 완료되었습니다!');
+    } else if (paymentStatus === 'FAILED') {
+      alert('결제가 실패하였습니다. 다시 시도해주세요.');
+    } else if (paymentStatus === 'ERROR') {
+      alert('결제 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   }, [paymentStatus]);
 
@@ -52,13 +57,13 @@ const KakaoPay = () => {
     console.log(`Generated paymentId: ${paymentId}`);
 
     try {
-      console.log("Attempting to connect to SSE...");
+      console.log('Attempting to connect to SSE...');
       const eventSource = new EventSource(
-        `http://localhost:9000/api/v1/ticketing/order/subscribe/${paymentId}`,
+        `http://localhost:9000/api/v1/ticketing/order/subscribe/${paymentId}`
       );
 
       eventSource.onopen = () => {
-        console.log("SSE connection opened successfully!");
+        console.log('SSE connection opened successfully!');
       };
 
       eventSource.onmessage = (event) => {
@@ -66,20 +71,25 @@ const KakaoPay = () => {
         const data = JSON.parse(event.data);
         setPaymentStatus(data.status);
 
-        if (data.status === "PAID" || data.status === "FAILED") {
+        if (data.status === 'FAILED') {
           eventSource.close();
           setWaitingPayment(false);
+        } else if (data.status === 'PAID') {
+          eventSource.close();
+          setWaitingPayment(false);
+          releaseSlot(eventId);
+          window.close();
         }
       };
 
       eventSource.onerror = (error) => {
-        console.error("SSE connection error:", error);
-        setPaymentStatus("ERROR");
+        console.error('SSE connection error:', error);
+        setPaymentStatus('ERROR');
         setWaitingPayment(false);
         eventSource.close();
       };
 
-      console.log("Creating order...");
+      console.log('Creating order...');
       const createOrderRequest = {
         paymentId: paymentId,
         eventScheduleId: eventScheduleId,
@@ -90,44 +100,44 @@ const KakaoPay = () => {
                 seatMappingId: seat.seatMappingId,
                 seatPrice: seat.price,
                 seatGrade: seat.grade,
-              }),
-            ),
-          ),
+              })
+            )
+          )
         ).map((item) => JSON.parse(item)),
       };
 
       const formData = new FormData();
 
       if (faceImg) {
-        formData.append("userFaceImg", faceImg);
+        formData.append('userFaceImg', faceImg);
       } else {
-        alert("얼굴 이미지를 가져오지 못했습니다. 다시 시도해주세요.");
+        alert('얼굴 이미지를 가져오지 못했습니다. 다시 시도해주세요.');
         setWaitingPayment(false);
         navigate(-1);
         return;
       }
 
       formData.append(
-        "createOrderRequest",
+        'createOrderRequest',
         new Blob([JSON.stringify(createOrderRequest)], {
-          type: "application/json",
-        }),
+          type: 'application/json',
+        })
       );
 
       const orderDetails = await createOrder(formData);
-      console.log("Order created successfully:", orderDetails);
+      console.log('Order created successfully:', orderDetails);
 
-      console.log("Sending payment request to PortOne...");
+      console.log('Sending payment request to PortOne...');
       await PortOne.requestPayment({
         storeId: STORE_ID,
         paymentId: paymentId,
         orderName: `${eventTitle} - ${eventDate} ${eventTime} (${eventStage})`,
         totalAmount: totalAmount,
-        currency: "CURRENCY_KRW",
+        currency: 'CURRENCY_KRW',
         channelKey: CHANNEL_KEY,
-        payMethod: "EASY_PAY",
+        payMethod: 'EASY_PAY',
         easyPay: {
-          easyPayProvider: "EASY_PAY_PROVIDER_KAKAOPAY",
+          easyPayProvider: 'EASY_PAY_PROVIDER_KAKAOPAY',
         },
         bypass: {
           kakaopay: {
@@ -135,18 +145,18 @@ const KakaoPay = () => {
           },
         },
         windowType: {
-          pc: "IFRAME",
-          mobile: "REDIRECTION",
+          pc: 'IFRAME',
+          mobile: 'REDIRECTION',
         },
         noticeUrls: [
-          "https://f3b1-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
+          'https://d7a5-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid',
         ],
       });
 
-      console.log("Payment request sent successfully!");
+      console.log('Payment request sent successfully!');
     } catch (error) {
-      console.error("Error creating order or requesting payment:", error);
-      setPaymentStatus("ERROR");
+      console.error('Error creating order or requesting payment:', error);
+      setPaymentStatus('ERROR');
       setWaitingPayment(false);
     }
   };
@@ -159,8 +169,8 @@ const KakaoPay = () => {
         disabled={isWaitingPayment}
       >
         {isWaitingPayment
-          ? "결제 진행 중..."
-          : `${totalAmount.toLocaleString("ko-KR")} 원 결제하기`}
+          ? '결제 진행 중...'
+          : `${totalAmount.toLocaleString('ko-KR')} 원 결제하기`}
       </button>
     </div>
   );

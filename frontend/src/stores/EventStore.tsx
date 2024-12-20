@@ -1,43 +1,43 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import {
   eventDetail,
   eventScheduleDto,
-} from "../types/StoreType/EventDetailStore";
-import { subscribeWithSelector } from "zustand/middleware";
+} from '../types/StoreType/EventDetailStore';
+import { subscribeWithSelector } from 'zustand/middleware';
 export const eventDetailStore = create(
   subscribeWithSelector(
     persist<eventDetail>(
       (set) => ({
-        eventId: "",
+        eventId: '',
         adminId: 0,
         companyId: 0,
-        companyName: "",
+        companyName: '',
         stageId: 0,
-        stageName: "",
-        sido: "",
-        sigungu: "",
-        street: "",
-        eventStageImg: "",
+        stageName: '',
+        sido: '',
+        sigungu: '',
+        street: '',
+        eventStageImg: '',
         genre: [],
-        age: "",
-        content: "",
-        title: "",
-        subTitle: "",
-        ticketingTime: "",
+        age: '',
+        content: '',
+        title: '',
+        subTitle: '',
+        ticketingTime: '',
         runningTime: 0,
         reservationLimit: 0,
-        posterMobileUrl: "",
-        posterPcUrl: "",
-        posterPcMainUrl: "",
+        posterMobileUrl: '',
+        posterPcUrl: '',
+        posterPcMainUrl: '',
         partitionPrice: [],
         scheduleMap: {},
 
         // 예매 단계 선택
         ticketingStep: false,
         scheduleId: 0,
-        choiceDate: "",
-        choiceTime: "",
+        choiceDate: '',
+        choiceTime: '',
         round: 0,
         faceImg: null,
         selectedSeats: [],
@@ -58,7 +58,7 @@ export const eventDetailStore = create(
             row: string;
             col: string;
             price: number;
-          }[],
+          }[]
         ) => set(() => ({ selectedSeats: newSeats })),
 
         // set 함수들
@@ -100,7 +100,32 @@ export const eventDetailStore = create(
           [key: string]: { [key: number]: eventScheduleDto };
         }) => set(() => ({ scheduleMap: newScheduleMap })),
       }),
-      { name: "EVENTDETAIL_STORE" },
-    ),
-  ),
+      {
+        name: 'EVENTDETAIL_STORE',
+        // serialize: (state: eventDetail) => {
+        //   const serializedState = JSON.parse(JSON.stringify(state));
+        //   // faceImg를 Base64로 변환
+        //   if (serializedState.state.faceImg instanceof File) {
+        //     const reader = new FileReader();
+        //     reader.onload = () => {
+        //       serializedState.state.faceImg = reader.result;
+        //     };
+        //     reader.readAsDataURL(serializedState.state.faceImg);
+        //   }
+        //   return JSON.stringify(serializedState);
+        // },
+        // deserialize: (str: string) => {
+        //   const parsedState: { state: eventDetail } = JSON.parse(str);
+        //   // Base64를 Blob으로 변환
+        //   if (parsedState.state.faceImg) {
+        //     const blob = fetch(parsedState.state.faceImg)
+        //       .then((res) => res.blob())
+        //       .catch(() => null);
+        //     parsedState.state.faceImg = blob as unknown as File;
+        //   }
+        //   return parsedState;
+        // },
+      }
+    )
+  )
 );

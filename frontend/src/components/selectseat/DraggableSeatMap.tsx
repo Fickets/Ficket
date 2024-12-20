@@ -15,6 +15,7 @@ const DraggableSeatMap = ({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
+  const [isDraggable, setIsDraggable] = useState(false);
 
   const containerWidth = 630; // 컨테이너 크기
   const containerHeight = 460; // 컨테이너 크기
@@ -29,10 +30,25 @@ const DraggableSeatMap = ({
         y: 0,
       });
     }
+
+    const updateDraggableStatus = () => {
+      // 화면 크기가 768px 이하일 때만 드래그 활성화
+      setIsDraggable(window.innerWidth <= 768);
+    };
+
+    // 초기 드래그 상태 설정
+    updateDraggableStatus();
+
+    // 화면 크기 변경 이벤트 추가
+    window.addEventListener("resize", updateDraggableStatus);
+
+    return () => {
+      window.removeEventListener("resize", updateDraggableStatus);
+    };
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!seatMapRef.current) return;
+    if (!isDraggable || !seatMapRef.current) return;
     setDragging(true);
     const rect = seatMapRef.current.getBoundingClientRect();
     setOffset({
@@ -42,7 +58,7 @@ const DraggableSeatMap = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragging || !containerRef.current) return;
+    if (!isDraggable || !dragging || !containerRef.current) return;
 
     const newX = e.clientX - offset.x;
     const newY = e.clientY - offset.y;
@@ -62,10 +78,12 @@ const DraggableSeatMap = ({
   };
 
   const handleMouseUp = () => {
+    if (!isDraggable) return;
     setDragging(false);
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (!isDraggable) return;
     e.preventDefault();
     const zoomFactor = 0.1;
 
