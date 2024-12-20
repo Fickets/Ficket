@@ -1,7 +1,10 @@
 package com.example.ficketuser.service;
 
 
+import com.example.ficketuser.Entity.State;
 import com.example.ficketuser.Entity.User;
+import com.example.ficketuser.global.result.error.ErrorCode;
+import com.example.ficketuser.global.result.error.exception.BusinessException;
 import com.example.ficketuser.repository.UserRepository;
 import com.example.ficketuser.dto.response.KakaoOAuth2Response;
 import com.example.ficketuser.dto.response.UserDto;
@@ -30,9 +33,11 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         Long kakaoProviderId = oAuth2Response.getProviderId();
         String kakaoUserName = oAuth2Response.getUserName();
 
-        User user = userRepository.findBySocialId(kakaoProviderId)
+        User user = userRepository.findByDeletedSocialId(kakaoProviderId)
                 .orElseGet(() -> userService.saveUser(kakaoProviderId, kakaoUserName));
-
+//        if (user.getState().equals(State.SUSPENDED)){
+//            throw new BusinessException(ErrorCode.NOT_ALLOW_USER);
+//        }
 
         UserDto userDto = userMapper.toUserDto(user);
         return new CustomOAuth2User(userDto);

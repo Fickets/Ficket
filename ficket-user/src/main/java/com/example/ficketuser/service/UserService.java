@@ -1,5 +1,6 @@
 package com.example.ficketuser.service;
 
+import com.example.ficketuser.Entity.State;
 import com.example.ficketuser.Entity.User;
 import com.example.ficketuser.Entity.UserTokenRedis;
 import com.example.ficketuser.client.TicketingServiceClient;
@@ -73,6 +74,7 @@ public class UserService {
         User user = User.builder()
                 .socialId(socialId)
                 .userName(userName)
+                .state(State.ACTIVE)
                 .build();
         User saveUser = userRepository.save(user);
 
@@ -98,7 +100,7 @@ public class UserService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
         user.addAdditionalInfo(additionalInfoDto);
-
+        user.setState(State.ACTIVE);
         User saveUser = userRepository.save(user);
 
         return userMapper.toUserSimpleDto(saveUser);
@@ -129,9 +131,10 @@ public class UserService {
                 break;
             }
         }
-        if (refresh == null) {
-            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
-        }
+        //TODO 서버가 꺼지고 켜지면 날라가서 일단 주석 처리
+//        if (refresh == null) {
+//            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
+//        }
 
         // access, refresh ID 비교
         if (!jwtUtils.getUserId(refresh).equals(userId)) {
@@ -450,7 +453,7 @@ public class UserService {
         if (!ticketInfoDtoList.isEmpty()){
             throw new BusinessException(ErrorCode.EXIST_USER_EVENT);
         }
-        userRepository.delete(user);
+        userRepository.customerForceDelete(user.getUserId());
     }
 
 

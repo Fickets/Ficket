@@ -54,6 +54,7 @@ public class SecurityConfig {
                 .oauth2Login((oauth2) -> oauth2
                         .userInfoEndpoint((userInfoEndpointConfig -> userInfoEndpointConfig
                                 .userService(oAuth2UserService)))
+//                        .failureUrl("/events/detail/1")
                         .successHandler(customSuccessHandler));
 
         http
