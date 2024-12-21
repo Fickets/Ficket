@@ -165,7 +165,11 @@ public class OrderService {
             case "Transaction.Cancelled":
                 Long ticketIdByPaymentId = orderRepository.findTicketIdByPaymentId(paymentId);
                 ticketRepository.deleteByTicketId(ticketIdByPaymentId);
-                // TODO 얼굴 삭제
+                executeWithCircuitBreaker(
+                        circuitBreakerRegistry,
+                        "deleteFaceCircuitBreaker",
+                        () -> faceServiceClient.deleteFace(ticketIdByPaymentId)
+                );
                 break;
             default:
                 log.warn("알 수 없는 이벤트 타입: {}", type);

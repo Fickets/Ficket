@@ -57,6 +57,7 @@ public class EventController {
      * - 2024-11-25 오형상: 초기 작성
      * - 2024-11-27 오형상: seatMapping 연관 관계 적용
      * - 2024-11-30 오형상: admin feign client 적용
+     * - 2024-12-21 오형상: 수동 캐시 삭제 적용
      */
     @PatchMapping("/admins/event/{eventId}")
     public ResponseEntity<String> modifyEvent(@RequestHeader("X-Admin-Id") String adminId, @PathVariable Long eventId, @RequestPart EventUpdateReq req, @RequestPart(required = false) MultipartFile poster, @RequestPart(required = false) MultipartFile banner) {
@@ -102,6 +103,7 @@ public class EventController {
      * 변경 이력:
      * - 2024-11-27 오형상: 초기 작성
      * - 2024-12-16 오형상: 랭킹 삭제 로직 추가
+     * - 2024-12-21 오형상: 수동 캐시 삭제 적용
      */
     @DeleteMapping("/admin/{eventId}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId) {

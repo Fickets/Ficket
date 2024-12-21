@@ -220,6 +220,9 @@ public class EventService {
 
         // 6. 이미지 업데이트
         updateEventImages(req, findEvent, poster, banner);
+
+        // 7. 수동 캐시 삭제
+        deleteCache(eventId);
     }
 
     // 회사 정보 업데이트
@@ -392,6 +395,7 @@ public class EventService {
         return EventDetail.toEventDetail(findEvent, companyResponse.getCompanyName());
     }
 
+    @CacheEvict(cacheNames = "events", key = "#eventId")
     @Transactional
     public void deleteEvent(Long eventId) {
         Event findEvent = findEventByEventId(eventId);
@@ -403,8 +407,21 @@ public class EventService {
         // 랭킹 삭제 처리
         deleteEventFromRankings(eventId);
 
+        // 수동 캐시 삭제 처리
+        deleteCache(eventId);
+
         // 이벤트 삭제
         eventRepository.delete(findEvent);
+    }
+
+    /**
+     * Redis의 캐시 데이터에서 특정 이벤트를 제거합니다.
+     *
+     * @param eventId 삭제할 이벤트 ID.
+     */
+    private void deleteCache(Long eventId) {
+        String detailCacheKey = RedisKeyHelper.getEventDetailCacheKey(eventId);
+        redisTemplate.delete(detailCacheKey);
     }
 
     /**
@@ -413,6 +430,7 @@ public class EventService {
      * @param eventId 삭제할 이벤트 ID.
      */
     private void deleteEventFromRankings(Long eventId) {
+        // 장르별 랭킹에서 해당 이벤트 삭제
         Period[] periods = values();
         Genre[] genres = Genre.values();
 
@@ -423,6 +441,10 @@ public class EventService {
                 log.info("Removed eventId {} from ranking: {}", eventId, rankingKey);
             }
         }
+
+        // 조회수 랭킹에서 해당 이벤트 삭제
+        String viewRankingKey = RedisKeyHelper.getViewRankingKey();
+        redisTemplate.opsForZSet().remove(viewRankingKey, eventId);
     }
 
     // 이벤트 이미지 삭제 처리

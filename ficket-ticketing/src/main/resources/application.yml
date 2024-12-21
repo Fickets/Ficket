@@ -49,6 +49,8 @@ resilience4j:
         base-config: default
       sendOrderStatusCircuitBreaker:
         base-config: default
+      deleteFaceCircuitBreaker:
+        base-config: default
 
 logging:
   level:

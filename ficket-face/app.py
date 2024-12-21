@@ -186,6 +186,24 @@ class MatchFace(Resource):
             return make_response(404, "일치하는 얼굴을 찾을 수 없습니다.")
 
 
+@face_ns.route("/<int:ticket_id>")
+class DeleteFace(Resource):
+    def delete(self, ticket_id):
+        """
+        주어진 ticketId에 해당하는 얼굴 데이터를 삭제
+        """
+        # 데이터베이스에서 해당 ticketId에 해당하는 Face 레코드 조회
+        face = Face.query.filter_by(ticket_id=ticket_id).first()
+
+        if not face:
+            return make_response(404, "해당 ticketId에 대한 얼굴 데이터가 없습니다.")
+
+        # 데이터 삭제
+        db.session.delete(face)
+        db.session.commit()
+
+        return make_response(200, "얼굴 데이터가 성공적으로 삭제되었습니다.")
+
 
 # Namespace를 API에 추가
 api.add_namespace(face_ns)
