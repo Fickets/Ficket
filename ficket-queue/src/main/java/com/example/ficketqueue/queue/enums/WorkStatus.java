@@ -5,7 +5,9 @@ import lombok.Getter;
 @Getter
 public enum WorkStatus {
     ORDER_RIGHT_LOST("User lost the right to place an order"),
-    SEAT_RESERVATION_RELEASED("Seat reservation has been released");
+    SEAT_RESERVATION_RELEASED("Seat reservation has been released"),
+    ORDER_PAID("Order Completed"),
+    ORDER_FAILED("Order Failed");
 
     private final String description;
 

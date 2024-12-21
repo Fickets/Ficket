@@ -26,7 +26,6 @@ import java.util.Set;
 public class OrderController {
 
     private final OrderService orderService;
-    private final PaymentSseService paymentSseService;
 
     /**
      * 주문 생성 API
@@ -76,18 +75,6 @@ public class OrderController {
         return ResponseEntity.ok("Webhook processed");
     }
 
-    /**
-     * 클라이언트에서 포트원 웹훅 결과 SSE 받기 위해 구독 API
-     * <p>
-     * 작업자: 오형상
-     * 작업 날짜: 2024-12-06
-     * 변경 이력:
-     * - 2024-12-06 오형상: 초기 작성
-     */
-    @GetMapping("/subscribe/{paymentId}")
-    public SseEmitter subscribeToPaymentStatus(@PathVariable String paymentId) {
-        return paymentSseService.subscribe(paymentId);
-    }
 
     /**
      * 주문(티켓) 취소 API

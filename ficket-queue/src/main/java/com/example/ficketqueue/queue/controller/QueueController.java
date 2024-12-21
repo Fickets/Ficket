@@ -1,6 +1,8 @@
 package com.example.ficketqueue.queue.controller;
 
 import com.example.ficketqueue.queue.dto.response.MyQueueStatusResponse;
+import com.example.ficketqueue.queue.enums.WorkStatus;
+import com.example.ficketqueue.queue.service.ClientNotificationService;
 import com.example.ficketqueue.queue.service.QueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import reactor.core.publisher.Mono;
 public class QueueController {
 
     private final QueueService queueService;
+    private final ClientNotificationService clientNotificationService;
 
     /**
      * 해당 공연에 대기열 진입 API
@@ -113,6 +116,24 @@ public class QueueController {
     public Mono<Void> releaseSlot(@PathVariable String eventId) {
         queueService.releaseSlot(eventId);
         log.info("이벤트 ID={}에 대해 슬롯 해제 완료.", eventId);
+        return Mono.empty();
+    }
+
+    /**
+     * 주문 상태 웹 소켓 전송 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-21
+     * 변경 이력:
+     * - 2024-12-21 오형상: 초기 작성
+     */
+    @PostMapping("/{userId}/send-order-status")
+    public Mono<Void> sendOrderStatus(@PathVariable Long userId, @RequestParam("orderStatus") String orderStatus) {
+        if (orderStatus.equals("Paid")) {
+            clientNotificationService.notifyUser(String.valueOf(userId), WorkStatus.ORDER_PAID);
+        } else if (orderStatus.equals("Failed")) {
+            clientNotificationService.notifyUser(String.valueOf(userId), WorkStatus.ORDER_FAILED);
+        }
         return Mono.empty();
     }
 }

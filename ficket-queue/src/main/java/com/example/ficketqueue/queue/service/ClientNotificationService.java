@@ -49,4 +49,23 @@ public class ClientNotificationService {
             log.warn("사용자 {}의 WebSocket 세션이 유효하지 않습니다.", userId);
         }
     }
+
+    public boolean isUserSessionExists(String userId) {
+        return activeSessions.containsKey(userId);
+    }
+
+    public void removeAndCreateNewSession(String userId, WebSocketSession session) {
+        WebSocketSession existingSession = activeSessions.get(userId);
+        if (existingSession != null) {
+            try {
+                // 기존 세션이 있다면 닫음
+                existingSession.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // 새로운 세션으로 대체
+        activeSessions.put(userId, session);
+    }
 }

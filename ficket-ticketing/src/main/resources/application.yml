@@ -47,6 +47,8 @@ resilience4j:
         base-config: default
       decreaseReservationRateCircuitBreaker:
         base-config: default
+      sendOrderStatusCircuitBreaker:
+        base-config: default
 
 logging:
   level:

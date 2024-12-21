@@ -21,6 +21,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -102,6 +103,23 @@ public class QueueService {
      */
     public synchronized void releaseSlot(String eventId) {
         activeSlots.put(eventId, Math.max(0, activeSlots.getOrDefault(eventId, 0) - 1));
+    }
+
+    public synchronized void releaseSlotByUserId(String userId) {
+        String eventId = findEventIdByUserId(userId);
+
+        if (eventId == null) {
+            // 로그 기록
+            log.warn("사용자 {}의 eventId를 찾을 수 없습니다. 작업 슬롯 해제를 건너뜁니다.", userId);
+            return; // 아무 작업도 하지 않음
+        }
+
+        // eventId가 있는 경우 작업 슬롯 업데이트
+        activeSlots.put(eventId, Math.max(0, activeSlots.getOrDefault(eventId, 0) - 1));
+        log.info("사용자 {}의 작업 슬롯이 성공적으로 해제되었습니다. eventId: {}", userId, eventId);
+
+        String ficketWorkSpace = KeyHelper.getFicketWorkSpace(eventId, userId);
+        redisTemplate.delete(ficketWorkSpace);
     }
 
     /**
@@ -243,5 +261,21 @@ public class QueueService {
         redisTemplate.opsForValue().set(redisKey, "active", Duration.ofSeconds(WORKSPACE_TTL_SECONDS));
         log.info("사용자가 작업 공간에 진입했습니다: 사용자 ID={}, 이벤트 ID={}, TTL={}초",
                 userId, eventId, WORKSPACE_TTL_SECONDS);
+    }
+
+    private String findEventIdByUserId(String userId) {
+        // Redis SCAN 명령 실행
+        Set<String> keys = redisTemplate.keys("ficket:workspace:*:" + userId);
+
+        if (keys == null || keys.isEmpty()) {
+            return null; // 키가 없으면 null 반환
+        }
+
+        // 단일 키에서 eventId 추출
+        // 예: "ficket:workspace:eventId:userId" -> eventId 추출
+        return keys.stream()
+                .map(key -> key.split(":")[2]) // 세 번째 부분이 eventId
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -56,7 +56,6 @@ public class OrderService {
     private final Map<String, SecretKeySpec> secretKeyCache = new ConcurrentHashMap<>();
 
     private final PortOneApiClient portOneApiClient;
-    private final PaymentSseService paymentSseService;
     private final OrderRepository orderRepository;
     private final TicketRepository ticketRepository;
     private final RefundPolicyRepository refundPolicyRepository;
@@ -66,6 +65,7 @@ public class OrderService {
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final OrderProducer orderProducer;
     private final TicketMapper ticketMapper;
+    private final QueueServiceClient queueServiceClient;
 
     public void processWebhook(String webhookId, String webhookSignature, String webhookTimestamp, String payload) {
         // 1. 타임스탬프 검증
@@ -148,17 +148,6 @@ public class OrderService {
         String type = data.getType();
         String paymentId = data.getData().getPaymentId();
 
-//        // 중복 이벤트 방지: 이미 완료되었거나 취소된 결제는 무시
-//        if (orderRepository.existsByPaymentIdAndOrderStatus(paymentId, OrderStatus.COMPLETED)) {
-//            log.info("이미 처리된 결제: {}", paymentId);
-//            return; // 중복 이벤트 무시
-//        }
-//
-//        if (orderRepository.existsByPaymentIdAndOrderStatus(paymentId, OrderStatus.CANCELLED)) {
-//            log.info("이미 취소된 결제: {}", paymentId);
-//            return; // 중복 이벤트 무시
-//        }
-
         log.info("Processing event type: {}", type);
         switch (type) {
             case "Transaction.Ready":
@@ -167,10 +156,10 @@ public class OrderService {
             case "Transaction.Paid":
                 if (verifyPaidInfo(paymentId)) {
                     orderRepository.updateOrderStatusToCompleted(paymentId);
-                    notifyClient(paymentId, "PAID");
+                    notifyClient(paymentId, "Paid");
                 } else {
                     portOneApiClient.cancelOrder(paymentId);
-                    notifyClient(paymentId, "FAILED");
+                    notifyClient(paymentId, "Failed");
                 }
                 break;
             case "Transaction.Cancelled":
@@ -271,9 +260,14 @@ public class OrderService {
         return ("PAID".equalsIgnoreCase(status) && orderPrice.compareTo(totalPrice) == 0);
     }
 
-    private void notifyClient(String paymentId, String status) {
-        // SSE를 통해 클라이언트에 결제 상태 알림
-        paymentSseService.notifyPaymentStatus(paymentId, status);
+    private void notifyClient(String paymentId, String orderStatus) {
+        Long userId = orderRepository.findUserIdByPaymentId(paymentId);
+
+        executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "sendOrderStatusCircuitBreaker",
+                () -> queueServiceClient.sendOrderStatus(userId, orderStatus)
+        );
     }
 
     /**
