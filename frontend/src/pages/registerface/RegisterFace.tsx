@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import PictureBox from '../../components/registerface/PictureBox';
-import PolicyAgree from '../../components/registerface/PolicyAgree';
-import { unLockSeats } from '../../service/selectseat/api';
-import TicketingHeader from '../../components/ticketing/TicketingHeader.tsx';
-import { eventDetailStore } from '../../stores/EventStore.tsx';
-import { useStore } from 'zustand';
-import { releaseSlot } from '../../service/queue/api.ts';
-import { userStore } from '../../stores/UserStore.tsx';
-import { WorkStatus } from '../../types/queue.ts';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PictureBox from "../../components/registerface/PictureBox";
+import PolicyAgree from "../../components/registerface/PolicyAgree";
+import { unLockSeats } from "../../service/selectseat/api";
+import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
+import { eventDetailStore } from "../../stores/EventStore.tsx";
+import { useStore } from "zustand";
+import { releaseSlot } from "../../service/queue/api.ts";
+import { userStore } from "../../stores/UserStore.tsx";
+import { WorkStatus } from "../../types/queue.ts";
 
 function RegisterFace() {
   const navigate = useNavigate();
@@ -16,6 +16,7 @@ function RegisterFace() {
   const event = useStore(eventDetailStore);
   const user = useStore(userStore);
 
+  const eventId = event.eventId;
   const faceImg = event.faceImg;
   const setFaceImg = event.setFaceImg;
   const selectedSeats = event.selectedSeats;
@@ -38,106 +39,91 @@ function RegisterFace() {
 
       navigate(`/ticketing/select-seat`);
     } catch (error) {
-      console.error('Error locking seats:', error);
+      console.error("Error locking seats:", error);
 
-      alert('좌석 선점에 실패했습니다. 다시 시도해주세요.');
+      alert("좌석 선점에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
   const handleNextStep = () => {
     if (!allAgreed) {
-      alert('모든 항목에 동의해야 합니다.');
+      alert("모든 항목에 동의해야 합니다.");
       return;
     }
     if (!faceImg) {
-      alert('이미지를 업로드해야 합니다.');
+      alert("이미지를 업로드해야 합니다.");
       return;
     }
-    navigate('/ticketing/order');
+    navigate("/ticketing/order");
   };
 
-  const connectWebSocket = (onExpire: () => void) => {
+  const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
     const WEBSOCKET_URL = `ws://localhost:9000/work-status/${user.userId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {
-      console.log('WebSocket 연결 성공');
+      console.log("WebSocket 연결 성공");
     };
 
     ws.onmessage = (event: MessageEvent) => {
-      try {
-        console.log('WebSocket 메시지 수신:', event.data);
+      const handleMessage = async () => {
+        try {
+          console.log("WebSocket 메시지 수신:", event.data);
 
-        if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-          alert('세션이 만료되었습니다. 창을 닫습니다.');
-          onExpire(); // TTL 만료 처리
-
-          ws.close();
-          const payload = {
-            eventScheduleId: eventScheduleId,
-            seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
-          };
-          unLockSeats(payload); // 좌석 선점 해제 API 호출
-          window.close();
-        } else if (event.data === WorkStatus.SEAT_RESERVATION_RELEASED) {
-          alert('좌석 선점이 만료되었습니다.');
-          setSelectedSeats([]);
-          setFaceImg(null);
-          navigate(`/ticketing/select-seat`);
+          if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
+            await releaseSlot(eventId);
+            const payload = {
+              eventScheduleId: eventScheduleId,
+              seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
+            };
+            await unLockSeats(payload); // 좌석 선점 해제 API 호출
+            alert("세션이 만료되었습니다. 창을 닫습니다.");
+            ws.close();
+            window.close();
+          } else if (event.data === WorkStatus.SEAT_RESERVATION_RELEASED) {
+            alert("좌석 선점이 만료되었습니다.");
+            setSelectedSeats([]);
+            setFaceImg(null);
+            navigate(`/ticketing/select-seat`);
+          }
+        } catch (error) {
+          console.error("WebSocket 메시지 처리 중 오류 발생:", error);
         }
-      } catch (error) {
-        console.error('WebSocket 메시지 파싱 실패:', error);
-      }
+      };
+
+      handleMessage();
     };
 
     ws.onclose = () => {
-      console.log('WebSocket 연결 종료');
+      console.log("WebSocket 연결 종료");
     };
 
     ws.onerror = (error) => {
-      console.error('WebSocket 오류:', error);
+      console.error("WebSocket 오류:", error);
     };
 
     return ws;
   };
 
   useEffect(() => {
-    let ws: WebSocket;
-    let manualClose = false; // 플래그로 창 닫힘 구분
-
-    const onExpire = () => {
-      manualClose = true;
-    };
-
-    // WebSocket 연결
-    ws = connectWebSocket(onExpire);
+    let ws = connectWebSocket();
 
     const handleUnload = async () => {
-      if (!manualClose) {
-        // 메시지를 통해 창이 닫히는 경우는 제외
-        try {
-          const payload = {
-            eventScheduleId: eventScheduleId,
-            seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
-          };
-
-          await unLockSeats(payload); // 좌석 선점 해제 API 호출
-          await releaseSlot(event.eventId);
-          console.log('Slot released successfully.');
-        } catch (error) {
-          console.error('Error releasing slot:', error);
-        }
-      }
+      const payload = {
+        eventScheduleId: eventScheduleId,
+        seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
+      };
+      await unLockSeats(payload); // 좌석 선점 해제 API 호출
     };
 
     // 창 닫힘 이벤트 추가
-    window.addEventListener('unload', handleUnload);
+    window.addEventListener("unload", handleUnload);
 
     return () => {
       // 컴포넌트 언마운트 시 WebSocket 종료 및 이벤트 제거
       ws.close();
-      window.removeEventListener('unload', handleUnload);
+      window.removeEventListener("unload", handleUnload);
     };
   }, []);
 

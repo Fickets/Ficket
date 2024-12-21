@@ -22,14 +22,15 @@ import DraggableSeatMap from "../../components/selectseat/DraggableSeatMap";
 import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
 import { eventDetailStore } from "../../stores/EventStore.tsx";
 import { useStore } from "zustand";
-import { releaseSlot } from "../../service/queue/api.ts";
 import { userStore } from "../../stores/UserStore.tsx";
 import { WorkStatus } from "../../types/queue.ts";
+import { releaseSlot } from "../../service/queue/api.ts";
 
 const SelectSeat = () => {
   const navigate = useNavigate();
 
   const event = useStore(eventDetailStore);
+  const eventId = event.eventId;
   const eventScheduleId = event.scheduleId;
   const eventTitle = event.title;
   const eventDate = event.choiceDate;
@@ -74,7 +75,7 @@ const SelectSeat = () => {
     return colors;
   };
 
-  const connectWebSocket = (onExpire: () => void) => {
+  const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
     const WEBSOCKET_URL = `ws://localhost:9000/work-status/${user.userId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
@@ -84,18 +85,22 @@ const SelectSeat = () => {
     };
 
     ws.onmessage = (event: MessageEvent) => {
-      try {
-        console.log("WebSocket 메시지 수신:", event.data);
+      const handleMessage = async () => {
+        try {
+          console.log("WebSocket 메시지 수신:", event.data);
 
-        if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-          alert("세션이 만료되었습니다. 창을 닫습니다.");
-          onExpire(); // TTL 만료 처리
-          ws.close();
-          window.close();
+          if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
+            await releaseSlot(eventId);
+            alert("세션이 만료되었습니다. 창을 닫습니다.");
+            ws.close();
+            window.close();
+          }
+        } catch (error) {
+          console.error("WebSocket 메시지 처리 중 오류 발생:", error);
         }
-      } catch (error) {
-        console.error("WebSocket 메시지 파싱 실패:", error);
-      }
+      };
+
+      handleMessage();
     };
 
     ws.onclose = (event: CloseEvent) => {
@@ -109,63 +114,46 @@ const SelectSeat = () => {
     return ws;
   };
 
+  const loadEventData = async () => {
+    if (eventScheduleId) {
+      try {
+        const [summary, seatGrades, seatStatusList] = await Promise.all([
+          fetchEventSeatSummary(eventScheduleId),
+          fetchSeatCntGrade(eventScheduleId),
+          fetchAllSeatStatus(eventScheduleId),
+        ]);
+
+        setEventSummary(summary);
+        setSeatCntGrade(seatGrades);
+        setSeatStatusResponse(seatStatusList);
+
+        const distinctColors = generateDistinctColors(seatGrades.length);
+        const newGradeColors: { [key: string]: string } = {};
+        seatGrades.forEach((grade, index) => {
+          newGradeColors[grade.partitionName] = distinctColors[index];
+        });
+        setGradeColors(newGradeColors);
+      } catch (error) {
+        console.error("Error loading event data:", error);
+      }
+    }
+  };
+
   useEffect(() => {
-    let ws: WebSocket;
-    let manualClose = false; // 플래그로 창 닫힘 구분
-
-    const loadEventData = async () => {
-      if (eventScheduleId) {
-        const onExpire = () => {
-          manualClose = true;
-        };
-
-        // WebSocket 연결
-        ws = connectWebSocket(onExpire);
-
-        try {
-          const [summary, seatGrades, seatStatusList] = await Promise.all([
-            fetchEventSeatSummary(eventScheduleId),
-            fetchSeatCntGrade(eventScheduleId),
-            fetchAllSeatStatus(eventScheduleId),
-          ]);
-
-          setEventSummary(summary);
-          setSeatCntGrade(seatGrades);
-          setSeatStatusResponse(seatStatusList);
-
-          const distinctColors = generateDistinctColors(seatGrades.length);
-          const newGradeColors: { [key: string]: string } = {};
-          seatGrades.forEach((grade, index) => {
-            newGradeColors[grade.partitionName] = distinctColors[index];
-          });
-          setGradeColors(newGradeColors);
-        } catch (error) {
-          console.error("Error loading event data:", error);
-        }
-      }
-    };
-
-    const handleUnload = async () => {
-      if (!manualClose) {
-        // 메시지를 통해 창이 닫히는 경우는 제외
-        try {
-          await releaseSlot(event.eventId);
-          console.log("Slot released successfully.");
-        } catch (error) {
-          console.error("Error releasing slot:", error);
-        }
-      }
-    };
-
     loadEventData();
 
-    // 창 닫힘 이벤트 추가
-    window.addEventListener("unload", handleUnload);
+    // WebSocket 연결
+    let ws = connectWebSocket();
+
+    const handleBeforeUnload = () => {
+      ws.close();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      // 컴포넌트 언마운트 시 WebSocket 종료 및 이벤트 제거
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       ws.close();
-      window.removeEventListener("unload", handleUnload);
     };
   }, [eventScheduleId]);
 

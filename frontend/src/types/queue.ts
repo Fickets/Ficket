@@ -17,4 +17,6 @@ export interface MyQueueStatusResponse {
 export enum WorkStatus {
   ORDER_RIGHT_LOST = "User lost the right to place an order",
   SEAT_RESERVATION_RELEASED = "Seat reservation has been released",
+  ORDER_PAID = "Order Completed",
+  ORDER_FAILED = "Order Failed",
 }
