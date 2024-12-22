@@ -29,8 +29,6 @@ api = Api(
     title="FACE SERVICE API",
     version="v1",  # API 명세 버전
     description="Face Service 명세서",
-    # prefix="/face-swagger/v3/api-docs",  # Swagger UI 경로
-    # doc="/face-swagger/v3/api-docs",
     openapi="3.0.0"  # OpenAPI 명시적 설정
 )
 
@@ -61,20 +59,12 @@ file_upload_parser.add_argument(
     help="업로드할 이미지 파일 (얼굴 이미지)",
 )
 file_upload_parser.add_argument(
-    "ticket_id",
-    location="form",
-    type=int,
-    required=True,
-    help="티켓 ID (정수값)",
-)
-file_upload_parser.add_argument(
     "event_schedule_id",
     location="form",
     type=int,
     required=True,
     help="이벤트 일정 ID (정수값)",
 )
-
 match_parser = api.parser()
 match_parser.add_argument(
     "file",
@@ -90,6 +80,16 @@ match_parser.add_argument(
     required=True,
     help="이벤트 일정 ID (정수값)",
 )
+# 얼굴 관계 설정 모델 정의
+relationship_model = api.model(
+    "SetRelationship", {
+        "faceId": fields.Integer(required=True, description="Face ID"),
+        "faceImgUrl": fields.String(required=True, description="Face Image URL"),
+        "ticketId": fields.Integer(required=True, description="Ticket ID"),
+        "eventScheduleId": fields.Integer(required=True, description="Event Schedule ID")
+    }
+)
+
 
 # 얼굴 벡터를 DB에 저장하는 엔드포인트
 @face_ns.route("/upload")
@@ -102,7 +102,6 @@ class UploadFace(Resource):
         """얼굴 벡터를 데이터베이스에 저장"""
         args = file_upload_parser.parse_args()  # 파라미터 파싱
         file = request.files.get("file")  # 업로드된 파일 가져오기
-        ticket_id = args.get("ticket_id")
         event_schedule_id = args.get("event_schedule_id")
 
         if not file:
@@ -122,13 +121,17 @@ class UploadFace(Resource):
         new_face = Face(
             vector=encrypted_embedding,
             face_img=file_url,
-            ticket_id=ticket_id,
+            ticket_id=None,
             event_schedule_id=event_schedule_id
         )
         db.session.add(new_face)
         db.session.commit()
 
-        return make_response(200, "얼굴 등록에 성공했습니다.")
+        # 응답에 face_id와 face_img(URL)를 포함
+        return make_response(200, "얼굴 등록에 성공했습니다.", {
+            "faceId": new_face.face_id,
+            "faceUrl": new_face.face_img
+        })
 
 # 입력 얼굴과 DB 얼굴 벡터 비교 엔드포인트
 @face_ns.route("/match")
@@ -203,6 +206,49 @@ class DeleteFace(Resource):
         db.session.commit()
 
         return make_response(200, "얼굴 데이터가 성공적으로 삭제되었습니다.")
+
+@face_ns.route("/set-relationship")
+class SetRelationship(Resource):
+    @api.expect(relationship_model)  # 요청 모델
+    @api.doc(description="얼굴 데이터와 Ticket 및 Event Schedule 관계를 설정")
+    def post(self):
+        """얼굴 데이터 관계 설정"""
+        # 요청 데이터 파싱
+        data = request.json
+        face_id = data.get("faceId")
+        face_img_url = data.get("faceImgUrl")
+        ticket_id = data.get("ticketId")
+        event_schedule_id = data.get("eventScheduleId")
+
+        # 유효성 검사
+        if not all([face_id, face_img_url, ticket_id, event_schedule_id]):
+            return make_response(400, "모든 필드를 입력해야 합니다.")
+
+        # 데이터베이스에서 Face 엔트리 조회
+        face = Face.query.filter_by(face_id=face_id).first()
+        if not face:
+            return make_response(404, f"Face ID {face_id}에 해당하는 데이터가 없습니다.")
+
+        if face.face_img != face_img_url:
+            return make_response(409, f"Face Img가 request와 일치하지 않습니다.")
+
+        if face.event_schedule_id != event_schedule_id :
+            return make_response(409, f"Event Schedule Id가 request와 일치하지 않습니다.")
+
+
+        face.ticket_id = ticket_id
+
+        try:
+            db.session.commit()
+            return make_response(200, "관계가 성공적으로 설정되었습니다.", {
+                "faceId": face.face_id,
+                "faceImgUrl": face.face_img,
+                "ticketId": face.ticket_id,
+                "eventScheduleId": face.event_schedule_id
+            })
+        except Exception as e:
+            db.session.rollback()
+            return make_response(500, "데이터베이스 업데이트 중 오류가 발생했습니다.", {"error": str(e)})
 
 
 # Namespace를 API에 추가

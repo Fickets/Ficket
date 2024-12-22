@@ -177,7 +177,7 @@ public class OrderService {
         }
     }
 
-    public Long createOrder(CreateOrderRequest createOrderRequest, MultipartFile userFaceImage, Long userId) {
+    public Long createOrder(CreateOrderRequest createOrderRequest, Long userId) {
         // 유저 조회
         UserSimpleDto userDto = executeWithCircuitBreaker(circuitBreakerRegistry,
                 "getUserCircuitBreaker",
@@ -199,15 +199,16 @@ public class OrderService {
 
         orderRepository.save(createdOrder);
 
-        FaceApiResponse faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
-                "postUserFaceImgCircuitBreaker",
-                () -> faceServiceClient.uploadFace(userFaceImage, createdOrder.getTicket().getTicketId(), createOrderRequest.getEventScheduleId())
+        FaceApiResponse faceApiResponse = executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "settingRelationshipCircuitBreaker",
+                () -> faceServiceClient.settingRelationship(ticketMapper.toUploadFaceInfo(createOrderRequest, createdOrder.getTicket().getTicketId()))
         );
 
-
+        // 이거 FEIGTN 에러 핸들러로 분리
         if (faceApiResponse.getStatus() != 200) {
-            log.info("사진 업로드 실패");
-            throw new BusinessException(ErrorCode.FAILED_UPLOAD_USER_FACE);
+            log.info("얼굴 연관관계 설정 실패");
+            throw new BusinessException(ErrorCode.FAILED_SET_RELATIONSHIP_USER_FACE);
         }
 
         log.info(faceApiResponse.getMessage());
@@ -616,5 +617,21 @@ public class OrderService {
                     .build());
         }
         return res;
+    }
+
+    public FaceApiResponse uploadUserFace(MultipartFile userFaceImage, Long EventScheduleId) {
+        FaceApiResponse faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
+                "postUserFaceImgCircuitBreaker",
+                () -> faceServiceClient.uploadFace(userFaceImage, EventScheduleId)
+        );
+
+        if (faceApiResponse.getStatus() != 200) {
+            log.info("사진 업로드 실패");
+            throw new BusinessException(ErrorCode.FAILED_UPLOAD_USER_FACE);
+        }
+
+        log.info(faceApiResponse.getMessage());
+
+        return faceApiResponse;
     }
 }

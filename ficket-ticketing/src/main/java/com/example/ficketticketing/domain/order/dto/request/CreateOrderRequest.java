@@ -9,5 +9,7 @@ import java.util.Set;
 public class CreateOrderRequest {
     private String paymentId;
     private Long eventScheduleId;
+    private Long faceId;
+    private String faceImgUrl;
     private Set<SelectSeatInfo> selectSeatInfoList;
 }

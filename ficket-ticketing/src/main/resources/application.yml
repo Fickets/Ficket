@@ -35,6 +35,8 @@ resilience4j:
         base-config: default
       postUserFaceImgCircuitBreaker:
         base-config: default
+      settingRelationshipCircuitBreaker:
+        base-config: default
       checkRequestValidCircuitBreaker:
         base-config: default
       getMyTicketInfoCircuitBreaker:

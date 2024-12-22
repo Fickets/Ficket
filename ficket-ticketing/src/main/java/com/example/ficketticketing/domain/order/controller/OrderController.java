@@ -1,19 +1,14 @@
 package com.example.ficketticketing.domain.order.controller;
 
-import com.example.ficketticketing.domain.order.dto.client.DailyRevenueResponse;
-import com.example.ficketticketing.domain.order.dto.client.DayCountResponse;
-import com.example.ficketticketing.domain.order.dto.client.OrderInfoDto;
-import com.example.ficketticketing.domain.order.dto.client.TicketInfoDto;
+import com.example.ficketticketing.domain.order.dto.client.*;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.service.OrderService;
-import com.example.ficketticketing.domain.order.service.PaymentSseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Set;
@@ -36,10 +31,11 @@ public class OrderController {
      * - 2024-12-07 오형상: 초기 작성
      * - 2024-12-08 오형상: 주문 검증 로직 추가
      * - 2024-12-15 오형상: 주문 실패시 상태 원복 로직 및 예매율 랭킹 로직 추가
+     * - 2024-12-22 오형상: 얼굴 등록 api 분리 및 얼굴 의존성 추가 로직 추가
      */
     @PostMapping
-    public ResponseEntity<Long> createOrder(@RequestPart CreateOrderRequest createOrderRequest, @RequestPart MultipartFile userFaceImg, @RequestHeader("X-User-Id") String userId) {
-        return ResponseEntity.ok(orderService.createOrder(createOrderRequest, userFaceImg, Long.parseLong(userId)));
+    public ResponseEntity<Long> createOrder(@RequestBody CreateOrderRequest createOrderRequest, @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(orderService.createOrder(createOrderRequest, Long.parseLong(userId)));
     }
 
     /**
@@ -160,5 +156,18 @@ public class OrderController {
     @GetMapping("/customer")
     public List<OrderInfoDto> getCustomerTicket(@RequestParam Long userId){
         return orderService.getCustomerTickets(userId);
+    }
+
+    /**
+     * 티켓팅 얼굴 등록
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-22
+     * 변경 이력:
+     * - 2024-12-22 오형상: 초기 작성
+     */
+    @PostMapping("{eventScheduleId}/upload-face")
+    public ResponseEntity<FaceApiResponse> uploadUserFace(@RequestPart MultipartFile userImg, @PathVariable Long eventScheduleId) {
+        return ResponseEntity.ok(orderService.uploadUserFace(userImg, eventScheduleId));
     }
 }
