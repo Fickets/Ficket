@@ -17,8 +17,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 @Slf4j
 @AllArgsConstructor
@@ -26,23 +24,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
 
-    private final Set<String> filterCheckUrl = new HashSet<>(
-            Arrays.asList(
-                    "/api/v1/users/logout",
-                    "/api/v1/users/reissue",
-                    "/api/v1/users/delete",
-                    "/api/v1/users/additional-info",
-                    "/api/v1/users/my-info"
-            )
-    );
+    private static final String[] NO_CHECK_URL = new String[]{"/api/v1/users/login", "/actuator/**"};
 
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (!filterCheckUrl.contains(request.getRequestURI())) {
+        if (Arrays.stream(NO_CHECK_URL).anyMatch(url -> matchPattern(url, request.getRequestURI()))) {
             filterChain.doFilter(request, response);
             return;
         }
+
 
         String authorization = request.getHeader("Authorization");
         String access = null;
@@ -75,7 +66,13 @@ public class JwtFilter extends OncePerRequestFilter {
             log.info("ERROR NO ACCESS TOKEN");
             filterChain.doFilter(request, response);
         }
+    }
 
-
+    private boolean matchPattern(String pattern, String uri) {
+        if (pattern.endsWith("/**")) {
+            String basePattern = pattern.substring(0, pattern.length() - 3);
+            return uri.startsWith(basePattern);
+        }
+        return uri.equals(pattern);
     }
 }

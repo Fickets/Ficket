@@ -44,6 +44,13 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
+            - Path=/user-service/actuator/**
+            - Method=GET,POST
+          filters:
+            - RewritePath=/user-service/(?<segment>.*), /${segment}
+        - id: user-service
+          uri: lb://user-service
+          predicates:
             - Path=/api/v1/users/my-ticket
           filters:
             - AuthorizationHeaderFilter
@@ -57,6 +64,13 @@ spring:
           predicates:
             - Path=/user-swagger/v3/api-docs
         # ADMIN SERVICE
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/admin-service/actuator/**
+            - Method=GET,POST
+          filters:
+            - RewritePath=/admin-service/(?<segment>.*), /${segment}
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -93,6 +107,13 @@ spring:
           predicates:
             - Path=/admin-swagger/v3/api-docs
         # EVENT-SERVICE
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/event-service/actuator/**
+            - Method=GET,POST
+          filters:
+            - RewritePath=/event-service/(?<segment>.*), /${segment}
         - id: event-service
           uri: lb://event-service
           predicates:
@@ -147,6 +168,13 @@ spring:
         - id: face-service
           uri: lb://face-service
           predicates:
+            - Path=/face-service/actuator/**
+            - Method=GET,POST
+          filters:
+            - RewritePath=/face-service/(?<segment>.*), /${segment}
+        - id: face-service
+          uri: lb://face-service
+          predicates:
             - Path=/swagger.json
         - id: face-service
           uri: lb://face-service
@@ -173,6 +201,13 @@ spring:
         - id: queue-service
           uri: lb://queue-service
           predicates:
+            - Path=/queue-service/actuator/**
+            - Method=GET,POST
+          filters:
+            - RewritePath=/queue-service/(?<segment>.*), /${segment}
+        - id: queue-service
+          uri: lb://queue-service
+          predicates:
             - Path=/api/v1/queues/**
           filters:
             - AuthorizationHeaderFilter
@@ -183,6 +218,13 @@ spring:
             - Path=/queue-swagger/v3/api-docs
 
         # TICKETING-SERVICE
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
+            - Path=/ticketing-service/actuator/**
+            - Method=GET,POST
+          filters:
+            - RewritePath=/ticketing-service/(?<segment>.*), /${segment}
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:

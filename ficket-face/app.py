@@ -11,111 +11,137 @@ from models import Face
 from response import make_response
 from s3_utils import upload_file_to_s3
 from werkzeug.datastructures import FileStorage
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from py_zipkin.zipkin import zipkin_span, ZipkinAttrs
+from py_zipkin.transport import SimpleHTTPTransport
+import uuid
 
-# Flask 애플리케이션 생성
+# Flask application
 app = Flask(__name__)
-
 CORS(app)
 
-# 초기 설정 로드
+# Initial configuration
 config = load_config_from_server()
 
-# 데이터베이스 초기화
+# Database initialization
 initialize_database(app)
 
-# Swagger UI를 제공하는 API 생성
+# Prometheus metrics
+REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "http_status"])
+REQUEST_LATENCY = Histogram("http_request_latency_seconds", "Request latency in seconds", ["endpoint"])
+
+# Zipkin transport handler
+def zipkin_http_transport(encoded_span):
+    """Send spans to Zipkin server"""
+    transport = SimpleHTTPTransport("localhost", 9411)
+    transport.send(encoded_span)
+
+def create_zipkin_attrs():
+    """Create Zipkin attributes for tracing"""
+    return ZipkinAttrs(
+        trace_id=str(uuid.uuid4()).replace("-", "")[:16],  # 16자리의 고유 trace ID
+        span_id=str(uuid.uuid4()).replace("-", "")[:16],  # 16자리의 고유 span ID
+        parent_span_id=None,          # Replace with actual parent span ID if available
+        flags="1",
+        is_sampled=True,
+    )
+
+# API setup
 api = Api(
     app,
     title="FACE SERVICE API",
-    version="v1",  # API 명세 버전
-    description="Face Service 명세서",
-    openapi="3.0.0"  # OpenAPI 명시적 설정
+    version="v1",
+    description="Face Service API documentation",
+    openapi="3.0.0",
 )
 
-# Namespace 정의
+# Namespace setup
 face_ns = api.namespace("api/v1/faces", description="Face Operations")
 
-# 얼굴 업로드 모델 정의
+
+@app.route('/actuator/prometheus')
+def prometheus_metrics():
+    """Expose Prometheus metrics."""
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
+@app.before_request
+def before_request():
+    """Start timing and create Zipkin trace."""
+    request.timer_context = REQUEST_LATENCY.labels(endpoint=request.path).time()
+    request.timer_context.__enter__()  # Manually start the timer context
+    request.zipkin_attrs = create_zipkin_attrs()
+
+@app.after_request
+def after_request(response):
+    """Stop timing, record Prometheus metrics, and send Zipkin span."""
+    if hasattr(request, "timer_context"):
+        request.timer_context.__exit__(None, None, None)  # Manually stop the timer context
+
+    # Increment request count
+    REQUEST_COUNT.labels(
+        method=request.method, endpoint=request.path, http_status=response.status_code
+    ).inc()
+
+    # Zipkin: Record the span for this request
+    with zipkin_span(
+        service_name="face-service",
+        span_name=request.path,
+        transport_handler=zipkin_http_transport,
+        zipkin_attrs=request.zipkin_attrs,
+    ):
+        pass  # Zipkin span sent here
+
+    return response
+
+# API models
 upload_model = api.model(
     "UploadFace", {
-        "ticket_id": fields.Integer(required=True, description="Ticket ID (Long)"),
-        "event_schedule_id": fields.Integer(required=True, description="Event Schedule ID (Long)")
+        "ticket_id": fields.Integer(required=True, description="Ticket ID"),
+        "event_schedule_id": fields.Integer(required=True, description="Event Schedule ID"),
     }
 )
-
-# 얼굴 매칭 모델 정의
 match_model = api.model(
     "MatchFace", {
-        "event_schedule_id": fields.Integer(required=True, description="Event Schedule ID (Long)")
+        "event_schedule_id": fields.Integer(required=True, description="Event Schedule ID"),
     }
 )
 
 file_upload_parser = api.parser()
-file_upload_parser.add_argument(
-    "file",
-    location="files",
-    type=FileStorage,  # 파일 타입 지정
-    required=True,
-    help="업로드할 이미지 파일 (얼굴 이미지)",
-)
-file_upload_parser.add_argument(
-    "event_schedule_id",
-    location="form",
-    type=int,
-    required=True,
-    help="이벤트 일정 ID (정수값)",
-)
+file_upload_parser.add_argument("file", location="files", type=FileStorage, required=True, help="Face image file")
+file_upload_parser.add_argument("event_schedule_id", location="form", type=int, required=True, help="Event schedule ID")
+
 match_parser = api.parser()
-match_parser.add_argument(
-    "file",
-    location="files",
-    type=FileStorage,  # 파일 타입 지정
-    required=True,
-    help="업로드할 이미지 파일 (얼굴 이미지)",
-)
-match_parser.add_argument(
-    "event_schedule_id",
-    location="form",
-    type=int,
-    required=True,
-    help="이벤트 일정 ID (정수값)",
-)
-# 얼굴 관계 설정 모델 정의
+match_parser.add_argument("file", location="files", type=FileStorage, required=True, help="Face image file")
+match_parser.add_argument("event_schedule_id", location="form", type=int, required=True, help="Event schedule ID")
+
 relationship_model = api.model(
     "SetRelationship", {
         "faceId": fields.Integer(required=True, description="Face ID"),
-        "faceImgUrl": fields.String(required=True, description="Face Image URL"),
+        "faceImgUrl": fields.String(required=True, description="Face image URL"),
         "ticketId": fields.Integer(required=True, description="Ticket ID"),
-        "eventScheduleId": fields.Integer(required=True, description="Event Schedule ID")
+        "eventScheduleId": fields.Integer(required=True, description="Event Schedule ID"),
     }
 )
 
-
-# 얼굴 벡터를 DB에 저장하는 엔드포인트
+# API resources
 @face_ns.route("/upload")
 class UploadFace(Resource):
-    @api.expect(file_upload_parser)  # RequestParser 적용
-    @api.doc(
-        consumes=["multipart/form-data"],  # 요청 Content-Type 명시
-    )
+    @api.expect(file_upload_parser)
     def post(self):
-        """얼굴 벡터를 데이터베이스에 저장"""
-        args = file_upload_parser.parse_args()  # 파라미터 파싱
-        file = request.files.get("file")  # 업로드된 파일 가져오기
+        args = file_upload_parser.parse_args()
+        file = request.files.get("file")
         event_schedule_id = args.get("event_schedule_id")
 
         if not file:
-            return make_response(400, "요청에 파일이 포함되지 않았습니다.")
+            return make_response(400, "File not provided.")
 
         image_data = file.read()
         embedding = get_face_embedding(image_data)
         if embedding is None:
-            return make_response(400, "얼굴이 감지되지 않았습니다.")
+            return make_response(400, "No face detected.")
 
         encrypted_embedding = encrypt_vector(embedding)
-
-        # S3에 파일 업로드 및 URL 생성
-        file.seek(0)  # 파일 포인터를 처음으로 리셋
+        file.seek(0)
         file_url = upload_file_to_s3(file)
 
         new_face = Face(
@@ -127,50 +153,36 @@ class UploadFace(Resource):
         db.session.add(new_face)
         db.session.commit()
 
-        # 응답에 face_id와 face_img(URL)를 포함
-        return make_response(200, "얼굴 등록에 성공했습니다.", {
+        return make_response(200, "Face uploaded successfully.", {
             "faceId": new_face.face_id,
             "faceUrl": new_face.face_img
         })
 
-# 입력 얼굴과 DB 얼굴 벡터 비교 엔드포인트
 @face_ns.route("/match")
 class MatchFace(Resource):
-    @api.expect(match_parser)  # 수정된 match_parser 사용
-    @api.doc(
-        consumes=["multipart/form-data"],  # 요청 Content-Type 명시
-    )
+    @api.expect(match_parser)
     def post(self):
-        """입력 얼굴과 DB의 얼굴 벡터 비교"""
-        args = match_parser.parse_args()  # 파라미터 파싱
-        file = request.files.get("file")  # 업로드된 파일 가져오기
-        event_schedule_id = args.get("event_schedule_id")  # 폼 데이터에서 event_schedule_id 가져오기
+        args = match_parser.parse_args()
+        file = request.files.get("file")
+        event_schedule_id = args.get("event_schedule_id")
 
-        if not file:
-            return make_response(400, "파일이 업로드되지 않았습니다.")
-
-        if not event_schedule_id:
-            return make_response(400, "이벤트 일정 ID가 누락되었습니다.")
+        if not file or not event_schedule_id:
+            return make_response(400, "File or event_schedule_id missing.")
 
         image_data = file.read()
         embedding = get_face_embedding(image_data)
         if embedding is None:
-            return make_response(400, "얼굴을 감지하지 못했습니다.")
+            return make_response(400, "No face detected.")
 
-        # DB에서 해당 event_schedule_id에 해당하는 얼굴 벡터 가져오기
         faces = Face.query.filter_by(event_schedule_id=event_schedule_id).all()
-
         if not faces:
-            return make_response(404, "해당 event_schedule_id에 대한 얼굴이 없습니다.")
+            return make_response(404, "No faces found for the event schedule.")
 
-        # 유사도 계산
         max_similarity = -1
         best_match = None
-
         for face in faces:
             decrypted_embedding = decrypt_vector(face.vector)
             similarity = cosine_similarity(embedding, decrypted_embedding)
-
             if similarity > max_similarity:
                 max_similarity = similarity
                 best_match = {
@@ -181,89 +193,18 @@ class MatchFace(Resource):
                     "similarity": float(similarity),
                 }
 
-        # 임계값 설정
         threshold = 0.4
         if best_match and max_similarity > threshold:
-            return make_response(200, "얼굴이 일치합니다.", best_match)
+            return make_response(200, "Face match found.", best_match)
         else:
-            return make_response(404, "일치하는 얼굴을 찾을 수 없습니다.")
+            return make_response(404, "No matching face found.")
 
-
-@face_ns.route("/<int:ticket_id>")
-class DeleteFace(Resource):
-    def delete(self, ticket_id):
-        """
-        주어진 ticketId에 해당하는 얼굴 데이터를 삭제
-        """
-        # 데이터베이스에서 해당 ticketId에 해당하는 Face 레코드 조회
-        face = Face.query.filter_by(ticket_id=ticket_id).first()
-
-        if not face:
-            return make_response(404, "해당 ticketId에 대한 얼굴 데이터가 없습니다.")
-
-        # 데이터 삭제
-        db.session.delete(face)
-        db.session.commit()
-
-        return make_response(200, "얼굴 데이터가 성공적으로 삭제되었습니다.")
-
-@face_ns.route("/set-relationship")
-class SetRelationship(Resource):
-    @api.expect(relationship_model)  # 요청 모델
-    @api.doc(description="얼굴 데이터와 Ticket 및 Event Schedule 관계를 설정")
-    def post(self):
-        """얼굴 데이터 관계 설정"""
-        # 요청 데이터 파싱
-        data = request.json
-        face_id = data.get("faceId")
-        face_img_url = data.get("faceImgUrl")
-        ticket_id = data.get("ticketId")
-        event_schedule_id = data.get("eventScheduleId")
-
-        # 유효성 검사
-        if not all([face_id, face_img_url, ticket_id, event_schedule_id]):
-            return make_response(400, "모든 필드를 입력해야 합니다.")
-
-        # 데이터베이스에서 Face 엔트리 조회
-        face = Face.query.filter_by(face_id=face_id).first()
-        if not face:
-            return make_response(404, f"Face ID {face_id}에 해당하는 데이터가 없습니다.")
-
-        if face.face_img != face_img_url:
-            return make_response(409, f"Face Img가 request와 일치하지 않습니다.")
-
-        if face.event_schedule_id != event_schedule_id :
-            return make_response(409, f"Event Schedule Id가 request와 일치하지 않습니다.")
-
-
-        face.ticket_id = ticket_id
-
-        try:
-            db.session.commit()
-            return make_response(200, "관계가 성공적으로 설정되었습니다.", {
-                "faceId": face.face_id,
-                "faceImgUrl": face.face_img,
-                "ticketId": face.ticket_id,
-                "eventScheduleId": face.event_schedule_id
-            })
-        except Exception as e:
-            db.session.rollback()
-            return make_response(500, "데이터베이스 업데이트 중 오류가 발생했습니다.", {"error": str(e)})
-
-
-# Namespace를 API에 추가
+# Register namespace
 api.add_namespace(face_ns)
 
 if __name__ == "__main__":
-    # RabbitMQ 리스너 스레드 시작
     start_rabbitmq_listener_thread(config, app)
-
-    # Eureka 클라이언트 초기화
     initialize_eureka_client()
-
-    # 데이터베이스 테이블 생성
     with app.app_context():
         db.create_all()
-
-    # Flask 앱 실행
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True)

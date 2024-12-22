@@ -83,6 +83,7 @@ dependencies {
     // Micrometer Observation and Tracing with Brave
     implementation 'io.micrometer:micrometer-observation'
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     // Brave Instrumentation for Spring Web
     implementation 'io.zipkin.brave:brave-instrumentation-spring-web'
