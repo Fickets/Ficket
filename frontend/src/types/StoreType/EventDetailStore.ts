@@ -30,7 +30,8 @@ export interface eventDetail {
   choiceDate: string;
   choiceTime: string;
   round: number;
-  faceImg: File | null;
+  faceId: number;
+  faceImg: string;
   selectedSeats: {
     seatMappingId: number;
     grade: string;
@@ -44,7 +45,8 @@ export interface eventDetail {
   setChoiceDate: (newDate: string) => void;
   setChoicetime: (newTime: string) => void;
   setRound: (newRound: number) => void;
-  setFaceImg: (file: File | null) => void;
+  setFaceId: (newFaceId: number) => void;
+  setFaceImg: (file: string) => void;
   setSelectedSeats: (
     seats: {
       seatMappingId: number;
@@ -52,7 +54,7 @@ export interface eventDetail {
       row: string;
       col: string;
       price: number;
-    }[],
+    }[]
   ) => void;
 
   setEventId: (newId: string) => void;

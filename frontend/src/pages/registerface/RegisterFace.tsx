@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import PictureBox from "../../components/registerface/PictureBox";
-import PolicyAgree from "../../components/registerface/PolicyAgree";
-import { unLockSeats } from "../../service/selectseat/api";
-import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
-import { eventDetailStore } from "../../stores/EventStore.tsx";
-import { useStore } from "zustand";
-import { releaseSlot } from "../../service/queue/api.ts";
-import { userStore } from "../../stores/UserStore.tsx";
-import { WorkStatus } from "../../types/queue.ts";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import PictureBox from '../../components/registerface/PictureBox';
+import PolicyAgree from '../../components/registerface/PolicyAgree';
+import { unLockSeats } from '../../service/selectseat/api';
+import TicketingHeader from '../../components/ticketing/TicketingHeader.tsx';
+import { eventDetailStore } from '../../stores/EventStore.tsx';
+import { useStore } from 'zustand';
+import { releaseSlot } from '../../service/queue/api.ts';
+import { userStore } from '../../stores/UserStore.tsx';
+import { WorkStatus } from '../../types/queue.ts';
+import { uploadUserFace } from '../../service/uploadFace/api.ts';
 
 function RegisterFace() {
   const navigate = useNavigate();
@@ -17,12 +18,13 @@ function RegisterFace() {
   const user = useStore(userStore);
 
   const eventId = event.eventId;
-  const faceImg = event.faceImg;
-  const setFaceImg = event.setFaceImg;
+  const setPersistFaceId = event.setFaceId;
+  const setPersistFaceImg = event.setFaceImg;
   const selectedSeats = event.selectedSeats;
   const setSelectedSeats = event.setSelectedSeats;
   const eventScheduleId = event.scheduleId;
 
+  const [faceImg, setFaceImg] = useState<File | null>(null);
   const [allAgreed, setAllAgreed] = useState<boolean>(false); // 약관 동의 상태
 
   const handleBeforeStep = async () => {
@@ -35,26 +37,41 @@ function RegisterFace() {
       await unLockSeats(payload); // 좌석 선점 해제 API 호출
 
       setSelectedSeats([]);
-      setFaceImg(null);
+      setPersistFaceId(0);
+      setPersistFaceImg('');
 
       navigate(`/ticketing/select-seat`);
     } catch (error) {
-      console.error("Error locking seats:", error);
+      console.error('Error locking seats:', error);
 
-      alert("좌석 선점에 실패했습니다. 다시 시도해주세요.");
+      alert('좌석 선점에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (!allAgreed) {
-      alert("모든 항목에 동의해야 합니다.");
+      alert('모든 항목에 동의해야 합니다.');
       return;
     }
     if (!faceImg) {
-      alert("이미지를 업로드해야 합니다.");
+      alert('이미지를 업로드해야 합니다.');
       return;
     }
-    navigate("/ticketing/order");
+    try {
+      const response = await uploadUserFace(faceImg, eventScheduleId);
+
+      const { faceId, faceUrl } = response.data as {
+        faceId: number;
+        faceUrl: string;
+      };
+
+      setPersistFaceId(faceId);
+      setPersistFaceImg(faceUrl);
+
+      navigate('/ticketing/order');
+    } catch (error: any) {
+      alert(error.message);
+    }
   };
 
   const connectWebSocket = () => {
@@ -63,13 +80,13 @@ function RegisterFace() {
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {
-      console.log("WebSocket 연결 성공");
+      console.log('WebSocket 연결 성공');
     };
 
     ws.onmessage = (event: MessageEvent) => {
       const handleMessage = async () => {
         try {
-          console.log("WebSocket 메시지 수신:", event.data);
+          console.log('WebSocket 메시지 수신:', event.data);
 
           if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
             await releaseSlot(eventId);
@@ -78,17 +95,17 @@ function RegisterFace() {
               seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
             };
             await unLockSeats(payload); // 좌석 선점 해제 API 호출
-            alert("세션이 만료되었습니다. 창을 닫습니다.");
+            alert('세션이 만료되었습니다. 창을 닫습니다.');
             ws.close();
             window.close();
           } else if (event.data === WorkStatus.SEAT_RESERVATION_RELEASED) {
-            alert("좌석 선점이 만료되었습니다.");
+            alert('좌석 선점이 만료되었습니다.');
             setSelectedSeats([]);
             setFaceImg(null);
             navigate(`/ticketing/select-seat`);
           }
         } catch (error) {
-          console.error("WebSocket 메시지 처리 중 오류 발생:", error);
+          console.error('WebSocket 메시지 처리 중 오류 발생:', error);
         }
       };
 
@@ -96,11 +113,11 @@ function RegisterFace() {
     };
 
     ws.onclose = () => {
-      console.log("WebSocket 연결 종료");
+      console.log('WebSocket 연결 종료');
     };
 
     ws.onerror = (error) => {
-      console.error("WebSocket 오류:", error);
+      console.error('WebSocket 오류:', error);
     };
 
     return ws;
@@ -118,12 +135,12 @@ function RegisterFace() {
     };
 
     // 창 닫힘 이벤트 추가
-    window.addEventListener("unload", handleUnload);
+    window.addEventListener('unload', handleUnload);
 
     return () => {
       // 컴포넌트 언마운트 시 WebSocket 종료 및 이벤트 제거
       ws.close();
-      window.removeEventListener("unload", handleUnload);
+      window.removeEventListener('unload', handleUnload);
     };
   }, []);
 
