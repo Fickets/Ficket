@@ -17,7 +17,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(myWebSocketHandler, "/queue-status/*")
-                .setAllowedOrigins("http://localhost:5173");
+                .setAllowedOrigins("http://localhost:5173", "http://localhost:8089");
 
         registry.addHandler(myWorkWebSocketHandler, "/work-status/*")
                 .setAllowedOrigins("http://localhost:5173");

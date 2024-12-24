@@ -14,9 +14,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE event_stage SET deleted_at = CURRENT_TIMESTAMP WHERE stage_id = ?")
-public class EventStage extends BaseEntity {
+public class EventStage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

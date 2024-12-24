@@ -15,9 +15,7 @@ import java.math.BigDecimal;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE company SET deleted_at = CURRENT_TIMESTAMP WHERE company_id = ?")
-public class Company extends BaseEntity {
+public class Company {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

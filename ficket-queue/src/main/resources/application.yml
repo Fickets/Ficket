@@ -34,6 +34,7 @@ resilience4j:
 logging:
   level:
     com.example.ficketevent.domain.event.client: DEBUG
+    org.springframework.websocket: DEBUG
   pattern:
     correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 

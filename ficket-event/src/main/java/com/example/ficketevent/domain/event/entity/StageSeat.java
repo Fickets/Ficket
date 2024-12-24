@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StageSeat extends BaseEntity {
+public class StageSeat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

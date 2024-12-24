@@ -46,7 +46,16 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         eventSessions.get(eventId).add(session);
 
         log.info("WebSocket 연결됨: 세션 ID={}, 사용자 ID={}, 이벤트 ID={}", session.getId(), userId, eventId);
-        session.sendMessage(new TextMessage("{\"message\": \"연결이 성공적으로 설정되었습니다.\"}"));
+        String initMessage = String.format(
+                "{\"userId\": \"%s\", \"eventId\": \"%s\", \"myWaitingNumber\": %d, \"totalWaitingNumber\": %d, \"queueStatus\": \"%s\"}",
+                userId,
+                eventId,
+                -1L,
+                999999999,
+                QueueStatus.IN_PROGRESS.getDescription()
+        );
+
+        session.sendMessage(new TextMessage(initMessage));
     }
 
     @Override
@@ -143,7 +152,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     private QueueStatus getQueueStatus(long userPosition) {
         if (userPosition == -1) {
             return QueueStatus.CANCELLED;
-        } else if (userPosition <= 1000) {
+        } else if (userPosition <= 100) {
             return QueueStatus.ALMOST_DONE;
         } else {
             return QueueStatus.WAITING;
