@@ -27,44 +27,34 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     private final QueueService queueService;
     private final ConcurrentHashMap<String, CopyOnWriteArraySet<WebSocketSession>> eventSessions = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, String> sessionUserMap = new ConcurrentHashMap<>(); // 세션 ID -> 사용자 ID 매핑
+    private final ConcurrentHashMap<String, String> sessionUserMap = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(@NotNull WebSocketSession session) throws Exception {
         String eventId = getEventIdFromUri(session);
-
-        // 헤더에서 X-User-Id 추출
         String userId = session.getHandshakeHeaders().getFirst("X-User-Id");
+        log.info("Handshake Headers: {}", session.getHandshakeHeaders());
         if (userId == null || userId.isEmpty()) {
-            log.warn("X-User-Id 헤더가 존재하지 않습니다. 세션 ID: {}", session.getId());
-            session.close();
+            log.warn("X-User-Id 헤더가 누락됨. 세션 ID: {}", session.getId());
+            session.close(CloseStatus.POLICY_VIOLATION);
             return;
         }
 
+
         sessionUserMap.put(session.getId(), userId);
-        eventSessions.putIfAbsent(eventId, new CopyOnWriteArraySet<>());
-        eventSessions.get(eventId).add(session);
+        eventSessions.computeIfAbsent(eventId, key -> new CopyOnWriteArraySet<>()).add(session);
 
-        log.info("WebSocket 연결됨: 세션 ID={}, 사용자 ID={}, 이벤트 ID={}", session.getId(), userId, eventId);
-        String initMessage = String.format(
-                "{\"userId\": \"%s\", \"eventId\": \"%s\", \"myWaitingNumber\": %d, \"totalWaitingNumber\": %d, \"queueStatus\": \"%s\"}",
-                userId,
-                eventId,
-                -1L,
-                999999999,
-                QueueStatus.IN_PROGRESS.getDescription()
-        );
-
-        session.sendMessage(new TextMessage(initMessage));
+        log.info("WebSocket 연결: 세션 ID={}, 사용자 ID={}, 이벤트 ID={}", session.getId(), userId, eventId);
+        sendInitialMessage(session, userId, eventId);
     }
 
     @Override
     protected void handleTextMessage(@NotNull WebSocketSession session, TextMessage message) {
         String payload = message.getPayload();
         log.info("메시지 수신: {}", payload);
-        String eventId = getEventIdFromUri(session);
 
-        if (payload.equalsIgnoreCase("queue-status")) {
+        if ("queue-status".equalsIgnoreCase(payload)) {
+            String eventId = getEventIdFromUri(session);
             sendQueueStatus(session, eventId).subscribe();
         }
     }
@@ -76,7 +66,6 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         eventSessions.getOrDefault(eventId, new CopyOnWriteArraySet<>()).remove(session);
 
         if (userId != null) {
-            // Redis에서 사용자 제거
             queueService.leaveQueue(userId, eventId).subscribe();
             log.info("사용자 제거: Redis에서 사용자 ID={}, 이벤트 ID={}", userId, eventId);
         }
@@ -86,19 +75,19 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     @Scheduled(fixedRate = 5000)
     public void sendPeriodicQueueUpdates() {
-        for (String eventId : eventSessions.keySet()) {
-            for (WebSocketSession session : eventSessions.get(eventId)) {
-                if (session.isOpen()) {
-                    sendQueueStatus(session, eventId).subscribe();
-                }
-            }
-        }
+        eventSessions.forEach((eventId, sessions) ->
+                sessions.forEach(session -> {
+                    if (session.isOpen()) {
+                        sendQueueStatus(session, eventId).subscribe();
+                    }
+                })
+        );
     }
 
     private Mono<Void> sendQueueStatus(WebSocketSession session, String eventId) {
         String userId = sessionUserMap.get(session.getId());
         if (userId == null) {
-            log.warn("세션 ID에 대한 사용자 ID를 찾을 수 없습니다: 세션 ID={}", session.getId());
+            log.warn("사용자를 찾을 수 없음: 세션 ID={}", session.getId());
             return Mono.empty();
         }
 
@@ -106,47 +95,31 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 .flatMap(totalQueue -> queueService.getUserPosition(userId, eventId)
                         .flatMap(position -> {
                             QueueStatus status = getQueueStatus(position);
+                            boolean canEnter = (status == QueueStatus.ALMOST_DONE && position == 1 && queueService.canEnterQueue(eventId));
 
-                            // 작업 가능한 슬롯이 비었고 사용자가 순번 1번일 때
-                            if (status == QueueStatus.ALMOST_DONE && position == 1 && queueService.canEnterQueue(eventId)) {
-                                if (queueService.occupySlot(userId, eventId)) { // 슬롯 점유 성공
-                                    log.info("사용자가 작업 슬롯으로 입장: 사용자 ID={}, 이벤트 ID={}", userId, eventId);
-
-                                    // 사용자에게 작업 가능 메시지 전송
-                                    String completeMessage = String.format(
-                                            "{\"userId\": \"%s\", \"eventId\": \"%s\", \"myWaitingNumber\": %d, \"totalWaitingNumber\": %d, \"queueStatus\": \"%s\"}",
-                                            userId,
-                                            eventId,
-                                            position,
-                                            totalQueue,
-                                            QueueStatus.COMPLETED.getDescription()
-                                    );
-
-                                    sendWebSocketMessage(session, completeMessage).subscribe();
-
-                                    // WebSocket 연결 종료
-                                    try {
-                                        session.close(CloseStatus.NORMAL);
-                                        log.info("WebSocket 연결 종료: 사용자 ID={}, 이벤트 ID={}", userId, eventId);
-                                    } catch (IOException e) {
-                                        log.error("WebSocket 연결 종료 실패: {}", e.getMessage());
-                                    }
-                                }
-                                return Mono.empty();
+                            if (canEnter && queueService.occupySlot(userId, eventId)) {
+                                log.info("작업 슬롯 할당: 사용자 ID={}, 이벤트 ID={}", userId, eventId);
+                                return sendWebSocketMessage(session, buildResponse(userId, eventId, position, totalQueue, QueueStatus.COMPLETED))
+                                        .then(Mono.fromRunnable(() -> closeSession(session)));
                             }
 
-                            // 대기 상태 메시지 전송
-                            String jsonResponse = String.format(
-                                    "{\"userId\": \"%s\", \"eventId\": \"%s\", \"myWaitingNumber\": %d, \"totalWaitingNumber\": %d, \"queueStatus\": \"%s\"}",
-                                    userId,
-                                    eventId,
-                                    position,
-                                    totalQueue,
-                                    status.getDescription()
-                            );
-                            return sendWebSocketMessage(session, jsonResponse);
+                            return sendWebSocketMessage(session, buildResponse(userId, eventId, position, totalQueue, status));
                         })
-                ).then();
+                );
+    }
+
+    private void sendInitialMessage(WebSocketSession session, String userId, String eventId) {
+        String message = buildResponse(userId, eventId, -1, 999999999, QueueStatus.IN_PROGRESS);
+        sendWebSocketMessage(session, message).subscribe();
+    }
+
+    private void closeSession(WebSocketSession session) {
+        try {
+            session.close(CloseStatus.NORMAL);
+            log.info("WebSocket 연결 종료: 세션 ID={}", session.getId());
+        } catch (IOException e) {
+            log.error("WebSocket 연결 종료 실패: {}", e.getMessage());
+        }
     }
 
     private QueueStatus getQueueStatus(long userPosition) {
@@ -154,9 +127,8 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
             return QueueStatus.CANCELLED;
         } else if (userPosition <= 100) {
             return QueueStatus.ALMOST_DONE;
-        } else {
-            return QueueStatus.WAITING;
         }
+        return QueueStatus.WAITING;
     }
 
     private Mono<Void> sendWebSocketMessage(WebSocketSession session, String message) {
@@ -167,6 +139,13 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 log.error("WebSocket 메시지 전송 실패: {}", e.getMessage());
             }
         });
+    }
+
+    private String buildResponse(String userId, String eventId, long position, long totalQueue, QueueStatus status) {
+        return String.format(
+                "{\"userId\": \"%s\", \"eventId\": \"%s\", \"myWaitingNumber\": %d, \"totalWaitingNumber\": %d, \"queueStatus\": \"%s\"}",
+                userId, eventId, position, totalQueue, status.getDescription()
+        );
     }
 
     private String getEventIdFromUri(WebSocketSession session) {

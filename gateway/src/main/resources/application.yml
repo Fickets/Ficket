@@ -184,6 +184,7 @@ spring:
           predicates:
             - Path=/queue-status/**
           filters:
+            - PreserveHostHeader=true
             - QueryTokenExtractionFilter
             - RemoveRequestParameter=Authorization
         - id: websocket-route
