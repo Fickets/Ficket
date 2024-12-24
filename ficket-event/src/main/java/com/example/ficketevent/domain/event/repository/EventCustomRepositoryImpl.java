@@ -1,27 +1,39 @@
 package com.example.ficketevent.domain.event.repository;
 
+import com.example.ficketevent.domain.event.dto.request.EventScheduledOpenSearchCond;
 import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
+import com.example.ficketevent.domain.event.dto.response.EventScheduledOpenResponse;
 import com.example.ficketevent.domain.event.dto.response.EventSearchRes;
 import com.example.ficketevent.domain.event.dto.response.QEventSearchRes;
-import com.example.ficketevent.domain.event.entity.EventSchedule;
+import com.example.ficketevent.domain.event.enums.Genre;
+import com.example.ficketevent.domain.event.entity.QGenre;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.example.ficketevent.domain.event.entity.QEvent.*;
 import static com.example.ficketevent.domain.event.entity.QEventSchedule.*;
 import static com.example.ficketevent.domain.event.entity.QSeatMapping.seatMapping;
-import static com.querydsl.core.group.GroupBy.groupBy;
 
+@Slf4j
 @RequiredArgsConstructor
 public class EventCustomRepositoryImpl implements EventCustomRepository {
 
     private final JPAQueryFactory queryFactory;
+
 
     @Override
     public List<EventSearchRes> searchEventByCond(EventSearchCond cond) {
@@ -110,6 +122,82 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                         )
                         .fetch()
         );
+    }
+
+    @Override
+    public Page<EventScheduledOpenResponse> searchEventScheduledOpen(EventScheduledOpenSearchCond cond, Pageable pageable) {
+        List<Tuple> results = queryFactory
+                .select(event.eventId, event.title, event.ticketingTime, event.createdAt, event.eventImage.posterMobileUrl)
+                .from(event)
+                .where(
+                        containsEventTitle(cond.getSearchValue()),
+                        containsGenre(cond.getGenre())
+                )
+                .orderBy(getSortOrder(pageable))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        List<Tuple> genres = queryFactory
+                .select(event.eventId, QGenre.genre)
+                .from(event)
+                .leftJoin(event.genre, QGenre.genre)
+                .fetch();
+
+        Map<Long, List<Genre>> genreMap = genres.stream()
+                .collect(Collectors.groupingBy(
+                        tuple -> tuple.get(event.eventId),
+                        Collectors.mapping(tuple -> tuple.get(QGenre.genre), Collectors.toList())
+                ));
+
+        List<EventScheduledOpenResponse> content = results.stream()
+                .map(tuple -> {
+                    Long eventId = tuple.get(event.eventId);
+                    String title = tuple.get(event.title);
+                    LocalDateTime ticketingTime = tuple.get(event.ticketingTime);
+                    String mobileUrl = tuple.get(event.eventImage.posterMobileUrl);
+                    LocalDateTime createdAt = tuple.get(event.createdAt);
+                    boolean isNewPostEvent = LocalDate.now().isEqual(createdAt.toLocalDate());
+
+                    return new EventScheduledOpenResponse(
+                            eventId,
+                            title,
+                            genreMap.getOrDefault(eventId, new ArrayList<>()),
+                            ticketingTime,
+                            mobileUrl,
+                            isNewPostEvent
+                    );
+                })
+                .toList();
+
+        JPAQuery<Long> countQuery = queryFactory
+                .select(event.count())
+                .from(event)
+                .where(
+                        containsEventTitle(cond.getSearchValue()),
+                        containsGenre(cond.getGenre())
+                );
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    private BooleanExpression containsGenre(Genre genre) {
+        return genre != null ? event.genre.contains(genre) : null;
+    }
+
+
+    private OrderSpecifier<?>[] getSortOrder(Pageable pageable) {
+        return pageable.getSort().stream()
+                .map(order -> {
+                    return switch (order.getProperty()) {
+                        case "createdAt" -> order.isAscending() ? event.createdAt.asc() : event.createdAt.desc();
+                        case "ticketingTime" ->
+                                order.isAscending() ? event.ticketingTime.asc() : event.ticketingTime.desc();
+                        default ->
+                                throw new IllegalArgumentException("Unsupported sort property: " + order.getProperty());
+                    };
+                })
+                .toArray(OrderSpecifier[]::new);
     }
 
 }

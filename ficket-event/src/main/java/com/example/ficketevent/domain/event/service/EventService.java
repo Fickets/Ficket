@@ -25,7 +25,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -193,7 +196,10 @@ public class EventService {
     /**
      * 이벤트 업데이트 메서드
      */
-    @CacheEvict(cacheNames = "events", key = "#eventId")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "events", key = "#eventId"),
+            @CacheEvict(cacheNames = "searchEventScheduledOpen", allEntries = true)
+    })
     @Transactional
     public void updateEvent(Long eventId, Long adminId, EventUpdateReq req, MultipartFile poster, MultipartFile banner) {
         Event findEvent = findEventByEventId(eventId);
@@ -395,7 +401,10 @@ public class EventService {
         return EventDetail.toEventDetail(findEvent, companyResponse.getCompanyName());
     }
 
-    @CacheEvict(cacheNames = "events", key = "#eventId")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "events", key = "#eventId"),
+            @CacheEvict(cacheNames = "searchEventScheduledOpen", allEntries = true)
+    })
     @Transactional
     public void deleteEvent(Long eventId) {
         Event findEvent = findEventByEventId(eventId);
@@ -937,4 +946,22 @@ public class EventService {
         LocalDateTime endOfToday = LocalDateTime.of(now, LocalTime.MAX);
         return eventRepository.findOpenEvents(startOfToday, endOfToday);
     }
+
+    /**
+     * 오픈 예정 티켓 조회
+     * @param cond 조건
+     * @param pageable 페이징
+     * @return 오픈 예정 티켓
+     */
+    @Cacheable(
+            value = "searchEventScheduledOpen",
+            key = "#cond.hashCode() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()"
+    )
+    public PageDTO<EventScheduledOpenResponse> searchOpenEvent(EventScheduledOpenSearchCond cond, Pageable pageable) {
+        Page<EventScheduledOpenResponse> result = eventRepository.searchEventScheduledOpen(cond, pageable);
+
+        return PageDTO.toPageDTO(result);
+    }
+
+
 }
