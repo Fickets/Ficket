@@ -14,18 +14,6 @@ import java.util.List;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long>, EventCustomRepository {
 
-//    @Query("SELECT new com.example.ficketevent.domain.event.dto.response.EventSearchRes(" +
-//            "e.eventId, e.title, e.eventStage.stageName, null, e.adminId, null, es.eventDate) " +
-//            "FROM Event e " +
-//            "JOIN EventSchedule es ON e = es.event " +
-//            "WHERE (:#{#cond.eventId} IS NULL OR e.eventId = :#{#cond.eventId}) " +
-//            "AND (:#{#cond.eventTitle} IS NULL OR e.title LIKE %:#{#cond.eventTitle}%) " +
-//            "AND (:#{#cond.companyId} IS NULL OR e.companyId = :#{#cond.companyId}) " +
-//            "AND (:#{#cond.adminId} IS NULL OR e.adminId = :#{#cond.adminId}) " +
-//            "AND (:#{#cond.eventStageId} IS NULL OR e.eventStage.stageId = :#{#cond.eventStageId}) ")
-//    List<EventSearchRes> searchEventByCond(@Param("cond") EventSearchCond eventSearchCond);
-
-
     @Query("SELECT new com.example.ficketevent.domain.event.dto.response.TicketEventResponse(sm.ticketId, es.eventDate, e.eventStage.stageName, ei.bannerPcUrl, ei.bannerMobileUrl, e.title, e.companyId, sp.partitionName, ss.seatRow, ss.seatCol, est.sido) " +
             "FROM SeatMapping sm " +
             "JOIN EventSchedule es ON sm.eventSchedule.eventScheduleId = es.eventScheduleId " +
