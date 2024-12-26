@@ -43,6 +43,11 @@ public class AdminServiceClientFallbackFactory implements FallbackFactory<AdminS
                         .map(companyId -> new CompanyResponse(companyId, "Unknown Company"))
                         .collect(Collectors.toList());
             }
+
+            @Override
+            public int createTotalSettlement(Long eventId) {
+                return 404;
+            }
         };
     }
 }

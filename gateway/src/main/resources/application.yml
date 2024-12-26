@@ -100,6 +100,14 @@ spring:
         - id: admin-service
           uri: lb://admin-service
           predicates:
+            - Path=/api/v1/settlements
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/settlements/**
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
             - Path=/admin-swagger/v3/api-docs
         # EVENT-SERVICE
         - id: event-service

@@ -60,6 +60,7 @@ public class EventService {
     private final StageSeatRepository stageSeatRepository;
     private final AwsS3Service awsS3Service;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final SeatMappingRepository seatMappingRepository;
     @Qualifier("redisTemplate") // 캐시용 RedisTemplate
     private final RedisTemplate<String, Object> redisTemplate;
     @Qualifier("rankingRedisTemplate") // 랭킹용 RedisTemplate
@@ -101,6 +102,13 @@ public class EventService {
 
         // 6. 공연장과 이벤트 연결
         eventStage.getEvents().add(newEvent);
+
+        // 7. 총 정산 테이블 만들기
+        eventRepository.save(newEvent);
+        executeWithCircuitBreaker(circuitBreakerRegistry,
+                "createTotalSettlement",
+                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
+
     }
 
 
@@ -964,4 +972,22 @@ public class EventService {
     }
 
 
+
+    public List<Long> getCompanyId(Long ticketId){
+        List<Long> res = new ArrayList<>();
+        SeatMapping seatMapping = seatMappingRepository.findByTicketId(ticketId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
+        Event event = seatMapping.getEventSchedule().getEvent();
+        res.add(event.getCompanyId());
+        res.add(event.getEventId());
+        return res;
+    }
+
+    public List<EventTitleDto> getTitleIds(String title){
+        if (title == null){
+            return eventRepository.findEventIds("");
+        }
+        return eventRepository.findEventIds(title);
+
+    }
 }

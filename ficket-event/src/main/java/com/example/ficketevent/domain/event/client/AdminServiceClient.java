@@ -2,11 +2,9 @@ package com.example.ficketevent.domain.event.client;
 
 import com.example.ficketevent.domain.event.dto.common.AdminDto;
 import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
+import org.apache.kafka.shaded.io.opentelemetry.proto.trace.v1.Status;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
@@ -25,4 +23,7 @@ public interface AdminServiceClient {
 
     @PostMapping("/api/v1/admins/companies/batch")
     List<CompanyResponse> getCompaniesByIds(@RequestBody Set<Long> companyIds);
+
+    @GetMapping("/api/v1/settlements/create-total")
+    int createTotalSettlement(@RequestParam Long eventId);
 }

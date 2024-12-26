@@ -10,6 +10,7 @@ import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDtoList;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.entity.RefundPolicy;
+import com.example.ficketticketing.domain.order.mapper.OrderMapper;
 import com.example.ficketticketing.domain.order.mapper.TicketMapper;
 import com.example.ficketticketing.domain.order.messagequeue.OrderProducer;
 import com.example.ficketticketing.domain.order.repository.OrderRepository;
@@ -24,11 +25,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.shaded.io.opentelemetry.proto.trace.v1.Status;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.function.EntityResponse;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -66,6 +69,9 @@ public class OrderService {
     private final OrderProducer orderProducer;
     private final TicketMapper ticketMapper;
     private final QueueServiceClient queueServiceClient;
+    private final OrderMapper orderMapper;
+    private final AdminServiceClient adminServiceClient;
+
 
     public void processWebhook(String webhookId, String webhookSignature, String webhookTimestamp, String payload) {
         // 1. 타임스탬프 검증
@@ -214,6 +220,25 @@ public class OrderService {
         log.info(faceApiResponse.getMessage());
 
         orderProducer.send("order-events", new OrderDto(createOrderRequest.getEventScheduleId(), createdOrder.getOrderId(), seatMappingIds, createdOrder.getTicket().getTicketId()));
+
+        // create settlement
+        List<Long> ids = executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "getCompanyEventIdByTicketId",
+                () -> eventServiceClient.getCompanyEventId(createdOrder.getTicket().getTicketId()));
+
+        OrderSimpleDto orderSimpleDto = orderMapper.toOrderSimpleDto(createdOrder);
+        orderSimpleDto.setCompanyId(ids.get(0));
+        orderSimpleDto.setEventId(ids.get(1));
+
+        EntityResponse<Void> settlementCreate = executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "settlementCreateByOrder",
+                () -> adminServiceClient.createSettlement(orderSimpleDto)
+        );
+        if (settlementCreate.statusCode().value() != 204) {
+            log.info("settlement created fail");
+        }
 
         return createdOrder.getOrderId();
     }

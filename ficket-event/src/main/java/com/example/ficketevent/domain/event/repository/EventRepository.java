@@ -1,5 +1,6 @@
 package com.example.ficketevent.domain.event.repository;
 
+import com.example.ficketevent.domain.event.dto.common.EventTitleDto;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.response.TicketEventResponse;
 import com.example.ficketevent.domain.event.entity.Event;
@@ -28,4 +29,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
     @Query("SELECT e.eventId FROM Event e WHERE e.ticketingTime BETWEEN :startOfDay AND :endOfDay")
     List<Long> findOpenEvents(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
 
+    @Query("SELECT new com.example.ficketevent.domain.event.dto.common.EventTitleDto(e.eventId, e.title) FROM Event e WHERE e.title LIKE %:title%")
+    List<EventTitleDto> findEventIds(@Param("title")String title);
 }

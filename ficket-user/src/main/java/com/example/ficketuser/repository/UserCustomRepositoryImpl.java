@@ -40,11 +40,7 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                         req.getStartDate() != null ? user.createdAt.goe(req.getStartDate().atStartOfDay()) : null,
                         req.getEndDate() != null ? user.createdAt.loe(req.getEndDate().atTime(23, 59, 59)) : null
                 ).fetch();
-
     }
-
-
-
 }
 
 

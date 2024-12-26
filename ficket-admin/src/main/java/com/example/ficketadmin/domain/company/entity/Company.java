@@ -33,7 +33,7 @@ public class Company {
     private Account account; // 회사 계좌 정보
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "membership_id", nullable = false)
+    @JoinColumn(name = "  ", nullable = false)
     private Membership membership; // 멤버쉽
 
 }

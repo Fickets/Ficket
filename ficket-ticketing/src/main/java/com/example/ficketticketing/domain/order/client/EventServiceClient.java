@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -39,4 +40,7 @@ public interface EventServiceClient {
 
     @GetMapping("/api/v1/events/customer-ticket-info")
     TicketSimpleInfo getTicketSimpleInfo(@RequestParam Long ticketId);
+
+    @GetMapping("/api/v1/events/company-id")
+    List<Long> getCompanyEventId(@RequestParam Long ticketId);
 }

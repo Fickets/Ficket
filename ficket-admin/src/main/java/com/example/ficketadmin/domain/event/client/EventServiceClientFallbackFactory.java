@@ -3,6 +3,7 @@ package com.example.ficketadmin.domain.event.client;
 
 import com.example.ficketadmin.domain.event.dto.response.DailyRevenueResponse;
 import com.example.ficketadmin.domain.event.dto.response.DayCountResponse;
+import com.example.ficketadmin.domain.settlement.dto.common.EventTitleDto;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,11 @@ public class EventServiceClientFallbackFactory implements FallbackFactory<EventS
                 dayCountMap.put("Sunday", 0L);
 
                 return new DayCountResponse(dayCountMap);
+            }
+
+            @Override
+            public List<EventTitleDto> getEventIds(String title) {
+                return List.of();
             }
         };
     }

@@ -55,6 +55,11 @@ public class EventServiceFallbackFactory implements FallbackFactory<EventService
             public TicketSimpleInfo getTicketSimpleInfo(Long ticketId) {
                 throw new UnsupportedOperationException("Fallback not implemented for checkRequest");
             }
+
+            @Override
+            public List<Long> getCompanyEventId(Long ticketId) {
+                throw new UnsupportedOperationException("Fallback not implemented for checkRequest");
+            }
         };
     }
 }

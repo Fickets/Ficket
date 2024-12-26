@@ -27,6 +27,9 @@ public enum ErrorCode {
     DIFFERENT_BOTH_TOKEN_ID(401, "양쪽 토큰 ID값이 다릅니다."),
     TOKEN_EXPIRED(401, "토큰이 만료되었습니다."),
     DIFFERENT_REFRESH_TOKEN(401, "등록되지 않은 REFRESH_TOKEN 입니다."),
+
+    // SETTLEMENT
+    NO_SETTMENT_RECORD(404, "정산테이블이 존재하지 않습니다."),
     ;
 
     private final int status;

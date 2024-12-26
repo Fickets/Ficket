@@ -1,5 +1,7 @@
 package com.example.ficketevent.domain.event.controller;
 
+import com.example.ficketevent.domain.event.dto.common.EventTitleDto;
+import com.example.ficketevent.domain.event.dto.common.TicketInfo;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoCreateDtoList;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -61,7 +64,6 @@ public class EventController {
      * - 2024-11-27 오형상: seatMapping 연관 관계 적용
      * - 2024-11-30 오형상: admin feign client 적용
      * - 2024-12-21 오형상: 수동 캐시 삭제 적용
-     * - 2024-12-24 오형상: 페이징 캐시 삭제 적용
      */
     @PatchMapping("/admins/event/{eventId}")
     public ResponseEntity<String> modifyEvent(@RequestHeader("X-Admin-Id") String adminId, @PathVariable Long eventId, @RequestPart EventUpdateReq req, @RequestPart(required = false) MultipartFile poster, @RequestPart(required = false) MultipartFile banner) {
@@ -108,7 +110,6 @@ public class EventController {
      * - 2024-11-27 오형상: 초기 작성
      * - 2024-12-16 오형상: 랭킹 삭제 로직 추가
      * - 2024-12-21 오형상: 수동 캐시 삭제 적용
-     * - 2024-12-24 오형상: 페이징 캐시 삭제 적용
      */
     @DeleteMapping("/admin/{eventId}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId) {
@@ -262,4 +263,13 @@ public class EventController {
         return ResponseEntity.ok(eventService.searchOpenEvent(eventScheduledOpenSearchCond, pageable));
     }
 
+    @GetMapping("/company-id")
+    public List<Long> getCompanyId(@RequestParam Long ticketId){
+        return eventService.getCompanyId(ticketId);
+    }
+
+    @GetMapping("/search-title")
+    public List<EventTitleDto> searchTitle(@RequestParam String title){
+        return eventService.getTitleIds(title);
+    }
 }
