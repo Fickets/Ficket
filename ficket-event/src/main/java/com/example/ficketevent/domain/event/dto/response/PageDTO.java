@@ -14,6 +14,7 @@ public class PageDTO<T> {
     private int pageNumber;
     private int pageSize;
     private long totalElements;
+    private long totalPages;
     private String sortProperty; // 정렬 기준 필드
     private String sortDirection; // 정렬 방향 (ASC, DESC)
 
@@ -33,6 +34,7 @@ public class PageDTO<T> {
                 page.getNumber(),  // 현재 페이지 번호
                 page.getSize(),    // 페이지 크기
                 page.getTotalElements(), // 전체 데이터 개수
+                page.getTotalPages(),
                 sortProperty, // 정렬 기준 필드
                 sortDirection // 정렬 방향
         );

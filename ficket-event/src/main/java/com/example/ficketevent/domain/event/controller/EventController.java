@@ -14,7 +14,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +41,7 @@ public class EventController {
      * - 2024-11-18 오형상: company feign client 적용
      * - 2024-11-27 오형상: seatMapping 연관 관계 적용
      * - 2024-11-30 오형상: admin feign client 적용
+     * - 2024-12-26 오형상: event 생성시 오픈 티켓 캐시 삭제 적용
      */
     @PostMapping("/admins/event")
     public ResponseEntity<String> registerEvent(@RequestHeader("X-Admin-Id") String adminId, @RequestPart EventCreateReq req, @RequestPart MultipartFile poster, @RequestPart MultipartFile banner) {
@@ -253,6 +253,7 @@ public class EventController {
      * 작업 날짜: 2024-12-24
      * 변경 이력:
      * - 2024-12-24 오형상: 초기 작성
+     * - 2024-12-26 오형상: totalPages 누락
      */
     @GetMapping("/detail/scheduled-open-event")
     public ResponseEntity<PageDTO<EventScheduledOpenResponse>> searchOpenEvent(

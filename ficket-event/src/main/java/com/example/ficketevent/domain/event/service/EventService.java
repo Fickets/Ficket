@@ -28,7 +28,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -71,6 +70,7 @@ public class EventService {
      * 이벤트 생성 메서드
      */
     @Transactional
+    @CacheEvict(cacheNames = "searchEventScheduledOpen", allEntries = true)
     public void createEvent(Long adminId, EventCreateReq req, MultipartFile poster, MultipartFile banner) {
 
         // 1. 회사 및 공연장, 관리자 정보 조회
@@ -820,7 +820,6 @@ public class EventService {
     }
 
 
-
     public PagedResponse<EventSearchListRes> searchEvent(EventSearchCond eventSearchCond, Pageable pageable) {
         // 이벤트 검색 결과 가져오기
         List<EventSearchRes> eventSearchRes = eventRepository.searchEventByCond(eventSearchCond);
@@ -949,7 +948,8 @@ public class EventService {
 
     /**
      * 오픈 예정 티켓 조회
-     * @param cond 조건
+     *
+     * @param cond     조건
      * @param pageable 페이징
      * @return 오픈 예정 티켓
      */
