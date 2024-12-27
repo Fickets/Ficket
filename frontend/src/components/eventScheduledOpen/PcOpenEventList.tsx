@@ -1,54 +1,86 @@
 import {
   EventScheduledOpenResponse,
-  EventOpenListProps,
-} from '../../types/eventScheduledOpen.ts';
+  SearchParams,
+  PageDTO,
+} from "../../types/eventScheduledOpen.ts";
 import {
   FaSearch,
   FaAngleDoubleLeft,
   FaAngleLeft,
   FaAngleRight,
   FaAngleDoubleRight,
-} from 'react-icons/fa';
-import { useMemo, useState } from 'react';
+} from "react-icons/fa";
+import { useEffect, useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
   flexRender,
   ColumnDef,
-} from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { Genre } from '../../types/ReservationRateRanking.ts';
+} from "@tanstack/react-table";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+import { Genre } from "../../types/ReservationRateRanking.ts";
+import { searchEventScheduledOpen } from "../../service/eventScheduledOpen/api.ts";
 
-const PcEventOpenList = ({
-  events,
-  searchParams,
-  onSearchParamsChange,
-}: EventOpenListProps) => {
+const PcEventOpenList = () => {
   const navigate = useNavigate();
-  const [inputValue, setInputValue] = useState<string>('');
+  const [inputValue, setInputValue] = useState<string>("");
   const [isGenreDropdownOpen, setGenreDropdownOpen] = useState(false);
 
-  const genres = ['전체', ...Object.entries(Genre)];
+  const [searchParams, setSearchParams] = useState<SearchParams>({
+    searchValue: null,
+    genre: null,
+    page: 0,
+    size: 15,
+    sort: "createdAt,DESC",
+  });
+
+  const [response, setResponse] =
+    useState<PageDTO<EventScheduledOpenResponse> | null>(null);
+
+  const handleSearchParamsChange = (newParams: Partial<SearchParams>) => {
+    setSearchParams((prev) => ({
+      ...prev,
+      ...newParams,
+      page: newParams.page !== undefined ? newParams.page : 0, // Reset page on search parameter change
+    }));
+  };
+
+  const fetchEventScheduledOpen = async (
+    searchCond: SearchParams,
+  ): Promise<void> => {
+    try {
+      const data: PageDTO<EventScheduledOpenResponse> =
+        await searchEventScheduledOpen(searchCond);
+      setResponse(data);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
+
+  const genres = ["전체", ...Object.entries(Genre)];
 
   const handleGenreSelect = (genre: string | [string, string]) => {
     setGenreDropdownOpen(false);
 
-    if (genre === '전체') {
-      onSearchParamsChange({ genre: null, page: 0 });
+    if (genre === "전체") {
+      handleSearchParamsChange({ genre: null, page: 0 });
     } else if (Array.isArray(genre)) {
       const [key] = genre;
-      onSearchParamsChange({ genre: key as Genre, page: 0 });
+      handleSearchParamsChange({ genre: key as Genre, page: 0 });
     }
   };
 
   const columns: ColumnDef<EventScheduledOpenResponse>[] = useMemo(
     () => [
       {
-        header: 'NO',
-        cell: ({ row }) => row.index + 1 + events.pageNumber * events.pageSize,
+        header: "NO",
+        cell: ({ row }) =>
+          row.index +
+          1 +
+          (response?.pageNumber || 0) * (response?.pageSize || 0),
       },
       {
         header: () => (
@@ -62,7 +94,7 @@ const PcEventOpenList = ({
             {isGenreDropdownOpen && (
               <div className="absolute z-10 bg-white border border-gray-300 rounded shadow-lg mt-2">
                 {genres.map((genre) => {
-                  if (genre === '전체') {
+                  if (genre === "전체") {
                     return (
                       <button
                         key="전체"
@@ -89,46 +121,61 @@ const PcEventOpenList = ({
             )}
           </div>
         ),
-        accessorKey: 'genreList',
+        accessorKey: "genreList",
         cell: ({ getValue }) => {
           const genres = getValue<string[]>();
-          return genres.map((genre) => genre.replace(/_/g, '/')).join(', ');
+          return (
+            genres?.map((genre) => genre.replace(/_/g, "/")).join(", ") || ""
+          );
         },
       },
       {
-        header: '제목',
-        accessorKey: 'title',
+        header: "제목",
+        accessorKey: "title",
         cell: ({ row }) => (
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(`/events/detail/${row.original.eventId}`);
-            }}
-            className="text-black-600 hover:underline"
-          >
-            {row.original.title}
-          </a>
+          <div className="flex items-center">
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(`/events/detail/${row.original.eventId}`);
+              }}
+              className="text-black-600 hover:underline"
+            >
+              {row.original.title}
+            </a>
+            {row.original.newPostEvent && (
+              <span className="ml-2 px-1 py-0.1 text-[10px] font-medium text-white bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-sm">
+                N
+              </span>
+            )}
+          </div>
         ),
       },
       {
-        header: '티켓오픈일시',
-        accessorKey: 'ticketStartTime',
+        header: "티켓오픈일시",
+        accessorKey: "ticketStartTime",
         cell: ({ getValue }) => {
           const date = getValue<string>();
           return date
-            ? format(new Date(date), 'yyyy.MM.dd일(E) HH:mm', {
+            ? format(new Date(date), "yyyy.MM.dd일(E) HH:mm", {
                 locale: ko,
               })
-            : '';
+            : "";
         },
       },
     ],
-    [navigate, events.pageNumber, events.pageSize, genres, isGenreDropdownOpen]
+    [
+      navigate,
+      response?.pageNumber,
+      response?.pageSize,
+      genres,
+      isGenreDropdownOpen,
+    ],
   );
 
   const table = useReactTable({
-    data: events.content,
+    data: response?.content || [],
     columns,
     state: {
       pagination: {
@@ -136,30 +183,36 @@ const PcEventOpenList = ({
         pageSize: searchParams.size || 10,
       },
     },
-    pageCount: events.totalPages,
+    pageCount: response?.totalPages || 0,
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
 
   const onPageChange = (newPage: number) => {
-    onSearchParamsChange({ page: newPage });
+    handleSearchParamsChange({ page: newPage });
   };
 
   const handleSortChange = (newSort: string) => {
-    onSearchParamsChange({ sort: newSort, page: 0 });
+    handleSearchParamsChange({ sort: newSort, page: 0 });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
 
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleClickSearch();
+    }
+  };
+
   const handleClickSearch = () => {
-    if (inputValue === '') {
-      alert('검색어를 입력해주세요');
+    if (inputValue.trim() === "") {
+      alert("검색어를 입력해주세요");
       return;
     }
-    onSearchParamsChange({ searchValue: inputValue, page: 0 });
+    handleSearchParamsChange({ searchValue: inputValue.trim(), page: 0 });
   };
 
   const renderPageControls = () => {
@@ -181,12 +234,12 @@ const PcEventOpenList = ({
         >
           <FaAngleLeft />
         </button>
-        {Array.from({ length: events.totalPages }, (_, i) => (
+        {Array.from({ length: response?.totalPages || 0 }, (_, i) => (
           <button
             key={i}
             onClick={() => onPageChange(i)}
             className={`px-2 py-1 rounded ${
-              pageIndex === i ? 'bg-gray-300 font-bold' : 'hover:bg-gray-200'
+              pageIndex === i ? "bg-gray-300 font-bold" : "hover:bg-gray-200"
             }`}
           >
             {i + 1}
@@ -194,14 +247,14 @@ const PcEventOpenList = ({
         ))}
         <button
           onClick={() => onPageChange(pageIndex + 1)}
-          disabled={pageIndex === events.totalPages - 1}
+          disabled={pageIndex === (response?.totalPages || 0) - 1}
           className="px-2 py-1 rounded disabled:opacity-50"
         >
           <FaAngleRight />
         </button>
         <button
-          onClick={() => onPageChange(events.totalPages - 1)}
-          disabled={pageIndex === events.totalPages - 1}
+          onClick={() => onPageChange((response?.totalPages || 0) - 1)}
+          disabled={pageIndex === (response?.totalPages || 0) - 1}
           className="px-2 py-1 rounded disabled:opacity-50"
         >
           <FaAngleDoubleRight />
@@ -210,30 +263,32 @@ const PcEventOpenList = ({
     );
   };
 
+  useEffect(() => {
+    fetchEventScheduledOpen(searchParams);
+  }, [searchParams]);
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center bg-[#2E5072] text-white px-4 h-14">
-        <div className="space-x-2">
-          <h2 className="font-bold text-lg">오픈 티켓</h2>
-        </div>
+        <h2 className="font-bold text-lg">오픈 티켓</h2>
         <div className="flex space-x-20">
           <div className="space-x-4">
             <button
-              onClick={() => handleSortChange('createdAt,DESC')}
+              onClick={() => handleSortChange("createdAt,DESC")}
               className={`h-full px-3 text-white ${
-                searchParams.sort === 'createdAt,DESC'
-                  ? 'bg-[#183D63]'
-                  : 'bg-[#2E5072]'
+                searchParams.sort === "createdAt,DESC"
+                  ? "bg-[#183D63]"
+                  : "bg-[#2E5072]"
               }`}
             >
               등록순
             </button>
             <button
-              onClick={() => handleSortChange('ticketingTime,DESC')}
+              onClick={() => handleSortChange("ticketingTime,DESC")}
               className={`h-full px-3 text-white ${
-                searchParams.sort === 'ticketingTime,DESC'
-                  ? 'bg-[#183D63]'
-                  : 'bg-[#2E5072]'
+                searchParams.sort === "ticketingTime,DESC"
+                  ? "bg-[#183D63]"
+                  : "bg-[#2E5072]"
               }`}
             >
               오픈일순
@@ -244,6 +299,7 @@ const PcEventOpenList = ({
               type="text"
               value={inputValue}
               onChange={handleInputChange}
+              onKeyDown={handleInputKeyDown}
               className="px-4 py-2 w-[130px] bg-[#183D63] focus:outline-none"
             />
             <button
@@ -268,7 +324,7 @@ const PcEventOpenList = ({
                   >
                     {flexRender(
                       header.column.columnDef.header,
-                      header.getContext()
+                      header.getContext(),
                     )}
                   </th>
                 ))}
@@ -276,26 +332,40 @@ const PcEventOpenList = ({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell, index) => (
-                  <td
-                    key={cell.id}
-                    className={`px-4 py-2 text-sm text-gray-800 border-b border-gray-300 ${
-                      index === 0
-                        ? 'w-1/12'
-                        : index === 1
-                          ? 'w-3/12'
-                          : index === 2
-                            ? 'w-6/12'
-                            : 'w-auto'
-                    }`}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+            {table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row) => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map((cell, index) => (
+                    <td
+                      key={cell.id}
+                      className={`px-4 py-2 text-sm text-gray-800 border-b border-gray-300 ${
+                        index === 0
+                          ? "w-1/12"
+                          : index === 1
+                            ? "w-3/12"
+                            : index === 2
+                              ? "w-6/12"
+                              : "w-auto"
+                      }`}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="text-center text-gray-600 py-4"
+                >
+                  검색 결과가 없습니다.
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
 
@@ -304,7 +374,7 @@ const PcEventOpenList = ({
             {renderPageControls()}
           </div>
           <span className="text-sm text-gray-700">
-            총 {events.totalPages} 페이지
+            총 {response?.totalPages || 0} 페이지
           </span>
         </div>
       </div>
