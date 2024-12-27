@@ -14,14 +14,14 @@ import {
     ColumnDef,
 } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
-import { Event, EventListProps } from '../../types/eventList';
+import { customerTicket, CustomerListProps } from '../../../types/admins/customer/Customers';
 import CustomerDetailModal from './CustomerDetail';
-const CustomerList: React.FC<EventListProps> = ({ data, onPageChange }) => {
+const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedData, setSelectedData] = useState<any>(null); // 선택된 고객 데이터
-    
-    const columns: ColumnDef<Event>[] = useMemo(
+
+    const columns: ColumnDef<customerTicket>[] = useMemo(
         () => [
             {
                 header: 'NO',

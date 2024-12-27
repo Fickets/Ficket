@@ -1,11 +1,8 @@
 import Sidebar from "../../components/@common/Sidebar.tsx";
-import EventList from "../../components/eventList/EventList.tsx";
-import EventSearchBar from "../../components/eventList/EventSearchBar.tsx";
 import CustomerSearchBar from "../../components/admin/customers/CustomerSearchBar.tsx";
 import { useEffect, useState } from "react";
-import { fetchEventListByCond } from "../../service/admineventlist/api.ts";
 import { ApiResponse, SearchParams } from "../../types/eventList.ts";
-import { fetchCustomers, fetchCustomerListByCond } from '../../service/admin/customer/customerService.ts'
+import { fetchCustomerListByCond } from '../../service/admin/customer/customerService.ts'
 import CustomerList from "../../components/admin/customers/CustomerList.tsx";
 const UserManagePage = () => {
     const [data, setData] = useState<ApiResponse>({

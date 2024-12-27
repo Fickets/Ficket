@@ -1,9 +1,9 @@
 import { AxiosResponse } from 'axios';
-import { Customer } from "../../../types/admins/Customers";
+import { Customer } from "../../../types/admins/customer/Customers";
 import { adminPrivateApi } from "../../../utils/http-common";
 import { ResponseData } from '../../../types/ApiResponseType';
 import { ApiResponse } from '../../../types/eventList';
-import { customerTicket } from "../../../types/admins/customer/CustomerTicket"
+import { customerTicket } from "../../../types/admins/customer/Customers"
 
 const url = "users"
 
