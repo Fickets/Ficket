@@ -1,4 +1,4 @@
-import { Genre } from './ReservationRateRanking.ts';
+import { Genre } from "./ReservationRateRanking.ts";
 
 export interface EventScheduledOpenResponse {
   eventId: number;
@@ -6,7 +6,8 @@ export interface EventScheduledOpenResponse {
   genreList: Genre[];
   ticketStartTime: string;
   mobilePosterUrl: string;
-  isNewPostEvent: boolean;
+  // isNewPostEvent: boolean;
+  newPostEvent: boolean;
 }
 
 export interface PageDTO<T> {
@@ -16,21 +17,14 @@ export interface PageDTO<T> {
   totalElements: number;
   totalPages: number;
   sortProperty: string;
-  sortDirection: 'ASC' | 'DESC' | 'none';
+  sortDirection: "ASC" | "DESC" | "none";
+  last: boolean;
 }
 
 export interface EventOpenListProps {
   events: PageDTO<EventScheduledOpenResponse>;
   searchParams: SearchParams;
   onSearchParamsChange: (newParams: Partial<SearchParams>) => void;
-}
-
-export interface MobileEventOpenListProps {
-  events: EventScheduledOpenResponse[];
-  sort: string;
-  handleSortChange: (value: string) => void;
-  genre: Genre | null;
-  handleGenreChange: (value: Genre) => void;
 }
 
 export interface SearchParams {
