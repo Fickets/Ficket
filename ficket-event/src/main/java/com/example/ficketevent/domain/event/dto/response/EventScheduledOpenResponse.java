@@ -17,16 +17,16 @@ public class EventScheduledOpenResponse {
     private List<Genre> genreList;
     private LocalDateTime ticketStartTime;
     private String mobilePosterUrl;
-    private boolean isNewPostEvent;
+    private boolean newPostEvent;
 
 
     @QueryProjection
-    public EventScheduledOpenResponse(Long eventId, String title, List<Genre> genreList, LocalDateTime ticketStartTime, String mobilePosterUrl, boolean isNewPostEvent) {
+    public EventScheduledOpenResponse(Long eventId, String title, List<Genre> genreList, LocalDateTime ticketStartTime, String mobilePosterUrl, boolean newPostEvent) {
         this.eventId = eventId;
         this.title = title;
         this.genreList = genreList;
         this.ticketStartTime = ticketStartTime;
         this.mobilePosterUrl = mobilePosterUrl;
-        this.isNewPostEvent = isNewPostEvent;
+        this.newPostEvent = newPostEvent;
     }
 }

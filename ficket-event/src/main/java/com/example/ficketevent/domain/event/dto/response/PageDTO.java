@@ -17,6 +17,7 @@ public class PageDTO<T> {
     private long totalPages;
     private String sortProperty; // 정렬 기준 필드
     private String sortDirection; // 정렬 방향 (ASC, DESC)
+    private boolean last;
 
     public static <T> PageDTO<T> toPageDTO(Page<T> page) {
         String sortProperty = "unsorted";
@@ -36,7 +37,8 @@ public class PageDTO<T> {
                 page.getTotalElements(), // 전체 데이터 개수
                 page.getTotalPages(),
                 sortProperty, // 정렬 기준 필드
-                sortDirection // 정렬 방향
+                sortDirection, // 정렬 방향
+                page.isLast()
         );
     }
 }
