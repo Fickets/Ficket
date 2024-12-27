@@ -113,10 +113,17 @@ public class SettlementService {
     }
 
     public PageResponse<SettlementRecordDto> getTotalSettlementList(SettlementReq settlementReq, Pageable pageable){
+        System.out.println("TEST " + settlementReq.toString());
         if(settlementReq.getEventName() == null){
             settlementReq.setEventName("");
         }
         List<EventTitleDto> eventIds = getGetEventIdByTitleCircuitBreaker(settlementReq);
+        for (EventTitleDto eventId : eventIds) {
+            Company company = companyRepository.findByCompanyId(eventId.getCompanyId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.COMPANY_NOT_FOUND));
+            eventId.setCompanyName(company.getCompanyName());
+        }
+
         List<SettlementRecordDto> results =  settlementCustomRepository.getTotalSettlementPage(settlementReq, eventIds);
 
         int start = (int) pageable.getOffset();
@@ -139,5 +146,29 @@ public class SettlementService {
                 "getEventIdByTitleCircuitBreaker",
                 () -> eventServiceClient.getEventIds(settlementReq.getEventName())
         );
+    }
+
+    public List<Settlement> getSettlementList(Long eventId) {
+        return settlementCustomRepository.findSettlementByEventId(eventId);
+    }
+
+    @Transactional
+    public void settlementClear(Long eventId){
+        SettlementRecord record = settlementRecordRepository.findByEventId(eventId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NO_SETTMENT_RECORD));
+        List<Settlement> settlements = settlementCustomRepository.findSettlementByEventIdAndStatus(eventId, SettlementStatus.SETTLEMENT);
+        for (Settlement settlement : settlements) {
+            record.setTotalNetSupplyAmount(record.getTotalNetSupplyAmount().add(settlement.getNetSupplyAmount()));
+            record.setTotalVat(record.getTotalVat().add(settlement.getVat()));
+            record.setTotalSupplyAmount(record.getTotalSupplyAmount().add(settlement.getSupplyValue()));
+            record.setTotalServiceFee(record.getTotalServiceFee().add(settlement.getServiceFee()));
+            record.setTotalRefundValue(record.getTotalRefundValue().add(settlement.getRefundValue()));
+            record.setTotalSettlementValue(record.getTotalSettlementValue().add(settlement.getSettlementValue()));
+            BigDecimal updatedSettlementValue = record.getTotalSettlementValue().subtract(settlement.getRefundValue());
+            record.setTotalSettlementValue(updatedSettlementValue);
+            settlement.setSettlementStatus(SettlementStatus.SETTLEMENT);
+        }
+        record.setSettlementStatus(SettlementStatus.SETTLEMENT);
+        settlementRecordRepository.save(record);
     }
 }

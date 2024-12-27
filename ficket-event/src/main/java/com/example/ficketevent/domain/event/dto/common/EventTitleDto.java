@@ -8,5 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 public class EventTitleDto {
     private Long eventId;
+    private Long companyId;
     private String title;
 }

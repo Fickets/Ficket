@@ -29,6 +29,9 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
     @Query("SELECT e.eventId FROM Event e WHERE e.ticketingTime BETWEEN :startOfDay AND :endOfDay")
     List<Long> findOpenEvents(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
 
-    @Query("SELECT new com.example.ficketevent.domain.event.dto.common.EventTitleDto(e.eventId, e.title) FROM Event e WHERE e.title LIKE %:title%")
+    @Query("SELECT new com.example.ficketevent.domain.event.dto.common.EventTitleDto(e.eventId, e.companyId, e.title) FROM Event e WHERE e.title LIKE %:title%")
     List<EventTitleDto> findEventIds(@Param("title")String title);
+
+    @Query("SELECT e.title FROM Event e")
+    List<String> findEventTitle();
 }

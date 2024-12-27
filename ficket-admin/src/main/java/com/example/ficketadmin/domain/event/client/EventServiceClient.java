@@ -19,6 +19,6 @@ public interface EventServiceClient {
     @GetMapping("/api/v1/events/{eventId}/day-count")
     DayCountResponse calculateDayCount(@PathVariable Long eventId);
 
-    @GetMapping("/api/v1/events/search-title")
+    @GetMapping("/api/v1/events/search-ids")
     List<EventTitleDto> getEventIds(@RequestParam String title);
 }

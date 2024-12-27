@@ -984,10 +984,11 @@ public class EventService {
     }
 
     public List<EventTitleDto> getTitleIds(String title){
-        if (title == null){
-            return eventRepository.findEventIds("");
-        }
-        return eventRepository.findEventIds(title);
+        List<EventTitleDto> res = eventRepository.findEventIds(title);
+        return res;
+    }
 
+    public List<String> getTitle(){
+        return eventRepository.findEventTitle();
     }
 }
