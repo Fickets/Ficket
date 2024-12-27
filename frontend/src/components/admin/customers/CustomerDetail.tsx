@@ -2,7 +2,7 @@ import React from 'react';
 import { useMemo, useState, useEffect } from 'react';
 
 import { refundMyTicket } from '../../../service/myTicket/api'
-import { customerTicket } from '../../../types/admins/customer/CustomerTicket';
+import { customerTicket } from '../../../types/admins/customer/Customers';
 import { customerTicketList, customerDelete } from "../../../service/admin/customer/customerService"
 import closeButtonimg from '../../../assets/customerDetail/closebutton.png';
 import myinfoimg from '../../../assets/customerDetail/myid.png';

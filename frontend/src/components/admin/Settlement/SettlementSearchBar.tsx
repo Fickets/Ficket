@@ -1,26 +1,25 @@
 import { FaDatabase } from "react-icons/fa";
 import "react-datepicker/dist/react-datepicker.css";
+import Select from "react-select";
 import DatePicker from "react-datepicker";
 import { useState, useEffect } from "react";
-import { CustomerSearchParams, CustomerSearchBarProps, Customer } from "../../../types/admins/customer/Customers.ts";
-import Select from "react-select";
-import { fetchCustomers } from "../../../service/admin/customer/customerService.ts";
-
-const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
-    const [localSearchParams, setLocalSearchParams] = useState<CustomerSearchParams>({
-        userId: null,
-        userName: null,
+import { SettlementSearchParams, SettlementSearchBarProps } from "../../../types/admins/Settlement/Settlement";
+import { fetchEvents } from '../../../service/admin/settlement/SettlementService';
+const SettlementSearchBar = ({ onSearch }: SettlementSearchBarProps) => {
+    const [localSearchParams, setLocalSearchParams] = useState<SettlementSearchParams>({
+        eventName: null,
+        settlementStatus: null,
         startDate: null,
-        endDate: null,
+        endDate: null
     });
-    const [customers, setCustomers] = useState<String[]>([]);
+    const [events, setEvents] = useState<String[]>([]);
 
     useEffect(() => {
-        fetchCustomers().then((response) => setCustomers(response));
+        fetchEvents().then((response) => setEvents(response));
     }, []);
 
     const handleInputChange = (
-        key: keyof CustomerSearchParams,
+        key: keyof SettlementSearchParams,
         value: string | number | null,
     ) => {
         setLocalSearchParams((prev) => ({
@@ -35,12 +34,13 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
 
     const handleReset = () => {
         setLocalSearchParams({
-            userId: null,
-            userName: null,
+            eventName: null,
+            settlementStatus: null,
             startDate: null,
             endDate: null,
         });
     };
+
 
     return (
         <div className="w-full bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -68,47 +68,30 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
                 </div>
             </div>
             <hr className="mb-6 border-gray-300" />
-
-            {/* 폼 */}
             <form className="grid grid-cols-6 gap-x-4 gap-y-4">
-                {/* 고객 식별번호 */}
-                <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        고객 식별번호
-                    </label>
-                    <input
-                        type="number"
-                        placeholder="고객 식별번호 입력"
-                        value={localSearchParams.userId || ""}
-                        onChange={(e) =>
-                            handleInputChange("userId", parseInt(e.target.value, 10) || null)
-                        }
-                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-500"
-                    />
-                </div>
                 {/* 고객 이름 */}
                 <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        고객 이름
+                        공연
                     </label>
                     <Select
-                        options={customers.map((customer) => ({
-                            label: `${customer}`,
-                            value: customer, // 고객 이름을 value로 설정
+                        options={events.map((event) => ({
+                            label: `${event}`,
+                            value: event, // 고객 이름을 value로 설정
                         }))}
                         value={
-                            localSearchParams.userName
+                            localSearchParams.eventName
                                 ? {
-                                    label: `${localSearchParams.userName}`,
-                                    value: localSearchParams.userName,
+                                    label: `${localSearchParams.eventName}`,
+                                    value: localSearchParams.eventName,
                                 }
                                 : null
                         }
                         onChange={(option) => {
                             // 고객 이름 선택 시 userId를 업데이트하지 않도록 설정
-                            handleInputChange("userName", option?.value || null);
+                            handleInputChange("eventName", option?.value || null);
                         }}
-                        placeholder="고객을 선택하세요"
+                        placeholder="공연을 선택하세요"
                         isClearable
                         styles={{
                             placeholder: (base) => ({
@@ -124,6 +107,24 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
                             }),
                         }}
                     />
+                </div>
+                {/**정산 상태 */}
+                <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        정산 상태
+                    </label>
+                    <select
+                        value={localSearchParams.settlementStatus || ""}  // 기본값 설정 (정산 상태가 없으면 빈 값으로 설정)
+                        onChange={(e) =>
+                            handleInputChange("settlementStatus", e.target.value || null)  // 값이 없으면 null로 처리
+                        }
+                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700"
+                    >
+                        <option value="">선택하세요</option>  {/* 기본 선택 옵션 */}
+                        <option value="SETTLEMENT">정산완료</option>
+                        <option value="PARTIAL_SETTLEMENT">부분정산</option>
+                        <option value="UNSETTLED">미정산</option>
+                    </select>
                 </div>
                 {/* 기간 조회 */}
                 <div className="col-span-2">
@@ -173,7 +174,7 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
                 </div>
             </form>
         </div>
-    );
-};
+    )
+}
 
-export default CustomerSearchBar;
+export default SettlementSearchBar;

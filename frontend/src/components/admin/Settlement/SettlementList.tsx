@@ -5,7 +5,7 @@ import {
     FaAngleRight,
     FaAngleDoubleRight,
 } from 'react-icons/fa';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     useReactTable,
     getCoreRowModel,
@@ -14,38 +14,58 @@ import {
     ColumnDef,
 } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
-import { customerTicket, CustomerListProps } from '../../../types/admins/customer/Customers';
-import CustomerDetailModal from './CustomerDetail';
-const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
-    const navigate = useNavigate();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+import { SettlementRecord, SettlementListProps } from '../../../types/admins/Settlement/Settlement';
+import SettlementDetailModal from './SettlementDetail';
+const SettlementListComp: React.FC<SettlementListProps> = ({ data, onPageChange }) => {
     const [selectedData, setSelectedData] = useState<any>(null); // 선택된 고객 데이터
 
-    const columns: ColumnDef<customerTicket>[] = useMemo(
+    useEffect(() => {
+        console.log("TEST FUCK")
+        console.log(data)
+    }, []);
+
+
+    const columns: ColumnDef<SettlementRecord>[] = useMemo(
         () => [
             {
                 header: 'NO',
                 cell: ({ row }) => row.index + 1 + data.page * data.size,
             },
             {
-                header: '고객 식별번호',
-                accessorKey: 'userId',
+                header: '거래처 PIN',
+                accessorKey: 'companyId',
             },
             {
-                header: '고객 이름',
-                accessorKey: 'userName',
+                header: '거래처명',
+                accessorKey: 'companyName',
             },
             {
-                header: '성별',
-                accessorKey: 'gender',
+                header: '공연 PIN',
+                accessorKey: 'eventId',
             },
             {
-                header: '출생연도',
-                accessorKey: 'birth',
+                header: '공연 제목',
+                accessorKey: 'title',
             },
             {
-                header: '가입일',
-                accessorKey: 'createdAt',
+                header: '총 공급가액',
+                accessorKey: 'totalNetSupplyAmount',
+            },
+            {
+                header: '총 서비스료',
+                accessorKey: 'totalServiceFee',
+            },
+            {
+                header: '총 거래가액',
+                accessorKey: 'totalSupplyAmount',
+            },
+            {
+                header: '총 정산금액',
+                accessorKey: 'totalSettlementValue',
+            },
+            {
+                header: '정산 여부',
+                accessorKey: 'settlementStatus',
                 cell: ({ getValue }) => {
                     const value = getValue() as string[]; // 반환값을 string[]로 타입 단언
                     if (!Array.isArray(value) || value.length === 0) return null;
@@ -116,7 +136,6 @@ const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
     });
-
     const renderPageControls = () => {
         const { pageIndex } = table.getState().pagination;
 
@@ -173,7 +192,9 @@ const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
                 </button>
             </div>
         );
+
     };
+
     const userListClick = (rowId: string) => {
         const row = table.getRowModel().rows.find(r => r.id === rowId);
         if (row) {
@@ -184,11 +205,12 @@ const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
         }
     };
 
+    // 디테일 페이지 모달 
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const closeModal = () => {
         setIsModalOpen(false); // 모달 닫기
         setSelectedData(null); // 선택된 데이터 초기화
     };
-
     return (
         <div className="w-full bg-white rounded-lg shadow-md p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
@@ -198,7 +220,6 @@ const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
                 </div>
             </div>
             <hr className="mb-6 border-gray-300" />
-
             <table className="table-auto w-full border-collapse border border-gray-300">
                 <thead className="bg-gray-100">
                     {table.getHeaderGroups().map((headerGroup) => (
@@ -218,7 +239,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
                     ))}
                 </thead>
                 <tbody>
-                    <CustomerDetailModal isOpen={isModalOpen} onClose={closeModal} data={selectedData} />
+                    <SettlementDetailModal isOpen={isModalOpen} onClose={closeModal} data={selectedData} />
                     {table.getRowModel().rows.map((row) => (
                         <tr
                             key={row.id}
@@ -239,10 +260,8 @@ const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
                     ))}
                 </tbody>
             </table>
-
-            {renderPageControls()}
-        </div >
-    );
+        </div>
+    )
 };
 
-export default CustomerList;
+export default SettlementListComp;

@@ -1,10 +1,10 @@
 import Sidebar from "../../components/@common/Sidebar.tsx";
-import CustomerSearchBar from "../../components/admin/customers/CustomerSearchBar.tsx";
+import SettlementSearchBar from "../../components/admin/Settlement/SettlementSearchBar.tsx";
 import { useEffect, useState } from "react";
-import { ApiResponse, SearchParams } from "../../types/eventList.ts";
-import { fetchCustomerListByCond } from '../../service/admin/customer/customerService.ts'
-import CustomerList from "../../components/admin/customers/CustomerList.tsx";
-const UserManagePage = () => {
+import { ApiResponse, SettlementSearchParams } from "../../types/admins/Settlement/Settlement.ts";
+import { fetchSettlementListByCond } from '../../service/admin/settlement/settlementService.ts'
+import SettlementListComp from "../../components/admin/Settlement/SettlementList.tsx";
+const SettlementManagePage = () => {
     const [data, setData] = useState<ApiResponse>({
         content: [],
         page: 0,
@@ -13,26 +13,26 @@ const UserManagePage = () => {
         totalPages: 0,
     });
 
-    const [searchParams, setSearchParams] = useState<SearchParams>({
+    const [searchParams, setSearchParams] = useState<SettlementSearchParams>({
         page: 0,
         size: 10,
         sort: "string",
     });
 
     useEffect(() => {
-        const fetchCustomers = async () => {
+        const fetchSettlements = async () => {
             try {
-                const response = await fetchCustomerListByCond(searchParams); // 서버에서 데이터 가져오기
+                const response = await fetchSettlementListByCond(searchParams); // 서버에서 데이터 가져오기
                 setData(response);
             } catch (error) {
-                console.error("Error fetching customers:", error);
+                console.error("Error fetching settlements:", error);
             }
         };
 
-        fetchCustomers();
+        fetchSettlements();
     }, [searchParams]); // searchParams 변경 시 데이터 갱신
 
-    const handleSearch = (newParams: SearchParams) => {
+    const handleSearch = (newParams: SettlementSearchParams) => {
         setSearchParams((prev) => ({
             ...prev,
             ...newParams, // 검색 조건 업데이트
@@ -50,14 +50,14 @@ const UserManagePage = () => {
     return (
         <div className="flex h-screen bg-[#F0F2F5]">
             <div className="w-64 h-full">
-                <Sidebar currentStep={"customers"} />
+                <Sidebar currentStep={"settlements"} />
             </div>
             <div className="flex-1 p-8 overflow-auto space-y-6">
-                <CustomerSearchBar onSearch={handleSearch} />
-                <CustomerList data={data} onPageChange={handlePageChange} />
+                <SettlementSearchBar onSearch={handleSearch} />
+                <SettlementListComp data={data} onPageChange={handlePageChange} />
             </div>
         </div>
     );
 };
 
-export default UserManagePage;
+export default SettlementManagePage;

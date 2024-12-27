@@ -28,10 +28,10 @@ const Sidebar = ({ currentStep }: { currentStep: string }) => {
       path: '/admin/customers',
     },
     {
-      key: 'finance',
+      key: 'settlements',
       label: '정산관리',
       icon: <FaRegFileAlt />,
-      path: '/finance',
+      path: '/admin/settlements',
     },
   ];
 
@@ -87,8 +87,8 @@ const Sidebar = ({ currentStep }: { currentStep: string }) => {
             key={item.key}
             to={item.path}
             className={`relative flex items-center w-full px-4 py-2 text-base font-medium rounded-lg transition-colors ${currentStep === item.key
-                ? 'bg-gray-600 text-white'
-                : 'hover:bg-gray-600'
+              ? 'bg-gray-600 text-white'
+              : 'hover:bg-gray-600'
               }`}
           >
             {/* 활성화된 메뉴의 색상 막대 */}

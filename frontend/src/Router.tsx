@@ -21,7 +21,7 @@ import Queue from "./pages/queue/Queue.tsx";
 import SuspendedUserPage from "./pages/login/Suspended.tsx";
 import UserManagePage from "./pages/admin/Customers.tsx";
 import EventScheduledOpen from "./pages/eventScheduledOpen/EventScheduledOpen.tsx";
-
+import SettlementManagePage from './pages/admin/Settlement.tsx';
 export default function Router() {
   const user = useStore(userStore);
   const navi = useNavigate();
@@ -47,6 +47,7 @@ export default function Router() {
       />
       <Route path="/events/:eventId/access" element={<TemporaryUrlPage />} />
       <Route path="/admin/customers" element={<UserManagePage />} />
+      <Route path="/admin/settlements" element={<SettlementManagePage />} />
 
       {/* FICKET USER TICKETING*/}
       <Route path="ticketing/queue/:eventId" element={<Queue />} />
