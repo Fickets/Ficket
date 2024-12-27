@@ -268,8 +268,14 @@ public class EventController {
         return eventService.getCompanyId(ticketId);
     }
 
-    @GetMapping("/search-title")
-    public List<EventTitleDto> searchTitle(@RequestParam String title){
+    @GetMapping("/search-ids")
+    public List<EventTitleDto> searchIds(@RequestParam String title){
         return eventService.getTitleIds(title);
+    }
+
+
+    @GetMapping("/search-title")
+    public List<String> searchTitle() {
+        return eventService.getTitle();
     }
 }
