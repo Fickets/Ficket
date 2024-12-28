@@ -28,38 +28,42 @@ const SeatSetting = ({
   >([]);
   const [currentGrade, setCurrentGrade] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
-  const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  const imageRef = useRef<HTMLImageElement | null>(null);
-  const [scale, setScale] = useState({ x: 0.95, y: 0.95 });
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  // Reset state when stageId changes
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+  const [dragEnd, setDragEnd] = useState<{ x: number; y: number } | null>(null);
+
+  const calculateOriginalSize = (seats: SeatInfo[]) => {
+    const maxX = Math.max(...seats.map((seat) => seat.x));
+    const maxY = Math.max(...seats.map((seat) => seat.y));
+    return { width: maxX, height: maxY };
+  };
+
   useEffect(() => {
-    setSeatCoordinates([]); // 좌석 좌표 초기화
-    setSelectedSeats([]); // 선택된 좌석 초기화
-    setGrades([]); // 등급 초기화
-    setCurrentGrade(""); // 입력 중인 등급 초기화
-    setCurrentPrice(""); // 입력 중인 가격 초기화
-  }, [stageId]);
-
-  useEffect(() => {
-    const updateScale = () => {
-      if (imageRef.current) {
-        const { naturalWidth, naturalHeight, clientWidth, clientHeight } =
-          imageRef.current;
-        setScale({
-          x: clientWidth / naturalWidth,
-          y: clientHeight / naturalHeight,
+    const updateContainerSize = () => {
+      if (containerRef.current) {
+        setContainerSize({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight,
         });
       }
     };
 
-    updateScale();
-    window.addEventListener("resize", updateScale);
-    return () => window.removeEventListener("resize", updateScale);
-  }, [stageImg]);
+    window.addEventListener("resize", updateContainerSize);
+    updateContainerSize();
+
+    return () => {
+      window.removeEventListener("resize", updateContainerSize);
+    };
+  }, []);
 
   useEffect(() => {
     const loadSeatData = async () => {
@@ -67,7 +71,6 @@ const SeatSetting = ({
 
       setLoading(true);
       setError("");
-      setSeatCoordinates([]);
 
       try {
         const seats = await fetchStageSeats(stageId);
@@ -82,9 +85,19 @@ const SeatSetting = ({
     loadSeatData();
   }, [stageId]);
 
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    if (containerRef.current) {
+      setContainerSize({
+        width: containerRef.current.offsetWidth,
+        height: containerRef.current.offsetHeight,
+      });
+    }
+  };
+
   const toggleSeatSelection = (seat: SeatInfo) => {
     if (getSeatGrade(seat)) {
-      return; // 등급이 지정된 좌석은 선택 불가
+      return;
     }
 
     setSelectedSeats((prev) =>
@@ -92,24 +105,6 @@ const SeatSetting = ({
         ? prev.filter((selected) => selected.seatId !== seat.seatId)
         : [...prev, seat],
     );
-  };
-
-  const handleMouseDown = () => {
-    setIsDragging(true);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleSeatHover = (seat: SeatInfo) => {
-    if (isDragging && !getSeatGrade(seat)) {
-      setSelectedSeats((prev) =>
-        prev.some((selected) => selected.seatId === seat.seatId)
-          ? prev
-          : [...prev, seat],
-      );
-    }
   };
 
   const handleAddGrade = () => {
@@ -121,7 +116,7 @@ const SeatSetting = ({
       return;
     }
 
-    const color = getRandomColor(); // 등급별 색상 생성
+    const color = getRandomColor();
 
     setGrades((prev) => [
       ...prev,
@@ -133,7 +128,7 @@ const SeatSetting = ({
       },
     ]);
 
-    setSelectedSeats([]); // 선택 초기화
+    setSelectedSeats([]);
     setCurrentGrade("");
     setCurrentPrice("");
   };
@@ -156,7 +151,6 @@ const SeatSetting = ({
 
     onChange({ seats: formattedGrades });
 
-    // 알림 표시
     alert("좌석 설정이 저장되었습니다.");
   };
 
@@ -164,6 +158,51 @@ const SeatSetting = ({
     return grades.find((grade) =>
       grade.seats.some((s) => s.seatId === seat.seatId),
     );
+  };
+
+  const { width: originalWidth, height: originalHeight } =
+    calculateOriginalSize(seatCoordinates);
+
+  const calculatePosition = (x: number, y: number) => {
+    const scaledX = (x / originalWidth) * containerSize.width * 0.91;
+    const scaledY = (y / originalHeight) * containerSize.height * 0.92;
+    return { scaledX, scaledY };
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY });
+    setDragEnd(null);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragStart(null);
+    setDragEnd(null);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !dragStart || !imageLoaded) return;
+
+    const { offsetX, offsetY } = e.nativeEvent;
+    setDragEnd({ x: offsetX, y: offsetY });
+
+    const xStart = Math.min(dragStart.x, offsetX);
+    const yStart = Math.min(dragStart.y, offsetY);
+    const xEnd = Math.max(dragStart.x, offsetX);
+    const yEnd = Math.max(dragStart.y, offsetY);
+
+    const selected = seatCoordinates.filter((seat) => {
+      const { scaledX, scaledY } = calculatePosition(seat.x, seat.y);
+      return (
+        scaledX >= xStart &&
+        scaledX <= xEnd &&
+        scaledY >= yStart &&
+        scaledY <= yEnd
+      );
+    });
+
+    setSelectedSeats((prev) => [...new Set([...prev, ...selected])]);
   };
 
   if (loading) {
@@ -175,56 +214,65 @@ const SeatSetting = ({
   }
 
   return (
-    <div
-      className="flex flex-col p-4 bg-white rounded-xl shadow-md"
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-    >
+    <div className="flex flex-col p-4 bg-white rounded-xl shadow-md">
       <h2 className="text-lg font-semibold mb-4">좌석 설정</h2>
       {stageImg ? (
         <div className="flex gap-4">
-          {/* 좌석 맵 */}
-          <div className="flex-1 relative border border-gray-300 h-[600px]">
+          <div
+            ref={containerRef}
+            className="relative border border-gray-300 h-[600px] w-[700px]"
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            onDragStart={(e) => e.preventDefault()}
+          >
             <img
-              ref={imageRef}
               src={stageImg}
               alt="Stage Map"
-              className="absolute top-0 left-0 w-full h-full object-contain"
-              style={{ objectPosition: "left top" }}
+              onLoad={handleImageLoad}
+              className="top-0 left-0 w-full h-full object-fill no-drag pointer-events-none"
             />
-            {seatCoordinates.map((seat) => {
-              const seatGrade = getSeatGrade(seat);
-              const isSelected = selectedSeats.some(
-                (selected) => selected.seatId === seat.seatId,
-              );
+            {imageLoaded &&
+              seatCoordinates.map((seat) => {
+                const seatGrade = getSeatGrade(seat);
+                const isSelected = selectedSeats.some(
+                  (selected) => selected.seatId === seat.seatId,
+                );
 
-              // 좌표 변환
-              const adjustedX = seat.x * scale.x;
-              const adjustedY = seat.y * scale.y;
+                const { scaledX, scaledY } = calculatePosition(seat.x, seat.y);
 
-              return (
-                <button
-                  key={seat.seatId}
-                  className={`absolute w-[9px] h-[9px] border ${
-                    isSelected ? "bg-red-500" : seatGrade ? "" : "bg-white"
-                  }`}
-                  style={{
-                    backgroundColor: seatGrade?.color || "",
-                    borderColor: seatGrade?.color || "gray",
-                    top: `${adjustedY}px`,
-                    left: `${adjustedX}px`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                  onMouseEnter={() => handleSeatHover(seat)}
-                  onClick={() => toggleSeatSelection(seat)}
-                  disabled={!!seatGrade}
-                />
-              );
-            })}
+                return (
+                  <button
+                    key={seat.seatId}
+                    className={`absolute w-[10px] h-[10px] border ${
+                      isSelected ? "bg-red-500" : seatGrade ? "" : "bg-white"
+                    }`}
+                    style={{
+                      backgroundColor: seatGrade?.color || "",
+                      borderColor: seatGrade?.color || "gray",
+                      top: `${scaledY}px`,
+                      left: `${scaledX}px`,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                    onClick={() => toggleSeatSelection(seat)}
+                    disabled={!!seatGrade}
+                  />
+                );
+              })}
+            {isDragging && dragStart && dragEnd && (
+              <div
+                className="absolute bg-blue-200 opacity-50 border border-blue-500"
+                style={{
+                  top: `${Math.min(dragStart.y, dragEnd.y)}px`,
+                  left: `${Math.min(dragStart.x, dragEnd.x)}px`,
+                  width: `${Math.abs(dragEnd.x - dragStart.x)}px`,
+                  height: `${Math.abs(dragEnd.y - dragStart.y)}px`,
+                  pointerEvents: "none",
+                }}
+              ></div>
+            )}
           </div>
-
-          {/* 우측 패널 */}
-          <div className="w-[200px] p-4 border-l border-gray-300">
+          <div className="w-[250px] p-4 border-l border-gray-300">
             <h3 className="text-md font-semibold mb-4">등급 설정</h3>
             <div className="mb-4">
               <input
@@ -248,8 +296,6 @@ const SeatSetting = ({
                 설정
               </button>
             </div>
-
-            {/* 선택된 좌석 목록 */}
             <div className="mb-4 overflow-y-auto">
               <h4 className="text-sm font-semibold mb-2">
                 선택(열-행) {selectedSeats.length}석
@@ -262,8 +308,6 @@ const SeatSetting = ({
                 ))}
               </ul>
             </div>
-
-            {/* 등급 목록 */}
             <div>
               <h4 className="text-[15px] font-semibold mb-2">등급 목록</h4>
               {grades.map(({ grade, price, seats, color }) => (
@@ -276,9 +320,9 @@ const SeatSetting = ({
                       className="w-2.5 h-2.5 rounded-full"
                       style={{ backgroundColor: color }}
                     ></span>
-                    <span className="text-[10px]">{`${grade} ${seats.length}석`}</span>
+                    <span className="text-[13px]">{`${grade} ${seats.length}석`}</span>
                   </div>
-                  <span className="text-[10px]">{`${price.toLocaleString()}원`}</span>
+                  <span className="text-[13px]">{`${price.toLocaleString()}원`}</span>
                   <button
                     onClick={() => handleRemoveGrade(grade)}
                     className="ml-2 text-red-500 text-[10px]"
@@ -288,7 +332,6 @@ const SeatSetting = ({
                 </div>
               ))}
             </div>
-
             <button
               onClick={handleSaveGrades}
               className="w-full mt-4 bg-green-500 text-white px-4 py-2 rounded"

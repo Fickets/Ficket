@@ -79,7 +79,7 @@ const EditEvent = ({ eventId }: { eventId: string }) => {
       console.log(mergedData);
       await updateEvent(numericEventId, formData);
       alert("행사가 성공적으로 수정되었습니다.");
-      navigate("/admin/events/1"); // 수정 후 리스트 페이지로 이동
+      navigate(`/admin/events/${eventId}`); // 수정 후 리스트 페이지로 이동
     } catch (error) {
       console.error("Error updating event:", error);
       alert("행사 수정에 실패했습니다.");

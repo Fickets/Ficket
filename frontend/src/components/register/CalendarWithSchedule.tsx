@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { EventDate, CalendarWithScheduleProps } from '../../types/register';
+import { useState } from "react";
+import { EventDate, CalendarWithScheduleProps } from "../../types/register";
 
 const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -7,13 +7,13 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
     [key: string]: { round: number; time: string }[];
   }>({});
 
-  const [hour, setHour] = useState<string>('00');
-  const [minute, setMinute] = useState<string>('00');
+  const [hour, setHour] = useState<string>("00");
+  const [minute, setMinute] = useState<string>("00");
   const [currentMonth, setCurrentMonth] = useState<number>(
-    new Date().getMonth() + 1
+    new Date().getMonth() + 1,
   );
   const [currentYear, setCurrentYear] = useState<number>(
-    new Date().getFullYear()
+    new Date().getFullYear(),
   );
 
   const today = new Date();
@@ -24,7 +24,7 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
       return; // 지나간 날짜는 선택하지 못하게 막기
     }
     setSelectedDate(
-      `${currentYear}-${String(currentMonth).padStart(2, '0')}-${day.padStart(2, '0')}`
+      `${currentYear}-${String(currentMonth).padStart(2, "0")}-${day.padStart(2, "0")}`,
     );
   };
 
@@ -37,10 +37,10 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
 
         // 중복 시간 체크
         const isDuplicate = existingSessions.some(
-          (session) => session.time === timeString
+          (session) => session.time === timeString,
         );
         if (isDuplicate) {
-          alert('같은 시간에 회차를 추가할 수 없습니다.');
+          alert("같은 시간에 회차를 추가할 수 없습니다.");
           return prev; // 중복 시간일 경우 기존 상태 반환
         }
 
@@ -52,8 +52,8 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
 
         // 시간 순서대로 정렬
         updatedSessions.sort((a, b) => {
-          const [aHour, aMinute] = a.time.split(':').map(Number);
-          const [bHour, bMinute] = b.time.split(':').map(Number);
+          const [aHour, aMinute] = a.time.split(":").map(Number);
+          const [bHour, bMinute] = b.time.split(":").map(Number);
           return aHour - bHour || aMinute - bMinute;
         });
 
@@ -72,7 +72,7 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
           ([date, sessions]) => ({
             date,
             sessions,
-          })
+          }),
         );
 
         onChange({ eventDate }); // 부모로 전달
@@ -89,7 +89,7 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
 
         // 삭제된 시간 제외
         const updatedSessions = existingSessions.filter(
-          (session) => session.time !== time
+          (session) => session.time !== time,
         );
 
         // 회차 번호 재할당
@@ -97,17 +97,19 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
           session.round = index + 1;
         });
 
-        const updatedSchedule = {
-          ...prev,
-          [selectedDate]: updatedSessions,
-        };
+        const updatedSchedule = { ...prev };
+        if (updatedSessions.length === 0) {
+          delete updatedSchedule[selectedDate]; // 빈 배열이면 키 삭제
+        } else {
+          updatedSchedule[selectedDate] = updatedSessions; // 업데이트된 세션 할당
+        }
 
         // 부모 컴포넌트에 전달할 데이터 변환
         const eventDate: EventDate[] = Object.entries(updatedSchedule).map(
           ([date, sessions]) => ({
             date,
             sessions,
-          })
+          }),
         );
 
         onChange({ eventDate }); // 부모로 전달
@@ -117,8 +119,8 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
     }
   };
 
-  const handleMonthChange = (direction: 'prev' | 'next') => {
-    if (direction === 'prev') {
+  const handleMonthChange = (direction: "prev" | "next") => {
+    if (direction === "prev") {
       if (currentMonth === 1) {
         setCurrentMonth(12);
         setCurrentYear((prev) => prev - 1);
@@ -147,7 +149,7 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
         <div className="w-1/2 bg-gray-100 rounded p-4">
           <div className="flex justify-between items-center mb-4">
             <button
-              onClick={() => handleMonthChange('prev')}
+              onClick={() => handleMonthChange("prev")}
               className="bg-gray-300 text-black px-2 py-1 rounded"
             >
               이전 달
@@ -156,14 +158,14 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
               {currentYear}년 {currentMonth}월
             </h4>
             <button
-              onClick={() => handleMonthChange('next')}
+              onClick={() => handleMonthChange("next")}
               className="bg-gray-300 text-black px-2 py-1 rounded"
             >
               다음 달
             </button>
           </div>
           <div className="grid grid-cols-7 gap-2 text-center">
-            {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+            {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
               <div key={day} className="font-semibold">
                 {day}
               </div>
@@ -173,9 +175,9 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
             ))}
             {[...Array(daysInMonth)].map((_, index) => {
               const day = (index + 1).toString();
-              const dateString = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${day.padStart(2, '0')}`;
+              const dateString = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${day.padStart(2, "0")}`;
               const isSelected = selectedDate?.endsWith(
-                `-${day.padStart(2, '0')}`
+                `-${day.padStart(2, "0")}`,
               );
               const hasSchedule = schedule[dateString]?.length > 0;
               const isPast =
@@ -186,12 +188,12 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
                   key={day}
                   className={`p-2 rounded cursor-pointer ${
                     isPast
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : isSelected
-                        ? 'bg-red-400 text-white'
+                        ? "bg-red-400 text-white"
                         : hasSchedule
-                          ? 'bg-yellow-300 text-black'
-                          : 'bg-white hover:bg-gray-200'
+                          ? "bg-yellow-300 text-black"
+                          : "bg-white hover:bg-gray-200"
                   }`}
                   onClick={() => !isPast && handleDateClick(day)}
                 >
@@ -211,8 +213,8 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
               className="border border-gray-300 rounded px-2 py-1 mr-2"
             >
               {Array.from({ length: 24 }, (_, i) => i).map((h) => (
-                <option key={h} value={String(h).padStart(2, '0')}>
-                  {String(h).padStart(2, '0')}시
+                <option key={h} value={String(h).padStart(2, "0")}>
+                  {String(h).padStart(2, "0")}시
                 </option>
               ))}
             </select>
@@ -221,7 +223,7 @@ const CalendarWithSchedule = ({ onChange }: CalendarWithScheduleProps) => {
               onChange={(e) => setMinute(e.target.value)}
               className="border border-gray-300 rounded px-2 py-1 mr-2"
             >
-              {['00', '30'].map((m) => (
+              {["00", "30"].map((m) => (
                 <option key={m} value={m}>
                   {m}분
                 </option>
