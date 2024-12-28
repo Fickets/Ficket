@@ -20,7 +20,7 @@ def get_face_embedding(image_data):
     if faces:
         return faces[0].embedding
     else:
-        print("No face detected in the provided image data")
+        print("No face_app detected in the provided image data")
         return None
 
 def cosine_similarity(embedding1, embedding2):

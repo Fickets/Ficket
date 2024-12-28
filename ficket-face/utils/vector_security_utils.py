@@ -1,0 +1,19 @@
+import base64
+import numpy as np
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+
+def encrypt_vector(embedding, secret_key):
+    data = embedding.tobytes()
+    cipher = AES.new(secret_key, AES.MODE_CBC)
+    ct_bytes = cipher.encrypt(pad(data, AES.block_size))
+    iv = base64.b64encode(cipher.iv).decode('utf-8')
+    ct = base64.b64encode(ct_bytes).decode('utf-8')
+    return iv + ct
+
+def decrypt_vector(encrypted_data, secret_key):
+    iv = base64.b64decode(encrypted_data[:24])
+    ct = base64.b64decode(encrypted_data[24:])
+    cipher = AES.new(secret_key, AES.MODE_CBC, iv)
+    decrypted_data = unpad(cipher.decrypt(ct), AES.block_size)
+    return np.frombuffer(decrypted_data, dtype=np.float32)

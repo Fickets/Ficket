@@ -179,10 +179,10 @@ spring:
             - Method=GET,POST
           filters:
             - RewritePath=/face-service/(?<segment>.*), /${segment}
-        - id: face-service
-          uri: lb://face-service
-          predicates:
-            - Path=/swagger.json
+#        - id: face-service
+#          uri: lb://face-service
+#          predicates:
+#            - Path=/swagger.json
         - id: face-service
           uri: lb://face-service
           predicates:
@@ -296,7 +296,7 @@ springdoc:
       - name: queue-service
         url: http://localhost:9000/queue-swagger/v3/api-docs
       - name: face-service
-        url: http://localhost:5000/swagger.json
+        url: http://localhost:5000/api/v1/faces/swagger.json
     persistAuthorization: true
     use-root-path: true
 

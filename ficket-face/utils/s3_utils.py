@@ -1,5 +1,6 @@
 import uuid
-from s3_config import s3, bucket_name
+from config.s3_config import s3, bucket_name
+
 
 def upload_file_to_s3(file, folder="faces"):
     """S3에 파일 업로드"""
@@ -14,7 +15,7 @@ def upload_file_to_s3(file, folder="faces"):
     #     "SSECustomerKey": "<your-base64-encoded-key>",
     #     "SSECustomerKeyMD5": "<your-base64-encoded-md5>"
     # }
-    
+
     s3.upload_fileobj(
         file,
         bucket_name,
@@ -23,3 +24,13 @@ def upload_file_to_s3(file, folder="faces"):
     )
     file_url = f"https://{bucket_name}.s3.amazonaws.com/{unique_filename}"
     return file_url
+
+
+def delete_file_from_s3(file_url):
+    """S3에서 파일 삭제"""
+
+    # 파일 경로 추출
+    file_key = file_url.split(f"https://{bucket_name}.s3.amazonaws.com/")[-1]
+
+    # S3에서 파일 삭제
+    s3.delete_object(Bucket=bucket_name, Key=file_key)
