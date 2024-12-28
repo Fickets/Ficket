@@ -1,5 +1,5 @@
 import uuid
-from s3_config import s3, bucket_name
+from config.s3_config import s3, bucket_name
 
 def upload_file_to_s3(file, folder="faces"):
     """S3에 파일 업로드"""
