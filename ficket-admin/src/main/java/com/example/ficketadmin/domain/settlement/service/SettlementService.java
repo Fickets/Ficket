@@ -171,4 +171,20 @@ public class SettlementService {
         record.setSettlementStatus(SettlementStatus.SETTLEMENT);
         settlementRecordRepository.save(record);
     }
+
+    @Transactional
+    public void refundSettlement(Long orderId, BigDecimal refund){
+        Settlement settlement = settlementRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NO_SETTMENT_RECORD));
+        SettlementRecord record =  settlement.getSettlementRecord();
+
+        settlement.setRefundValue(refund);
+        settlement.setSettlementValue(settlement.getSettlementValue().subtract(refund));
+
+        record.setTotalRefundValue(record.getTotalRefundValue().add(refund));
+        record.setTotalSettlementValue(record.getTotalSettlementValue().subtract(refund));
+        record.setTotalServiceFee(record.getTotalServiceFee().subtract(settlement.getServiceFee()));
+
+        settlement.setServiceFee(BigDecimal.ZERO);
+    }
 }

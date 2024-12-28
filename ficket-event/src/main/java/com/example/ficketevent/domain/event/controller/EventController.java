@@ -263,19 +263,56 @@ public class EventController {
         return ResponseEntity.ok(eventService.searchOpenEvent(eventScheduledOpenSearchCond, pageable));
     }
 
+    /**
+     * 이벤트,회사 PK 조회 API
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-26
+     * 변경 이력:
+     * - 2024-12-26 최용수: 초기 작성
+     */
     @GetMapping("/company-id")
     public List<Long> getCompanyId(@RequestParam Long ticketId){
         return eventService.getCompanyId(ticketId);
     }
 
+    /**
+     * 제목 포함 이벤트 찾기 API
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-26
+     * 변경 이력:
+     * - 2024-12-26 최용수: 초기 작성
+     */
     @GetMapping("/search-ids")
     public List<EventTitleDto> searchIds(@RequestParam String title){
         return eventService.getTitleIds(title);
     }
 
-
+    /**
+     * 모든 이벤트 제목 조회 API
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-26
+     * 변경 이력:
+     * - 2024-12-26 최용수: 초기 작성
+     */
     @GetMapping("/search-title")
     public List<String> searchTitle() {
         return eventService.getTitle();
+    }
+
+    /**
+     * 오픈 티켓 최신 6개  조회 API
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-27
+     * 변경 이력:
+     * - 2024-12-27 최용수: 초기 작성
+     */
+    @GetMapping("open-recent")
+    public ResponseEntity<List<SimpleEvent>> getOpenRecent(){
+        List<SimpleEvent> res = eventService.getOpenRecent();
+        return ResponseEntity.ok(res);
     }
 }

@@ -321,6 +321,12 @@ public class OrderService {
         // 예매일(orderDateTime)과 현재일(currentDateTime)이 같으면 즉시 전체 환불 처리
         if (orderDateTime.toLocalDate().equals(currentDateTime.toLocalDate())) {
             processFullRefund(order, order.getOrderPrice());
+            // settlement 수정
+            executeWithCircuitBreaker(
+                    circuitBreakerRegistry,
+                    "refundSettlementCircuitBreaker",
+                    () -> adminServiceClient.refundSettlement(orderId, BigDecimal.ZERO)
+            );
             return; // 환불 처리 완료 후 메서드 종료
         }
 
@@ -336,10 +342,23 @@ public class OrderService {
         if (refundFeeDescription.equals("없음")) {
             // 수수료가 없는 경우 - 전체 금액 환불 처리
             processFullRefund(order, order.getOrderPrice());
+            // settlement 수정
+            executeWithCircuitBreaker(
+                    circuitBreakerRegistry,
+                    "refundSettlementCircuitBreaker",
+                    () -> adminServiceClient.refundSettlement(orderId, BigDecimal.ZERO)
+            );
+
         } else {
             // 수수료가 적용되는 경우 - 부분 환불 처리
             BigDecimal refundAmount = calculateRefundAmount(order.getOrderPrice(), refundFeeDescription);
             processPartialRefund(order, refundAmount);
+            // settlement 수정
+            executeWithCircuitBreaker(
+                    circuitBreakerRegistry,
+                    "refundSettlementCircuitBreaker",
+                    () -> adminServiceClient.refundSettlement(orderId, refundAmount)
+            );
         }
     }
 

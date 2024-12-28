@@ -4,6 +4,7 @@ import com.example.ficketevent.domain.event.dto.common.EventTitleDto;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.response.TicketEventResponse;
 import com.example.ficketevent.domain.event.entity.Event;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,4 +35,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
 
     @Query("SELECT e.title FROM Event e")
     List<String> findEventTitle();
+
+    @Query("SELECT e FROM Event e WHERE e.ticketingTime <= :currentDateTime ORDER BY e.ticketingTime DESC")
+    List<Event> findTop6EventsByTicketingTimeBeforeOrEquals(@Param("currentDateTime") LocalDateTime currentDateTime, Pageable pageable);
+
+
+
 }

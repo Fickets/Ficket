@@ -27,6 +27,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -990,5 +991,24 @@ public class EventService {
 
     public List<String> getTitle(){
         return eventRepository.findEventTitle();
+    }
+
+    public List<SimpleEvent> getOpenRecent(){
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        Pageable pageable = PageRequest.of(0, 6); // 첫 페이지, 6개 제한
+        List<Event> openRecent = eventRepository.findTop6EventsByTicketingTimeBeforeOrEquals(currentDateTime, pageable);
+
+        List<SimpleEvent> res = openRecent.stream()
+                .map(event -> {
+                    return SimpleEvent.builder()
+                            .eventId(event.getEventId())
+                            .title(event.getTitle())
+                            .date(event.getTicketingTime().toString())
+                            .pcImg(event.getEventImage().getPosterPcMain2Url())
+                            .mobileImg(event.getEventImage().getPosterMobileUrl())
+                            .build();
+                })
+                .toList();
+        return res;
     }
 }
