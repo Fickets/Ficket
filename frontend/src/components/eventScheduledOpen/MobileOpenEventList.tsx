@@ -3,7 +3,7 @@ import {
   PageDTO,
   SearchParams,
 } from "../../types/eventScheduledOpen.ts";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Genre } from "../../types/ReservationRateRanking.ts";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useNavigate } from "react-router-dom";
@@ -26,91 +26,67 @@ const MobileEventOpenList = () => {
   const [response, setResponse] =
     useState<PageDTO<EventScheduledOpenResponse> | null>(null);
 
-  const fetchInitialEvents = useCallback(async () => {
+  // 새로운 데이터를 가져오는 로직
+  const fetchEvents = async (params: SearchParams) => {
     try {
-      console.log("Fetching initial events with params:", searchParams);
-      const initialResponse = await searchEventScheduledOpen(searchParams);
-      console.log("Initial response:", initialResponse);
+      console.log("Fetching events with params:", params);
+      const fetchedResponse = await searchEventScheduledOpen(params);
 
       setResponse((prev) => {
-        if (!prev || searchParams.page === 0) {
-          // Reset response for the first page
-          return initialResponse;
+        if (!prev || params.page === 0) {
+          // 첫 번째 페이지거나 초기화가 필요한 경우
+          return fetchedResponse;
         }
 
-        // Merge with existing response for subsequent pages
+        // 기존 데이터와 병합
         return {
-          ...initialResponse,
-          content: [...(prev.content || []), ...initialResponse.content],
+          ...fetchedResponse,
+          content: [...(prev.content || []), ...fetchedResponse.content],
         };
       });
     } catch (error) {
       console.error("Error fetching events:", error);
     }
-  }, [searchParams]);
-
-  useEffect(() => {
-    fetchInitialEvents();
-  }, [fetchInitialEvents]);
-
-  const handleSearchParamsChange = (newParams: Partial<SearchParams>): void => {
-    setSearchParams((prev) => {
-      const updatedParams = {
-        ...prev,
-        ...newParams,
-        page: newParams.page ?? 0,
-      };
-
-      if (JSON.stringify(prev) === JSON.stringify(updatedParams)) {
-        return prev;
-      }
-
-      return updatedParams;
-    });
   };
 
+  // searchParams 변경 시 데이터 가져오기
+  useEffect(() => {
+    fetchEvents(searchParams);
+  }, [searchParams]);
+
   const fetchMoreEvents = async (): Promise<void> => {
-    if (response?.last) return; // Prevent fetching if it's the last page
+    if (response?.last) return; // 마지막 페이지일 경우 중단
 
     const nextPage = (searchParams.page ?? 0) + 1;
-    const newParams = { ...searchParams, page: nextPage };
 
-    try {
-      console.log("Fetching more events with params:", newParams);
-      const newResponse = await searchEventScheduledOpen(newParams);
+    // 페이지 번호를 증가시켜 데이터 요청
+    setSearchParams((prev) => ({
+      ...prev,
+      page: nextPage,
+    }));
+  };
 
-      setResponse((prev) => {
-        if (!prev) {
-          // If no previous data, return the new response as-is
-          return newResponse;
-        }
-
-        // Merge previous content with new content
-        return {
-          ...newResponse,
-          content: [...prev.content, ...newResponse.content], // Combine previous and new content
-        };
-      });
-
-      setSearchParams(newParams);
-    } catch (error) {
-      console.error("Error fetching more events:", error);
-    }
+  const handleSearchParamsChange = (newParams: Partial<SearchParams>): void => {
+    setSearchParams((prev) => ({
+      ...prev,
+      ...newParams,
+      page: 0, // 새로운 검색 시 페이지를 초기화
+    }));
   };
 
   const handleGenreSelect = (genre: string | [string, string]) => {
     setGenreDropdownOpen(false);
 
     if (genre === "전체") {
-      handleSearchParamsChange({ genre: null, page: 0 });
+      handleSearchParamsChange({ genre: null });
     } else if (Array.isArray(genre)) {
       const [key] = genre;
-      handleSearchParamsChange({ genre: key as Genre, page: 0 });
+      handleSearchParamsChange({ genre: key as Genre });
     }
   };
 
   const handleSortChange = (newSort: string) => {
-    handleSearchParamsChange({ sort: newSort, page: 0 });
+    handleSearchParamsChange({ sort: newSort });
   };
 
   const handleEventClick = (eventId: number) => {
@@ -194,18 +170,6 @@ const MobileEventOpenList = () => {
                 >
                   클래식/무용
                 </button>
-                <button
-                  onClick={() => handleGenreSelect(["전시_행사", "전시/행사"])}
-                  className="px-4 py-2 text-left hover:bg-gray-100"
-                >
-                  아동/가족
-                </button>
-                <button
-                  disabled={true}
-                  className="px-4 py-2 cursor-not-allowed rounded"
-                >
-                  <span className="invisible">비활성화</span>
-                </button>
               </div>
             </div>
           )}
@@ -213,10 +177,9 @@ const MobileEventOpenList = () => {
       </div>
 
       <InfiniteScroll
-        key={searchParams.genre || "default"} // Key 설정
         dataLength={response?.content.length || 0}
         next={fetchMoreEvents}
-        hasMore={!response || !response.last}
+        hasMore={!response?.last}
         loader={<h4>Loading...</h4>}
         endMessage={
           <p className="text-center text-gray-500">
@@ -263,9 +226,7 @@ const MobileEventOpenList = () => {
                   {format(
                     new Date(event.ticketStartTime),
                     "yyyy.MM.dd일(E) HH:mm",
-                    {
-                      locale: ko,
-                    },
+                    { locale: ko },
                   )}
                 </span>
               </div>
