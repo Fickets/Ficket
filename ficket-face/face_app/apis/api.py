@@ -2,10 +2,11 @@ from flask import request, Blueprint
 from flask_restx import Api, Resource, fields
 from werkzeug.datastructures import FileStorage
 from face_app.models.model import Face
-from utils import get_face_embedding, cosine_similarity, encrypt_vector, decrypt_vector, upload_file_to_s3
+from utils import get_face_embedding, cosine_similarity, encrypt_vector, decrypt_vector, upload_file_to_s3, delete_file_from_s3
 from database import db
 from config import config
 from face_app.schemas.response import ResponseSchema
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # Blueprint 생성
 api_blueprint = Blueprint("api", __name__)
@@ -57,6 +58,26 @@ if secret_key:
 else:
     raise ValueError("Failed to load secret key from Config server.")
 
+
+# 매일 자정에 ticket_id가 NULL인 Face 삭제
+def delete_null_ticket_faces():
+    try:
+        faces_to_delete = Face.query.filter(Face.ticket_id == None).all()
+        if faces_to_delete:
+            for face in faces_to_delete:
+                delete_file_from_s3(face.face_img)
+                db.session.delete(face)
+            db.session.commit()
+            print(f"{len(faces_to_delete)} face(s) with NULL ticket_id deleted successfully.")
+        else:
+            print("No faces with NULL ticket_id found.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error occurred while deleting faces with NULL ticket_id: {e}")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(delete_null_ticket_faces, 'cron', hour=0, minute=0)
+scheduler.start()
 
 # API 리소스 정의
 @api.route("/upload")
@@ -153,6 +174,7 @@ class DeleteFace(Resource):
         if not face:
             return ResponseSchema.make_response(404, "Face not found.")
 
+        delete_file_from_s3(face.face_img)
         db.session.delete(face)
         db.session.commit()
 
