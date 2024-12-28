@@ -653,16 +653,16 @@ public class EventService {
 
 
     /**
-     * 특정 장르와 기간에 대한 상위 50개의 예매율 순위를 조회합니다.
+     * 특정 장르와 기간에 대한 상위 N개의 예매율 순위를 조회합니다.
      *
      * @param genre  조회할 이벤트의 장르 (Genre Enum).
      * @param period 조회할 기간 (Period Enum).
      * @return 이벤트 세부 정보와 예매율 정보를 포함한 ReservationRateEventInfoResponse 목록.
      */
-    public List<ReservationRateEventInfoResponse> getTopFiftyReservationRateRank(Genre genre, Period period) {
+    public List<ReservationRateEventInfoResponse> getTopNReservationRateRank(Genre genre, Period period, int topN) {
         period = adjustPeriodByCutoffTime(period);
 
-        List<Pair<Long, BigDecimal>> eventIdWithScores = getTopEventsFromRedis(genre, period);
+        List<Pair<Long, BigDecimal>> eventIdWithScores = getTopEventsFromRedis(genre, period, topN);
         if (eventIdWithScores.isEmpty()) {
             return Collections.emptyList();
         }
@@ -689,15 +689,15 @@ public class EventService {
     }
 
     /**
-     * Redis에서 특정 장르와 기간의 상위 50개의 이벤트 ID 및 점수를 조회합니다.
+     * Redis에서 특정 장르와 기간의 상위 N개의 이벤트 ID 및 점수를 조회합니다.
      *
      * @param genre  조회할 이벤트의 장르 (Genre Enum).
      * @param period 조회할 기간 (Period Enum).
      * @return 이벤트 ID와 점수를 포함한 Pair 목록.
      */
-    private List<Pair<Long, BigDecimal>> getTopEventsFromRedis(Genre genre, Period period) {
+    private List<Pair<Long, BigDecimal>> getTopEventsFromRedis(Genre genre, Period period, int topN) {
         Set<ZSetOperations.TypedTuple<Object>> rankedEvents = rankingRedisTemplate.opsForZSet()
-                .reverseRangeWithScores(RedisKeyHelper.getReservationKey(period, genre), 0, 49);
+                .reverseRangeWithScores(RedisKeyHelper.getReservationKey(period, genre), 0, topN - 1);
 
         if (rankedEvents == null || rankedEvents.isEmpty()) {
             return Collections.emptyList();
@@ -973,8 +973,7 @@ public class EventService {
     }
 
 
-
-    public List<Long> getCompanyId(Long ticketId){
+    public List<Long> getCompanyId(Long ticketId) {
         List<Long> res = new ArrayList<>();
         SeatMapping seatMapping = seatMappingRepository.findByTicketId(ticketId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
@@ -984,16 +983,16 @@ public class EventService {
         return res;
     }
 
-    public List<EventTitleDto> getTitleIds(String title){
+    public List<EventTitleDto> getTitleIds(String title) {
         List<EventTitleDto> res = eventRepository.findEventIds(title);
         return res;
     }
 
-    public List<String> getTitle(){
+    public List<String> getTitle() {
         return eventRepository.findEventTitle();
     }
 
-    public List<SimpleEvent> getOpenRecent(){
+    public List<SimpleEvent> getOpenRecent() {
         LocalDateTime currentDateTime = LocalDateTime.now();
         Pageable pageable = PageRequest.of(0, 6); // 첫 페이지, 6개 제한
         List<Event> openRecent = eventRepository.findTop6EventsByTicketingTimeBeforeOrEquals(currentDateTime, pageable);

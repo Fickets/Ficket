@@ -64,6 +64,7 @@ public class EventController {
      * - 2024-11-27 오형상: seatMapping 연관 관계 적용
      * - 2024-11-30 오형상: admin feign client 적용
      * - 2024-12-21 오형상: 수동 캐시 삭제 적용
+     * - 2024-12-24 오형상: 페이징 캐시 삭제 적용
      */
     @PatchMapping("/admins/event/{eventId}")
     public ResponseEntity<String> modifyEvent(@RequestHeader("X-Admin-Id") String adminId, @PathVariable Long eventId, @RequestPart EventUpdateReq req, @RequestPart(required = false) MultipartFile poster, @RequestPart(required = false) MultipartFile banner) {
@@ -110,6 +111,7 @@ public class EventController {
      * - 2024-11-27 오형상: 초기 작성
      * - 2024-12-16 오형상: 랭킹 삭제 로직 추가
      * - 2024-12-21 오형상: 수동 캐시 삭제 적용
+     * - 2024-12-24 오형상: 페이징 캐시 삭제 적용
      */
     @DeleteMapping("/admin/{eventId}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId) {
@@ -212,13 +214,15 @@ public class EventController {
      * 작업 날짜: 2024-12-15
      * 변경 이력:
      * - 2024-12-15 오형상: 초기 작성
+     * - 2024-12-28 오형상: 상위 50위 고정에서 상위 N위 동적으로 변경
      */
     @GetMapping("/detail/reservation-rate-rank")
     public ResponseEntity<List<ReservationRateEventInfoResponse>> getReservationRateRank(
             @RequestParam(defaultValue = "뮤지컬") Genre genre,
-            @RequestParam(defaultValue = "DAILY") Period period) {
-
-        return ResponseEntity.ok(eventService.getTopFiftyReservationRateRank(genre, period));
+            @RequestParam(defaultValue = "DAILY") Period period,
+            @RequestParam(defaultValue = "50") int topN
+    ) {
+        return ResponseEntity.ok(eventService.getTopNReservationRateRank(genre, period, topN));
     }
 
     /**
