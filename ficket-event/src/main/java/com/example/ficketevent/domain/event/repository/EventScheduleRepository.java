@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -26,4 +27,7 @@ public interface EventScheduleRepository extends JpaRepository<EventSchedule, Lo
 
     @Query("SELECT es.event FROM EventSchedule es WHERE es.eventScheduleId = :eventScheduleId")
     Optional<Event> findEventByEventScheduleId(@Param("eventScheduleId") Long eventScheduleId);
+
+    @Query("SELECT es FROM EventSchedule es WHERE es.event = :event")
+    List<EventSchedule> findEventScheduleByEvent(@Param("event") Event event);
 }

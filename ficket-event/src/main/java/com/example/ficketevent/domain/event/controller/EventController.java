@@ -65,6 +65,7 @@ public class EventController {
      * - 2024-11-30 오형상: admin feign client 적용
      * - 2024-12-21 오형상: 수동 캐시 삭제 적용
      * - 2024-12-24 오형상: 페이징 캐시 삭제 적용
+     * - 2024-12-30 오형상: 스케쥴, 좌석 매칭 오류 해결
      */
     @PatchMapping("/admins/event/{eventId}")
     public ResponseEntity<String> modifyEvent(@RequestHeader("X-Admin-Id") String adminId, @PathVariable Long eventId, @RequestPart EventUpdateReq req, @RequestPart(required = false) MultipartFile poster, @RequestPart(required = false) MultipartFile banner) {
@@ -81,6 +82,7 @@ public class EventController {
      * 작업 날짜: 2024-11-25
      * 변경 이력:
      * - 2024-11-25 오형상: 초기 작성
+     * - 2024-12-30 오형상: 설정 안된 좌석 구분 안 보이게 로직 추가
      */
     @GetMapping("/admin/{eventId}/detail")
     public ResponseEntity<EventDetail> retrieveEvent(@PathVariable Long eventId) {

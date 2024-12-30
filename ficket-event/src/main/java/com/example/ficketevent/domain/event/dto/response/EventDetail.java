@@ -53,9 +53,9 @@ public class EventDetail {
                                         .round(schedule.getRound())
                                         .time(schedule.getEventDate().toLocalTime().toString()) // HH:mm 형식
                                         .build())
-                                .collect(Collectors.toList()))
+                                .toList())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         // 좌석 정보 변환
         List<SeatDto> stageSeats = event.getStagePartitions().stream()
@@ -64,9 +64,10 @@ public class EventDetail {
                         .price(partition.getPartitionPrice())
                         .seats(partition.getSeatMappings().stream()
                                 .map(seatMapping -> seatMapping.getStageSeat().getSeatId())
-                                .collect(Collectors.toList()))
+                                .toList())
                         .build())
-                .collect(Collectors.toList());
+                .filter(seatDto -> !seatDto.getSeats().isEmpty())
+                .toList();
 
         // EventDetail 빌드
         return EventDetail.builder()

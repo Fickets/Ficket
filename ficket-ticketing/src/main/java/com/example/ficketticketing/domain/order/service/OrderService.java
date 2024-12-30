@@ -222,23 +222,23 @@ public class OrderService {
         orderProducer.send("order-events", new OrderDto(createOrderRequest.getEventScheduleId(), createdOrder.getOrderId(), seatMappingIds, createdOrder.getTicket().getTicketId()));
 
         // create settlement
-        List<Long> ids = executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "getCompanyEventIdByTicketId",
-                () -> eventServiceClient.getCompanyEventId(createdOrder.getTicket().getTicketId()));
-
-        OrderSimpleDto orderSimpleDto = orderMapper.toOrderSimpleDto(createdOrder);
-        orderSimpleDto.setCompanyId(ids.get(0));
-        orderSimpleDto.setEventId(ids.get(1));
-
-        EntityResponse<Void> settlementCreate = executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "settlementCreateByOrder",
-                () -> adminServiceClient.createSettlement(orderSimpleDto)
-        );
-        if (settlementCreate.statusCode().value() != 204) {
-            log.info("settlement created fail");
-        }
+//        List<Long> ids = executeWithCircuitBreaker(
+//                circuitBreakerRegistry,
+//                "getCompanyEventIdByTicketId",
+//                () -> eventServiceClient.getCompanyEventId(createdOrder.getTicket().getTicketId()));
+//
+//        OrderSimpleDto orderSimpleDto = orderMapper.toOrderSimpleDto(createdOrder);
+//        orderSimpleDto.setCompanyId(ids.get(0));
+//        orderSimpleDto.setEventId(ids.get(1));
+//
+//        EntityResponse<Void> settlementCreate = executeWithCircuitBreaker(
+//                circuitBreakerRegistry,
+//                "settlementCreateByOrder",
+//                () -> adminServiceClient.createSettlement(orderSimpleDto)
+//        );
+//        if (settlementCreate.statusCode().value() != 204) {
+//            log.info("settlement created fail");
+//        }
 
         return createdOrder.getOrderId();
     }
