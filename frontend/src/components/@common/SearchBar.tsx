@@ -44,7 +44,7 @@ const SearchBar = () => {
 
     return (
         <div>
-            <div className="relative z-50 w-full max-w-lg mx-auto p-4">
+            <div className="relative z-50 w-full max-w-lg mx-auto">
                 {/* 입력창 */}
                 <div className="flex items-center border border-gray-300 rounded-full px-4 py-2 shadow-sm bg-white">
                     <input
