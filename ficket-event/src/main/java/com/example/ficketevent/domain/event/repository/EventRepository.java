@@ -36,7 +36,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
     @Query("SELECT e.title FROM Event e")
     List<String> findEventTitle();
 
-    @Query("SELECT e FROM Event e WHERE e.ticketingTime <= :currentDateTime ORDER BY e.ticketingTime DESC")
+    @Query("SELECT e FROM Event e WHERE e.ticketingTime < :currentDateTime ORDER BY e.ticketingTime DESC")
     List<Event> findTop6EventsByTicketingTimeBeforeOrEquals(@Param("currentDateTime") LocalDateTime currentDateTime, Pageable pageable);
 
 

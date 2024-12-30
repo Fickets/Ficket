@@ -315,10 +315,17 @@ public class EventController {
      * 작업 날짜: 2024-12-27
      * 변경 이력:
      * - 2024-12-27 최용수: 초기 작성
+     * - 2024-12-28 최용수: 장르선택 적용
      */
-    @GetMapping("open-recent")
-    public ResponseEntity<List<SimpleEvent>> getOpenRecent(){
-        List<SimpleEvent> res = eventService.getOpenRecent();
+    @GetMapping("/open-recent")
+    public ResponseEntity<List<SimpleEvent>> getOpenRecent(@RequestParam(name = "genre", required = false)String genre){
+        List<SimpleEvent> res = eventService.getOpenRecent(genre);
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/genre-rank")
+    public ResponseEntity<List<SimpleEvent>> getGenreRank(@RequestParam(name = "genre") String genre){
+        List<SimpleEvent> res = eventService.getGenreRank(genre);
         return ResponseEntity.ok(res);
     }
 }
