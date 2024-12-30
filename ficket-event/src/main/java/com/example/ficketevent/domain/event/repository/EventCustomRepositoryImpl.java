@@ -5,8 +5,11 @@ import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
 import com.example.ficketevent.domain.event.dto.response.EventScheduledOpenResponse;
 import com.example.ficketevent.domain.event.dto.response.EventSearchRes;
 import com.example.ficketevent.domain.event.dto.response.QEventSearchRes;
+import com.example.ficketevent.domain.event.dto.response.SimpleEvent;
+import com.example.ficketevent.domain.event.entity.Event;
 import com.example.ficketevent.domain.event.enums.Genre;
 import com.example.ficketevent.domain.event.entity.QGenre;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -19,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 
+import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -179,6 +183,66 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public List<SimpleEvent> openSearchTop6Genre(String genre) {
+        BooleanBuilder builder = new BooleanBuilder();
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        LocalDateTime tomorrowMidnight = currentDateTime.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        builder.and(event.ticketingTime.before(tomorrowMidnight));
+        // 조건 추가: genre가 포함되는 경우
+        if (genre != null) {
+            builder.and(event.genre.any().stringValue().eq(genre));
+        }
+
+        List<Event> top6 = queryFactory.selectFrom(event)
+                .where(builder)
+                .orderBy(event.ticketingTime.desc())
+                .limit(6)
+                .fetch();
+
+        return top6.stream()
+                .map(event -> {
+                    return SimpleEvent.builder()
+                            .eventId(event.getEventId())
+                            .title(event.getTitle())
+                            .date(event.getTicketingTime().toString())
+                            .pcImg(event.getEventImage().getPosterPcMain2Url())
+                            .mobileImg(event.getEventImage().getPosterMobileUrl())
+                            .build();
+                })
+                .toList();
+    }
+
+    @Override
+    public List<SimpleEvent> getGenreRank(String genre) {
+        BooleanBuilder builder = new BooleanBuilder();
+        // 상위 10개만 가져오기
+        List<Event> genreRank = queryFactory.select(event)
+                .from(event)
+                .leftJoin(event.eventSchedules, eventSchedule)
+                .leftJoin(eventSchedule.seatMappingList, seatMapping)
+                .where(
+                        seatMapping.ticketId.isNotNull(),  // ticketId가 null이 아닌 것만
+                        genre != null ? event.genre.any().stringValue().eq(genre) : null // genre 조건
+                )
+                .groupBy(event.eventId) // event 기준으로 그룹화
+                .orderBy(seatMapping.ticketId.count().desc()) // ticketId 개수로 정렬
+                .limit(10)
+                .fetch();
+
+        return genreRank.stream()
+                .map(event -> {
+                    return SimpleEvent.builder()
+                            .eventId(event.getEventId())
+                            .title(event.getTitle())
+                            .date(event.getTicketingTime().toString())
+                            .pcImg(event.getEventImage().getPosterPcMain1Url())
+                            .mobileImg(event.getEventImage().getPosterPcMain2Url())
+                            .build();
+                })
+                .toList();
     }
 
     private BooleanExpression containsGenre(Genre genre) {

@@ -4,6 +4,7 @@ import com.example.ficketevent.domain.event.dto.request.EventScheduledOpenSearch
 import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
 import com.example.ficketevent.domain.event.dto.response.EventScheduledOpenResponse;
 import com.example.ficketevent.domain.event.dto.response.EventSearchRes;
+import com.example.ficketevent.domain.event.dto.response.SimpleEvent;
 import com.example.ficketevent.domain.event.entity.EventSchedule;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,4 +23,8 @@ public interface EventCustomRepository {
     Set<Long> getTicketIdsByEventId(@Param("eventId") Long eventId);
 
     Page<EventScheduledOpenResponse> searchEventScheduledOpen(EventScheduledOpenSearchCond cond, Pageable pageable);
+
+    List<SimpleEvent> openSearchTop6Genre(String genre);
+
+    List<SimpleEvent> getGenreRank(String genre);
 }

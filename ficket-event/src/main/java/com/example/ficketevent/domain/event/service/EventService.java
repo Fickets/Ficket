@@ -105,10 +105,10 @@ public class EventService {
         eventStage.getEvents().add(newEvent);
 
         // 7. 총 정산 테이블 만들기
-//        eventRepository.save(newEvent);
-//        executeWithCircuitBreaker(circuitBreakerRegistry,
-//                "createTotalSettlement",
-//                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
+        eventRepository.save(newEvent);
+        executeWithCircuitBreaker(circuitBreakerRegistry,
+                "createTotalSettlement",
+                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
 
     }
 
@@ -1017,22 +1017,13 @@ public class EventService {
         return eventRepository.findEventTitle();
     }
 
-    public List<SimpleEvent> getOpenRecent() {
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        Pageable pageable = PageRequest.of(0, 6); // 첫 페이지, 6개 제한
-        List<Event> openRecent = eventRepository.findTop6EventsByTicketingTimeBeforeOrEquals(currentDateTime, pageable);
 
-        List<SimpleEvent> res = openRecent.stream()
-                .map(event -> {
-                    return SimpleEvent.builder()
-                            .eventId(event.getEventId())
-                            .title(event.getTitle())
-                            .date(event.getTicketingTime().toString())
-                            .pcImg(event.getEventImage().getPosterPcMain2Url())
-                            .mobileImg(event.getEventImage().getPosterMobileUrl())
-                            .build();
-                })
-                .toList();
-        return res;
+    public List<SimpleEvent> getOpenRecent(String genre){
+        return eventRepository.openSearchTop6Genre(genre);
     }
+
+    public List<SimpleEvent> getGenreRank(String genre){
+        return eventRepository.getGenreRank(genre);
+    }
+
 }
