@@ -55,7 +55,7 @@ const MobileViewRanking = () => {
   return (
     <div
       className="relative w-full h-auto flex items-center justify-center"
-      style={{ height: "calc(80vh - 50px)" }} // 화면의 높이를 더 줄임
+      style={{ height: "calc(70vh - 50px)" }} // 화면의 높이를 더 줄임
       {...swipeHandlers}
     >
       {viewRankingResponse.length > 0 && (

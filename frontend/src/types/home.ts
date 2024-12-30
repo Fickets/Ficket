@@ -7,3 +7,12 @@ export interface ViewRankResponse {
   eventPcPosterUrl: string;
   eventDateList: string[];
 }
+
+
+export interface SimpleEvent {
+  eventId: number;
+  title: string;
+  date: string;
+  pcImg: string;
+  mobileImg: string
+}

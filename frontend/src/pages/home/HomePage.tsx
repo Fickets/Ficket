@@ -5,7 +5,9 @@ import { userTokenRefresh, getMyInfo } from "../../service/user/userApi";
 import { useStore } from "zustand";
 import UserHeader from "../../components/@common/UserHeader";
 import ViewRanking from "../../components/home/ViewRanking.tsx";
-
+import OpenRecent from "../../components/home/OpenRecent.tsx";
+import GenreRank from "../../components/home/GenreRank.tsx";
+import BottomNav from "../../components/@common/MobileBottom.tsx";
 const HomePage = () => {
   const [cookies] = useCookies(["isLogin"]);
   const user = useStore(userStore);
@@ -23,7 +25,7 @@ const HomePage = () => {
           user.setAccessToken(response.headers["authorization"]);
           user.setIsLogin(true);
         },
-        () => {},
+        () => { },
       );
       await getMyInfo(
         (response) => {
@@ -35,7 +37,7 @@ const HomePage = () => {
           user.setUserId(res["userId"]);
           user.setIsLogin(true);
         },
-        () => {},
+        () => { },
       );
     } else {
       user.setIsLogin(false);
@@ -51,10 +53,9 @@ const HomePage = () => {
     <div className="p-6">
       <UserHeader />
       <ViewRanking />
-
-      <button onClick={handleQueueTest} className="bg-red-500 mt-3">
-        대기열 화면 테스트
-      </button>
+      <OpenRecent />
+      <GenreRank />
+      <BottomNav />
     </div>
   );
 };
