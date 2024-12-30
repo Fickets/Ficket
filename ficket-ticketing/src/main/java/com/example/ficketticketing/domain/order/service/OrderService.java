@@ -211,12 +211,6 @@ public class OrderService {
                 () -> faceServiceClient.settingRelationship(ticketMapper.toUploadFaceInfo(createOrderRequest, createdOrder.getTicket().getTicketId()))
         );
 
-        // 이거 FEIGTN 에러 핸들러로 분리
-        if (faceApiResponse.getStatus() != 200) {
-            log.info("얼굴 연관관계 설정 실패");
-            throw new BusinessException(ErrorCode.FAILED_SET_RELATIONSHIP_USER_FACE);
-        }
-
         log.info(faceApiResponse.getMessage());
 
         orderProducer.send("order-events", new OrderDto(createOrderRequest.getEventScheduleId(), createdOrder.getOrderId(), seatMappingIds, createdOrder.getTicket().getTicketId()));
@@ -668,11 +662,6 @@ public class OrderService {
                 "postUserFaceImgCircuitBreaker",
                 () -> faceServiceClient.uploadFace(userFaceImage, EventScheduleId)
         );
-
-        if (faceApiResponse.getStatus() != 200) {
-            log.info("사진 업로드 실패");
-            throw new BusinessException(ErrorCode.FAILED_UPLOAD_USER_FACE);
-        }
 
         log.info(faceApiResponse.getMessage());
 

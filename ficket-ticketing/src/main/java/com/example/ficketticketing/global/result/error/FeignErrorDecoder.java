@@ -14,6 +14,22 @@ public class FeignErrorDecoder implements ErrorDecoder {
         log.error("Feign client error: methodKey={}, status={}, reason={}",
                 methodKey, response.status(), response.reason());
 
+        // 특정 메서드의 에러 처리 추가
+        if (methodKey.contains("settingRelationship")) {
+            // 200번대가 아닌 경우 오류 처리
+            if (response.status() < 200 || response.status() >= 300) {
+                return new BusinessException(FAILED_SET_RELATIONSHIP_USER_FACE);
+            }
+        } else if (methodKey.contains("uploadFace")) {
+            if (response.status() < 200 || response.status() >= 300) {
+                return new BusinessException(FAILED_UPLOAD_USER_FACE);
+            }
+        } else if (methodKey.contains("deleteFace")) {
+            if (response.status() < 200 || response.status() >= 300) {
+                return new BusinessException(FAILED_DELETE_USER_FACE);
+            }
+        }
+
         switch (response.status()) {
             case 400:
                 return new BusinessException(INVALID_REQUEST); // 적절한 ErrorCode 추가

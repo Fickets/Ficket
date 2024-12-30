@@ -40,6 +40,7 @@ public enum ErrorCode {
     NOT_MATCH_RESERVED_SEATS(400, "해당 유저가 선점한 좌석과 요청이 일치하지 않습니다."),
 
     FAILED_UPLOAD_USER_FACE(409, "사용자 얼굴 등록에 실패했습니다."),
+    FAILED_DELETE_USER_FACE(409, "사용자 얼굴 삭제에 실패했습니다."),
     FAILED_SET_RELATIONSHIP_USER_FACE(409, "얼굴과 티켓의 연관관계 설정에 실패했습니다."),
 
     //Order
