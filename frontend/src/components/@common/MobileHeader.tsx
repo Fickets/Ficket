@@ -33,7 +33,7 @@ const MobileHeader = ({ title }: MobileHeaderProps) => {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 bg-white flex items-center px-4 h-[50px] border-b border-gray-300 z-50"
+      className="fixed top-0 left-0 right-0 bg-white flex items-center px-4 max-w-[400px] h-[50px] border-b border-gray-300 z-50"
       ref={searchRef}
     >
       {!isSearchMode ? (

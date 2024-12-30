@@ -14,8 +14,8 @@ export const fetchReservationRateRanking = async ({
   period?: Period | null;
 }): Promise<ReservationRateRankingResponse[]> => {
   try {
-    const params: { genre?: Genre; period?: Period } = {};
-    if (genre) params.genre = genre;
+    const params: { genre?: string; period?: Period } = {};
+    if (genre) params.genre = genre.replace("/", "_");
     if (period) params.period = period;
 
     const response: AxiosResponse<ReservationRateRankingResponse[]> =

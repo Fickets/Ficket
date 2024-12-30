@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import MobileHeader from "../../components/@common/MobileHeader.tsx";
 import { Genre, Period } from "../../types/ReservationRateRanking.ts";
+import MobileBottom from "../../components/@common/MobileBottom.tsx";
 
 const ReservationRateRanking = () => {
   const [isMobile, setIsMobile] = useState<boolean>(
@@ -136,6 +137,7 @@ const ReservationRateRanking = () => {
           <RankingTop50ByGenre genre={activeTab} period={period} />
         </div>
       </div>
+      <MobileBottom />
     </div>
   );
 };

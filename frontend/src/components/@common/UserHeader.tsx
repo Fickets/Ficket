@@ -11,7 +11,7 @@ import SearchBar from "./SearchBar";
 const UserHeader = () => {
   const [query, setQuery] = useState<string>(""); // 검색 입력 값
   const [results, setResults] = useState<SearchResult[]>([]); // 검색 결과
-  const [cookies] = useCookies(['isLogin']);
+  const [cookies] = useCookies(["isLogin"]);
   const navi = useNavigate();
   const user = useStore(userStore);
 
@@ -27,7 +27,7 @@ const UserHeader = () => {
           user.resetState();
           navi("/");
         },
-        () => { },
+        () => {},
       );
     } else {
       navi("/users/login");
@@ -90,18 +90,7 @@ const UserHeader = () => {
         </div>
         <hr className="mt-[15px] mb-[50px]" />
       </div>
-      {/**mobile */}
-      <div className="block md:hidden flex">
-        <div onClick={LogoClick} className="flex items-end">
-          {/** 로고 */}
-          <img src={Logo} alt="" className="w-[40px] h-[40px]" />
-          <p className="text-[20px] font-semibold ml-[5px]">Ficket</p>
-        </div>
-        <div className=" ml-[40px] mt-[4px]">
-          <SearchBar />
-        </div>
-      </div>
-    </div >
+    </div>
   );
 };
 
