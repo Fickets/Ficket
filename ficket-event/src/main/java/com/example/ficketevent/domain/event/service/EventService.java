@@ -92,10 +92,10 @@ public class EventService {
         Event newEvent = createNewEvent(req, companyResponse, adminResponse, eventStage);
 
         // 3. 파티션 생성
-        Map<String, StagePartition> partitionMap = createPartitions(req, newEvent);
+        Map<String, StagePartition> partitionMap = createPartitions(req.getSeats(), newEvent);
 
         // 4. 스케줄 및 좌석 매핑 생성
-        createSchedulesAndMappings(req, newEvent, partitionMap);
+        createSchedulesAndMappings(req.getEventDate(), req.getSeats(), newEvent, partitionMap);
 
         // 5. 이미지 생성 및 추가
         EventImage eventImage = createEventImage(poster, banner);
@@ -105,10 +105,10 @@ public class EventService {
         eventStage.getEvents().add(newEvent);
 
         // 7. 총 정산 테이블 만들기
-        eventRepository.save(newEvent);
-        executeWithCircuitBreaker(circuitBreakerRegistry,
-                "createTotalSettlement",
-                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
+//        eventRepository.save(newEvent);
+//        executeWithCircuitBreaker(circuitBreakerRegistry,
+//                "createTotalSettlement",
+//                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
 
     }
 
@@ -123,8 +123,8 @@ public class EventService {
     }
 
     // 파티션 생성
-    private Map<String, StagePartition> createPartitions(EventCreateReq req, Event newEvent) {
-        Map<String, StagePartition> partitionMap = req.getSeats().stream()
+    private Map<String, StagePartition> createPartitions(List<SeatDto> seatDtoList, Event newEvent) {
+        Map<String, StagePartition> partitionMap = seatDtoList.stream()
                 .collect(Collectors.toMap(
                         SeatDto::getGrade,
                         seatDto -> StagePartition.builder()
@@ -138,8 +138,8 @@ public class EventService {
     }
 
     // 스케줄 및 좌석 매핑 생성
-    private void createSchedulesAndMappings(EventCreateReq req, Event newEvent, Map<String, StagePartition> partitionMap) {
-        req.getEventDate().forEach(eventDateDto -> {
+    private void createSchedulesAndMappings(List<EventDateDto> eventDateDtoList, List<SeatDto> seatDtoList, Event newEvent, Map<String, StagePartition> partitionMap) {
+        eventDateDtoList.forEach(eventDateDto -> {
             eventDateDto.getSessions().forEach(sessionDto -> {
                 EventSchedule eventSchedule = EventSchedule.builder()
                         .event(newEvent)
@@ -147,15 +147,15 @@ public class EventService {
                         .eventDate(LocalDateTime.of(eventDateDto.getDate(), LocalTime.parse(sessionDto.getTime())))
                         .build();
 
-                createSeatMappings(req, eventSchedule, partitionMap);
+                createSeatMappings(seatDtoList, eventSchedule, partitionMap);
                 newEvent.addEventSchedule(eventSchedule);
             });
         });
     }
 
     // 좌석 매핑 생성
-    private void createSeatMappings(EventCreateReq req, EventSchedule eventSchedule, Map<String, StagePartition> partitionMap) {
-        req.getSeats().forEach(seatDto -> {
+    private void createSeatMappings(List<SeatDto> seatDtoList, EventSchedule eventSchedule, Map<String, StagePartition> partitionMap) {
+        seatDtoList.forEach(seatDto -> {
             StagePartition stagePartition = partitionMap.get(seatDto.getGrade());
             seatDto.getSeats().forEach(seatId -> {
                 StageSeat stageSeat = stageSeatRepository.findById(seatId)
@@ -223,20 +223,13 @@ public class EventService {
         // 3. 이벤트 정보 업데이트
         findEvent.updatedEvent(req);
 
-        // 4. 스케줄 및 좌석 매핑 업데이트
-        if (req.getEventDate() != null) {
-            updateEventSchedulesAndSeatMappings(req, findEvent);
-        }
+        // 4. 스케줄 및 좌석 매핑, 좌석 구분 업데이트
+        updateEventScheduleAndSeatMappingAndPartition(req, findEvent);
 
-        // 5. 좌석 파티션 업데이트
-        if (req.getSeats() != null) {
-            updateStagePartitions(req, findEvent);
-        }
+        // 5. 이미지 업데이트
+        updateEventImages(findEvent, poster, banner);
 
-        // 6. 이미지 업데이트
-        updateEventImages(req, findEvent, poster, banner);
-
-        // 7. 수동 캐시 삭제
+        // 6. 수동 캐시 삭제
         deleteCache(eventId);
     }
 
@@ -263,92 +256,124 @@ public class EventService {
         }
     }
 
-    // 스케줄 및 좌석 매핑 업데이트
-    private void updateEventSchedulesAndSeatMappings(EventUpdateReq req, Event findEvent) {
-        // 기존 스케줄 삭제
-        eventScheduleRepository.deleteByEvent(findEvent);
+    private void updateEventScheduleAndSeatMappingAndPartition(EventUpdateReq req, Event findEvent) {
+        List<EventDateDto> updateEventSchedule = req.getEventDate();
+        if (updateEventSchedule != null) {
+            if (updateEventSchedule.isEmpty()) {
+                throw new BusinessException(ErrorCode.EMPTY_EVENT_SCHEDULE);
+            }
 
-        // 새로운 스케줄 및 좌석 매핑 생성
-        List<EventSchedule> updatedSchedules = req.getEventDate().stream()
-                .flatMap(eventDateDto -> eventDateDto.getSessions().stream().map(sessionDto -> {
-                    EventSchedule eventSchedule = EventSchedule.builder()
-                            .event(findEvent)
+            List<EventSchedule> eventScheduleList = eventScheduleRepository.findEventScheduleByEvent(findEvent);
+
+            // 요청과 기존 db에 있는것과 동일한 경우
+            List<EventSchedule> schedulesToKeep = eventScheduleList.stream()
+                    .filter(eventSchedule ->
+                            updateEventSchedule.stream().anyMatch(eventDateDto ->
+                                    eventDateDto.toLocalDateTimes().contains(eventSchedule.getEventDate())
+                            )
+                    )
+                    .toList();
+
+            // 요청에만 있는 추가된 일정
+            List<EventDateDto> schedulesToAdd = updateEventSchedule.stream()
+                    .filter(eventDateDto ->
+                            eventDateDto.toLocalDateTimes().stream()
+                                    .noneMatch(localDateTime ->
+                                            eventScheduleList.stream()
+                                                    .anyMatch(eventSchedule ->
+                                                            localDateTime.isEqual(eventSchedule.getEventDate())
+                                                    )
+                                    )
+                    )
+                    .toList();
+
+            // 기존 DB에만 있는 삭제할 일정
+            List<EventSchedule> schedulesToDelete = eventScheduleList.stream()
+                    .filter(eventSchedule ->
+                            updateEventSchedule.stream()
+                                    .noneMatch(eventDateDto ->
+                                            eventDateDto.toLocalDateTimes().contains(eventSchedule.getEventDate())
+                                    )
+                    )
+                    .toList();
+
+
+            processSchedules(schedulesToKeep, schedulesToAdd, schedulesToDelete, req.getSeats(), findEvent);
+        }
+    }
+
+    private void processSchedules(List<EventSchedule> schedulesToKeep, List<EventDateDto> schedulesToAdd, List<EventSchedule> schedulesToDelete, List<SeatDto> seatDtoList, Event event) {
+        Map<String, StagePartition> partitionMap = Map.of();
+
+        if (seatDtoList != null && !seatDtoList.isEmpty()) {
+            // 1. 기존 파티션 삭제
+            stagePartitionRepository.deleteByEvent(event);
+
+            // 2. 새로운 파티션 생성
+            partitionMap = createPartitions(seatDtoList, event);
+
+            // 3. 유지할 스케줄 처리
+            for (EventSchedule toKeep : schedulesToKeep) {
+                createSeatMappings(seatDtoList, toKeep, partitionMap);
+                event.addEventSchedule(toKeep);
+            }
+
+            // 4. 추가된 스케줄 처리
+            for (EventDateDto eventDateDto : schedulesToAdd) {
+                for (SessionDto sessionDto : eventDateDto.getSessions()) {
+                    LocalDateTime eventDateTime = LocalDateTime.of(eventDateDto.getDate(), LocalTime.parse(sessionDto.getTime()));
+                    EventSchedule newSchedule = EventSchedule.builder()
+                            .event(event)
                             .round(sessionDto.getRound())
-                            .eventDate(LocalDateTime.of(eventDateDto.getDate(), LocalTime.parse(sessionDto.getTime())))
+                            .eventDate(eventDateTime)
                             .build();
 
-                    // 좌석 매핑 생성
-                    createSeatMappings(req, eventSchedule);
-                    return eventSchedule;
-                }))
-                .toList();
+                    createSeatMappings(seatDtoList, newSchedule, partitionMap);
+                    event.addEventSchedule(newSchedule);
+                }
+            }
 
-        updatedSchedules.forEach(findEvent::addEventSchedule); // 스케줄 추가
-    }
-
-    // 좌석 매핑 생성
-    private void createSeatMappings(EventUpdateReq req, EventSchedule eventSchedule) {
-        Map<String, StagePartition> partitionMap = getPartitionsByEvent(eventSchedule.getEvent()); // 파티션 조회
-
-        req.getSeats().forEach(seatDto -> {
-            StagePartition stagePartition = partitionMap.get(seatDto.getGrade());
-            seatDto.getSeats().forEach(seatId -> {
-                StageSeat stageSeat = stageSeatRepository.findById(seatId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
-
-                SeatMapping seatMapping = SeatMapping.builder()
-                        .eventSchedule(eventSchedule)
-                        .stagePartition(stagePartition)
-                        .stageSeat(stageSeat)
-                        .build();
-
-                stagePartition.addSeatMapping(seatMapping);
-                eventSchedule.addSeatMapping(seatMapping);
-            });
-        });
-    }
-
-    // 좌석 파티션 업데이트
-    private void updateStagePartitions(EventUpdateReq req, Event findEvent) {
-        // 기존 파티션 삭제
-        stagePartitionRepository.deleteByEvent(findEvent);
-
-        // 새로운 파티션 생성
-        List<StagePartition> updatedPartitions = req.getSeats().stream()
-                .map(seatDto -> {
-                    StagePartition stagePartition = StagePartition.builder()
-                            .event(findEvent)
-                            .partitionName(seatDto.getGrade())
-                            .partitionPrice(seatDto.getPrice())
+            // 5. 삭제된 스케줄 처리
+            eventScheduleRepository.deleteAll(schedulesToDelete);
+        } else {
+            for (EventDateDto eventDateDto : schedulesToAdd) {
+                for (SessionDto sessionDto : eventDateDto.getSessions()) {
+                    LocalDateTime eventDateTime = LocalDateTime.of(eventDateDto.getDate(), LocalTime.parse(sessionDto.getTime()));
+                    EventSchedule newSchedule = EventSchedule.builder()
+                            .event(event)
+                            .round(sessionDto.getRound())
+                            .eventDate(eventDateTime)
                             .build();
 
-                    seatDto.getSeats().forEach(seatId -> {
-                        StageSeat stageSeat = stageSeatRepository.findById(seatId)
-                                .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
+                    // 기존 형식의 좌석 매핑 추가
+                    if (!event.getStagePartitions().isEmpty()) {
+                        event.getStagePartitions().forEach(stagePartition -> {
+                            stagePartition.getSeatMappings().forEach(existingMapping -> {
+                                StageSeat stageSeat = existingMapping.getStageSeat();
 
-                        SeatMapping seatMapping = SeatMapping.builder()
-                                .stagePartition(stagePartition)
-                                .stageSeat(stageSeat)
-                                .build();
+                                SeatMapping seatMapping = SeatMapping.builder()
+                                        .eventSchedule(newSchedule)
+                                        .stagePartition(stagePartition)
+                                        .stageSeat(stageSeat)
+                                        .build();
 
-                        stagePartition.addSeatMapping(seatMapping);
-                    });
+                                stagePartition.addSeatMapping(seatMapping);
+                                newSchedule.addSeatMapping(seatMapping);
+                            });
+                        });
+                    }
 
-                    return stagePartition;
-                })
-                .toList();
+                    event.addEventSchedule(newSchedule);
+                }
+            }
 
-        updatedPartitions.forEach(findEvent::addStagePartition); // 파티션 추가
+            eventScheduleRepository.deleteAll(schedulesToDelete);
+        }
     }
 
-    // 좌석 파티션 조회
-    private Map<String, StagePartition> getPartitionsByEvent(Event event) {
-        return event.getStagePartitions().stream()
-                .collect(Collectors.toMap(StagePartition::getPartitionName, partition -> partition));
-    }
 
     // 이미지 업데이트
-    private void updateEventImages(EventUpdateReq req, Event findEvent, MultipartFile poster, MultipartFile banner) {
+    private void updateEventImages(Event findEvent, MultipartFile poster, MultipartFile banner) {
         if (poster != null) updatePoster(findEvent, poster);
         if (banner != null) updateBanner(findEvent, banner);
     }
@@ -682,8 +707,8 @@ public class EventService {
         LocalTime cutoffTime = LocalTime.of(10, 30);
 
         if (now.isBefore(cutoffTime)) {
-            if (period == Period.DAILY) return Period.PREVIOUS_DAILY;
-            if (period == Period.WEEKLY) return Period.PREVIOUS_WEEKLY;
+            if (period == DAILY) return PREVIOUS_DAILY;
+            if (period == WEEKLY) return PREVIOUS_WEEKLY;
         }
         return period;
     }
