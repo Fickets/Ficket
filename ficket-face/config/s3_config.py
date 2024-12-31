@@ -11,3 +11,6 @@ s3 = boto3.client(
 )
 
 bucket_name = config["aws"]["bucketname"]
+
+# KMS 키 ARN
+kms_key_id = config["aws"]["kms"]

@@ -1,11 +1,16 @@
 import pika
 import threading
+import logging
 from config import load_config_from_server
+
+logging.basicConfig(level=logging.INFO)
+
 
 def start_rabbitmq_listener_thread(config, app):
     listener_thread = threading.Thread(target=start_rabbitmq_listener, args=(config, app))
     listener_thread.daemon = True
     listener_thread.start()
+
 
 def start_rabbitmq_listener(config, app):
     # RabbitMQ 설정 로드
@@ -16,7 +21,8 @@ def start_rabbitmq_listener(config, app):
     QUEUE_NAME = 'springCloudBus'
 
     credentials = pika.PlainCredentials(username=RABBITMQ_USERNAME, password=RABBITMQ_PASSWORD)
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=credentials))
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=credentials))
     channel = connection.channel()
 
     # Exchange 및 Queue 선언
@@ -25,7 +31,7 @@ def start_rabbitmq_listener(config, app):
     channel.queue_bind(exchange=QUEUE_NAME, queue='springCloudBusByFlask', routing_key='#')
 
     def callback(ch, method, properties, body):
-        print("Received configuration update message from RabbitMQ")
+        logging.info("Received configuration update message from RabbitMQ")
         global config
         config = load_config_from_server()
         db_url = config["mysql"].get("url")
@@ -34,5 +40,5 @@ def start_rabbitmq_listener(config, app):
             app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("{password}", db_password)
 
     channel.basic_consume(queue='springCloudBusByFlask', on_message_callback=callback, auto_ack=True)
-    print("Waiting for configuration updates...")
+    logging.info("Waiting for configuration updates...")
     channel.start_consuming()

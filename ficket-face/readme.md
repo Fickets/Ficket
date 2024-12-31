@@ -61,6 +61,7 @@ Flask 애플리케이션을 실행하여 초기 설정이 완료되었는지 확
 
 ```bash
 flask run
+python app.py
 ```
 
 ### 실행 결과
@@ -71,7 +72,7 @@ flask run
 ## 5. 주요 명령어 정리
 - 가상환경 생성: `python -m venv venv`
 - 가상환경 활성화: `source venv/bin/activate` (macOS/Linux) 또는 `venv\Scripts\activate` (Windows)
-- Flask 실행: `flask run`
+- Flask 실행: `flask initialize-services && flask run`
 - 데이터베이스 초기화: `flask db init`
 - 마이그레이션 생성: `flask db migrate -m "message"`
 - 마이그레이션 적용: `flask db upgrade`
