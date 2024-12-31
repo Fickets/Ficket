@@ -30,8 +30,10 @@ def decrypt_value(value, private_key, salt='deadbeef'):
     data = base64.b64decode(value.encode("UTF-8"))  # Base64 디코딩
     return decrypt(data, private_key, salt)
 
+
 def unpad(s):
     return s[:-ord(s[len(s) - 1:])]
+
 
 def decrypt(data, private_key, salt):
     """
@@ -64,29 +66,26 @@ def decrypt(data, private_key, salt):
     return encrypted_bytes.decode("utf-8")
 
 
-
 # 초기 설정 로드 함수
 def load_config_from_server():
     # Config Server URL 설정
     CONFIG_SERVER_URL = "http://localhost:8888/face-service/local"
 
     PRIVATE_KEY_PATH = os.path.join(os.path.dirname(__file__), "../private.pem")
-    
 
     try:
         private_key = load_private_key(PRIVATE_KEY_PATH)
 
         if private_key is None:
             raise ValueError("Private key could not be loaded")
-        
 
         response = requests.get(CONFIG_SERVER_URL)
         response.raise_for_status()
         config_data = response.json()
-        
+
         # 필요한 설정 정보 추출
         property_sources = config_data.get("propertySources", [])
-        config = {"mysql": {}, "encryption": {}, "rabbitmq": {}, "aws":{}}
+        config = {"mysql": {}, "encryption": {}, "rabbitmq": {}, "aws": {}}
 
         for source in property_sources:
             source_data = source["source"]
@@ -94,11 +93,11 @@ def load_config_from_server():
             if "flask.mysql.url" in source_data:
                 config["mysql"]["url"] = source_data["flask.mysql.url"]
             if "flask.mysql.password" in source_data:
-                config["mysql"]["password"] = decrypt_value(source_data["flask.mysql.password"],private_key)
-                
+                config["mysql"]["password"] = decrypt_value(source_data["flask.mysql.password"], private_key)
+
             # Encryption Key 설정
             if "encryption.secret_key" in source_data:
-                config["encryption"]["secret_key"] = decrypt_value(source_data["encryption.secret_key"],private_key)
+                config["encryption"]["secret_key"] = decrypt_value(source_data["encryption.secret_key"], private_key)
 
             # RabbitMQ 설정
             if "spring.rabbitmq.host" in source_data:
@@ -109,16 +108,18 @@ def load_config_from_server():
                 config["rabbitmq"]["username"] = source_data["spring.rabbitmq.username"]
             if "spring.rabbitmq.password" in source_data:
                 config["rabbitmq"]["password"] = source_data["spring.rabbitmq.password"]
-            
+
             # S3 설정
             if "s3.aws.accesskey" in source_data:
-                config["aws"]["accesskey"] = decrypt_value(source_data["s3.aws.accesskey"],private_key)
+                config["aws"]["accesskey"] = decrypt_value(source_data["s3.aws.accesskey"], private_key)
             if "s3.aws.secretkey" in source_data:
-                config["aws"]["secretkey"] = decrypt_value(source_data["s3.aws.secretkey"],private_key)
+                config["aws"]["secretkey"] = decrypt_value(source_data["s3.aws.secretkey"], private_key)
             if "s3.aws.bucketname" in source_data:
                 config["aws"]["bucketname"] = source_data["s3.aws.bucketname"]
             if "s3.aws.region" in source_data:
                 config["aws"]["region"] = source_data["s3.aws.region"]
+            if "s3.kms" in source_data:
+                config["aws"]["kms"] = decrypt_value(source_data["s3.kms"], private_key)
 
         return config
     except requests.RequestException as e:
