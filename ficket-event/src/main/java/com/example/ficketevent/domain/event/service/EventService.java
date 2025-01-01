@@ -1029,42 +1029,76 @@ public class EventService {
         return eventStageRepository.findAllSido();
     }
 
+
+    /**
+     * 장르,지역,랭킹 선택 이벤트 리스트 가져오기
+     * @param genre
+     * @param area
+     * @param period
+     * @param pageable
+     * @return
+     */
     public SimplePageRes getGenreList(Genre genre, String area, Period period, Pageable pageable) {
         period = adjustPeriodByCutoffTime(period);
 
+        // 랭킹 데이터 가져오기
         List<Pair<Long, BigDecimal>> eventIdWithScores = getTopEventsFromRedis(genre, period, 100);
+        List<Long> eventIds = eventIdWithScores.stream().map(Pair::getKey).toList();
 
-        List<Long> eventIds = eventIdWithScores.stream()
-                .map(Pair::getKey) // Pair의 첫 번째 값(Long)을 추출
-                .toList();
-
+        // 랭킹 데이터를 기반으로 이벤트 조회
         List<Event> rankEvents = eventRepository.findAllByAreaAndIds(area, eventIds);
-        boolean last = true;
-        // 충분이 크냐~
-        System.out.println(rankEvents.size() + "  :  " + genre +" "  +period +" "+ pageable.toString());
-        if ((pageable.getPageNumber() + 1) * pageable.getPageSize() > rankEvents.size()){
-            int remainingSize = (pageable.getPageNumber() + 1) * pageable.getPageSize() - rankEvents.size();
-            Page<Event> pageEvents = eventRepository.findExcludingIds(eventIds, area, PageRequest.of(pageable.getPageNumber(), remainingSize + 1));
-            List<Event> eventList = pageEvents.getContent();
-            if(eventList.size() == remainingSize + 1){
-                eventList.remove(eventList.size() - 1);
-                last = false;
+
+        boolean last = false;
+        // 페이징 처리 기준 계산
+        int start = pageable.getPageNumber() * pageable.getPageSize();
+        int end = start + pageable.getPageSize();
+
+        // 최종 반환할 이벤트 리스트
+        List<Event> finalEvents;
+
+        if (rankEvents.size() >= end) {
+            // 랭킹 데이터로 페이지를 완전히 채울 수 있는 경우
+            finalEvents = rankEvents.subList(start, end);
+        } else {
+            // 랭킹 데이터가 부족한 경우
+            finalEvents = new ArrayList<>(rankEvents);
+
+            // 부족한 데이터 수 계산
+            int remainingSize = end - rankEvents.size();
+
+            // 추가 데이터를 가져오기
+            Page<Event> additionalEvents = eventRepository.findExcludingIds(
+                    eventIds,
+                    genre,
+                    area,
+                    PageRequest.of(0, remainingSize + 1) // 한 번에 필요한 데이터만 가져옴
+            );
+
+            List<Event> additionalEventList = additionalEvents.getContent();
+
+            // 마지막 여부 판단
+            if (additionalEventList.size() <= remainingSize) {
+                last = true;
             }
-            rankEvents.addAll(eventList);
-        }else{
-            // 여기서 last 구하기
-            last = false;
-            int start = pageable.getPageNumber() * pageable.getPageSize();
-            int end = Math.min(start + pageable.getPageSize(), rankEvents.size());
-            rankEvents = rankEvents.subList(start, end);
+
+            // 추가 데이터를 결과 리스트에 합침
+            finalEvents.addAll(additionalEventList);
+
+            // 최종 결과를 `pageable` 기준으로 자르기
+            start = Math.min(start, finalEvents.size());
+            end = Math.min(end, finalEvents.size());
+            finalEvents = finalEvents.subList(start, end);
         }
-        List<SimpleEvent> content = eventMapper.toSimpleEventList(rankEvents);
+
+        // 결과 매핑
+        List<SimpleEvent> content = eventMapper.toSimpleEventList(finalEvents);
 
         return SimplePageRes.builder()
                 .content(content)
                 .last(last)
                 .page(pageable.getPageNumber())
-                .size(pageable.getPageSize())
+                .size(content.size())
                 .build();
     }
+
 }

@@ -250,7 +250,7 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
     }
 
     @Override
-    public Page<Event> getGenreTEST(List<Long> ids, Genre genre, String area, Pageable pageable) {
+    public Page<Event> findExcludingIds(List<Long> ids, Genre genre, String area, Pageable pageable) {
         JPAQuery<Event> query = queryFactory.selectFrom(event)
                 .leftJoin(event.eventStage, eventStage).fetchJoin()
                 .where(

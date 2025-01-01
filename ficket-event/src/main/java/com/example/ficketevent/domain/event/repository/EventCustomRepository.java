@@ -31,5 +31,5 @@ public interface EventCustomRepository {
 
     List<SimpleEvent> getGenreRank(String genre);
 
-    Page<Event> getGenreTEST(List<Long> ids, Genre genre, String area, Pageable pageable);
+    Page<Event> findExcludingIds(List<Long> ids, Genre genre, String area, Pageable pageable);
 }
