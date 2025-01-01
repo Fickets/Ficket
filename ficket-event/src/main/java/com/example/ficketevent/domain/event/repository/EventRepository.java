@@ -4,6 +4,7 @@ import com.example.ficketevent.domain.event.dto.common.EventTitleDto;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.response.TicketEventResponse;
 import com.example.ficketevent.domain.event.entity.Event;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -36,9 +37,19 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
     @Query("SELECT e.title FROM Event e")
     List<String> findEventTitle();
 
-    @Query("SELECT e FROM Event e WHERE e.ticketingTime < :currentDateTime ORDER BY e.ticketingTime DESC")
-    List<Event> findTop6EventsByTicketingTimeBeforeOrEquals(@Param("currentDateTime") LocalDateTime currentDateTime, Pageable pageable);
+
+    @Query("SELECT e FROM Event e " )
+//            "JOIN EventStage es ON e.eventStage.stageId = es.stageId " +
+//            "WHERE (:area IS NULL OR :area = '' OR es.sido = :area) " +
+//            "AND (:ids IS EMPTY OR e.id NOT IN :ids)")
+    Page<Event> findExcludingIds(@Param("ids") List<Long> ids, @Param("area") String sido, Pageable pageable);
 
 
+    @Query("SELECT e " +
+            "FROM Event e ")// +
+//            "JOIN EventStage es ON e.eventStage.stageId = es.stageId " +
+//            "WHERE (:area IS NULL OR :area = '' OR es.sido = :area) " +
+//            "AND e.eventId IN :ids")
+    List<Event> findAllByAreaAndIds(@Param("area")String area, @Param("ids") List<Long> ids);
 
 }

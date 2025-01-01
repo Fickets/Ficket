@@ -328,4 +328,21 @@ public class EventController {
         List<SimpleEvent> res = eventService.getGenreRank(genre);
         return ResponseEntity.ok(res);
     }
+
+    @GetMapping("/area")
+    public ResponseEntity<List<String>> getAllArea(){
+        List<String> res  = eventService.allArea();
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/genre-search")
+    public ResponseEntity<SimplePageRes> getGenreSearch(
+            @RequestParam(defaultValue = "뮤지컬") Genre genre,
+            @RequestParam(defaultValue = "") String area,
+            @RequestParam(defaultValue = "DAILY") Period period,
+            @PageableDefault(page = 0, size = 10, sort = "eventDate", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(eventService.getGenreList(genre,area, period, pageable));
+    }
+
 }

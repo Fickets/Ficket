@@ -2,6 +2,7 @@ package com.example.ficketevent.domain.event.mapper;
 
 import com.example.ficketevent.domain.event.dto.request.SeatDto;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
+import com.example.ficketevent.domain.event.dto.response.SimpleEvent;
 import com.example.ficketevent.domain.event.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -46,5 +47,19 @@ public interface EventMapper {
             @Mapping(target = "eventImgId", ignore = true),
     })
     EventImage toEventImage(String posterOriginUrl, String bannerOriginUrl, String posterMobileUrl, String posterPcUrl, String posterPcMain1Url, String posterPcMain2Url, String bannerPcUrl, String bannerMobileUrl);
+
+
+
+    default List<SimpleEvent> toSimpleEventList(List<Event> eventList){
+        return eventList.stream().map(event -> {
+            return SimpleEvent.builder()
+                    .eventId(event.getEventId())
+                    .title(event.getTitle())
+                    .date(event.getTicketingTime().toString())
+                    .pcImg(event.getEventImage().getPosterPcMain1Url())
+                    .mobileImg(event.getEventImage().getPosterPcMain2Url())
+                    .build();
+        }).toList();
+    }
 
 }

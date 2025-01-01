@@ -9,6 +9,7 @@ import com.example.ficketevent.domain.event.dto.response.SimpleEvent;
 import com.example.ficketevent.domain.event.entity.Event;
 import com.example.ficketevent.domain.event.enums.Genre;
 import com.example.ficketevent.domain.event.entity.QGenre;
+import com.example.ficketevent.domain.event.enums.Period;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
@@ -19,6 +20,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 
@@ -30,7 +32,9 @@ import java.util.stream.Collectors;
 
 import static com.example.ficketevent.domain.event.entity.QEvent.*;
 import static com.example.ficketevent.domain.event.entity.QEventSchedule.*;
+import static com.example.ficketevent.domain.event.entity.QEventStage.eventStage;
 import static com.example.ficketevent.domain.event.entity.QSeatMapping.seatMapping;
+import static com.querydsl.jpa.JPAExpressions.selectFrom;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -245,6 +249,29 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                 .toList();
     }
 
+    @Override
+    public Page<Event> getGenreTEST(List<Long> ids, Genre genre, String area, Pageable pageable) {
+        JPAQuery<Event> query = queryFactory.selectFrom(event)
+                .leftJoin(event.eventStage, eventStage).fetchJoin()
+                .where(
+                        areaIs(area),
+                        genreIs(genre),
+                        idNotIn(ids)
+                );
+
+        // 전체 데이터 개수 조회
+        long total = query.fetchCount();
+
+        // 페이징 적용
+        List<Event> events = query
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+
+        return new PageImpl<>(events, pageable, total);
+    }
+
     private BooleanExpression containsGenre(Genre genre) {
         return genre != null ? event.genre.contains(genre) : null;
     }
@@ -264,4 +291,17 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                 .toArray(OrderSpecifier[]::new);
     }
 
+
+    private BooleanExpression areaIs(String area) {
+        return (area == null || area.isEmpty()) ? null : eventStage.sido.eq(area);
+    }
+
+    private BooleanExpression genreIs(Genre genre) {
+        return (genre == null || genre.equals("전체")) ? null : event.genre.contains(genre);
+    }
+
+    private BooleanExpression idNotIn(List<Long> ids) {
+        return (ids == null || ids.isEmpty()) ? null : event.eventId.notIn(ids);
+    }
+    
 }
