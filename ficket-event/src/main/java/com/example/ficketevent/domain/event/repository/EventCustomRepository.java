@@ -5,7 +5,10 @@ import com.example.ficketevent.domain.event.dto.request.EventSearchCond;
 import com.example.ficketevent.domain.event.dto.response.EventScheduledOpenResponse;
 import com.example.ficketevent.domain.event.dto.response.EventSearchRes;
 import com.example.ficketevent.domain.event.dto.response.SimpleEvent;
+import com.example.ficketevent.domain.event.entity.Event;
 import com.example.ficketevent.domain.event.entity.EventSchedule;
+import com.example.ficketevent.domain.event.enums.Genre;
+import com.example.ficketevent.domain.event.enums.Period;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +30,6 @@ public interface EventCustomRepository {
     List<SimpleEvent> openSearchTop6Genre(String genre);
 
     List<SimpleEvent> getGenreRank(String genre);
+
+    Page<Event> getGenreTEST(List<Long> ids, Genre genre, String area, Pageable pageable);
 }

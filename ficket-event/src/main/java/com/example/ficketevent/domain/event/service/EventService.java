@@ -1025,5 +1025,46 @@ public class EventService {
     public List<SimpleEvent> getGenreRank(String genre){
         return eventRepository.getGenreRank(genre);
     }
+    public List<String> allArea(){
+        return eventStageRepository.findAllSido();
+    }
 
+    public SimplePageRes getGenreList(Genre genre, String area, Period period, Pageable pageable) {
+        period = adjustPeriodByCutoffTime(period);
+
+        List<Pair<Long, BigDecimal>> eventIdWithScores = getTopEventsFromRedis(genre, period, 100);
+
+        List<Long> eventIds = eventIdWithScores.stream()
+                .map(Pair::getKey) // Pair의 첫 번째 값(Long)을 추출
+                .toList();
+
+        List<Event> rankEvents = eventRepository.findAllByAreaAndIds(area, eventIds);
+        boolean last = true;
+        // 충분이 크냐~
+        System.out.println(rankEvents.size() + "  :  " + genre +" "  +period +" "+ pageable.toString());
+        if ((pageable.getPageNumber() + 1) * pageable.getPageSize() > rankEvents.size()){
+            int remainingSize = (pageable.getPageNumber() + 1) * pageable.getPageSize() - rankEvents.size();
+            Page<Event> pageEvents = eventRepository.findExcludingIds(eventIds, area, PageRequest.of(pageable.getPageNumber(), remainingSize + 1));
+            List<Event> eventList = pageEvents.getContent();
+            if(eventList.size() == remainingSize + 1){
+                eventList.remove(eventList.size() - 1);
+                last = false;
+            }
+            rankEvents.addAll(eventList);
+        }else{
+            // 여기서 last 구하기
+            last = false;
+            int start = pageable.getPageNumber() * pageable.getPageSize();
+            int end = Math.min(start + pageable.getPageSize(), rankEvents.size());
+            rankEvents = rankEvents.subList(start, end);
+        }
+        List<SimpleEvent> content = eventMapper.toSimpleEventList(rankEvents);
+
+        return SimplePageRes.builder()
+                .content(content)
+                .last(last)
+                .page(pageable.getPageNumber())
+                .size(pageable.getPageSize())
+                .build();
+    }
 }

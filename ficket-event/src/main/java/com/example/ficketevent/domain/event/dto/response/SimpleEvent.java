@@ -14,6 +14,8 @@ public class SimpleEvent {
 
     private String date;
 
+    private String eventStage;
+
     private String pcImg;
     private String mobileImg;
 }
