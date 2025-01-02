@@ -52,11 +52,23 @@ public interface EventMapper {
 
     default List<SimpleEvent> toSimpleEventList(List<Event> eventList){
         return eventList.stream().map(event -> {
+            List<EventSchedule> schedules = event.getEventSchedules();
+            String date = event.getTicketingTime().toString().split("T")[0];
+            if(!schedules.isEmpty()){
+                EventSchedule first = schedules.get(0);
+                EventSchedule second = schedules.get(schedules.size()-1);
+                String firstDate = first.getEventDate().toString().split("T")[0];
+                String secondDate = second.getEventDate().toString().split("T")[0];
+                date = firstDate+"~"+secondDate;
+            }
+
+
             return SimpleEvent.builder()
                     .eventId(event.getEventId())
                     .title(event.getTitle())
-                    .date(event.getTicketingTime().toString())
+                    .date(date)
                     .pcImg(event.getEventImage().getPosterPcMain1Url())
+                    .eventStage(event.getEventStage().getStageName())
                     .mobileImg(event.getEventImage().getPosterPcMain2Url())
                     .build();
         }).toList();

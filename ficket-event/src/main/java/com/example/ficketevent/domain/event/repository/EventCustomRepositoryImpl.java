@@ -272,6 +272,18 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
         return new PageImpl<>(events, pageable, total);
     }
 
+    @Override
+    public List<Event> findIdsArea(List<Long> ids, String area) {
+        JPAQuery<Event> query = queryFactory.selectFrom(event)
+                .leftJoin(event.eventStage, eventStage).fetchJoin()
+                .where(
+                        areaIs(area),
+                        event.eventId.in(ids)
+                );
+
+        return query.fetch();
+    }
+
     private BooleanExpression containsGenre(Genre genre) {
         return genre != null ? event.genre.contains(genre) : null;
     }
@@ -293,11 +305,11 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
 
 
     private BooleanExpression areaIs(String area) {
-        return (area == null || area.isEmpty()) ? null : eventStage.sido.eq(area);
+        return (area == null || area.isEmpty() || area.equals("전체")) ? null : eventStage.sido.eq(area);
     }
 
     private BooleanExpression genreIs(Genre genre) {
-        return (genre == null || genre.equals("전체")) ? null : event.genre.contains(genre);
+        return genre == null ? null : event.genre.contains(genre);
     }
 
     private BooleanExpression idNotIn(List<Long> ids) {
