@@ -27,12 +27,16 @@ const UserHeader = () => {
           user.resetState();
           navi("/");
         },
-        () => {},
+        () => { },
       );
     } else {
       navi("/users/login");
     }
   };
+
+  const genreChoice = (e) => {
+    navi(`/events/genre-choice?choice=${e.target.value}`)
+  }
 
   return (
     <div>
@@ -69,22 +73,22 @@ const UserHeader = () => {
         </div>
         {/** navBar */}
         <div className="flex mx-[300px] mt-[20px]">
-          <button className="mr-[50px] text-[16px] font-medium" value={0}>
+          <button className="mr-[50px] text-[16px] font-medium" value="뮤지컬" onClick={genreChoice}>
             뮤지컬
           </button>
-          <button className="mr-[50px] text-[16px] font-medium" value={1}>
+          <button className="mr-[50px] text-[16px] font-medium" value="콘서트" onClick={genreChoice}>
             콘서트
           </button>
-          <button className="mr-[50px] text-[16px] font-medium" value={2}>
+          <button className="mr-[50px] text-[16px] font-medium" value="스포츠" onClick={genreChoice}>
             스포츠
           </button>
-          <button className="mr-[50px] text-[16px] font-medium" value={3}>
+          <button className="mr-[50px] text-[16px] font-medium" value="전시_행사" onClick={genreChoice}>
             전시/행사
           </button>
-          <button className="mr-[50px] text-[16px] font-medium" value={4}>
+          <button className="mr-[50px] text-[16px] font-medium" value="클래식_무용" onClick={genreChoice}>
             클래식/무용
           </button>
-          <button className="mr-[50px] text-[16px] font-medium" value={5}>
+          <button className="mr-[50px] text-[16px] font-medium" value="아동_가족" onClick={genreChoice}>
             아동/가족
           </button>
         </div>

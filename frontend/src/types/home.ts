@@ -15,4 +15,12 @@ export interface SimpleEvent {
   date: string;
   pcImg: string;
   mobileImg: string
+  eventStage: string
+}
+
+export interface SimplePageRes {
+  content: SimpleEvent[];
+  page: number;
+  size: number;
+  last: boolean
 }
