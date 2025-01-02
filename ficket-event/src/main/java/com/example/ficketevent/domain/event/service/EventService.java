@@ -1046,7 +1046,7 @@ public class EventService {
         List<Long> eventIds = eventIdWithScores.stream().map(Pair::getKey).toList();
 
         // 랭킹 데이터를 기반으로 이벤트 조회
-        List<Event> rankEvents = eventRepository.findAllByAreaAndIds(area, eventIds);
+        List<Event> rankEvents = eventRepository.findIdsArea(eventIds, area);
 
         boolean last = false;
         // 페이징 처리 기준 계산

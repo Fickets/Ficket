@@ -37,19 +37,4 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
     @Query("SELECT e.title FROM Event e")
     List<String> findEventTitle();
 
-
-//    @Query("SELECT e FROM Event e " )
-////            "JOIN EventStage es ON e.eventStage.stageId = es.stageId " +
-////            "WHERE (:area IS NULL OR :area = '' OR es.sido = :area) " +
-////            "AND (:ids IS EMPTY OR e.id NOT IN :ids)")
-//    Page<Event> findExcludingIds(@Param("ids") List<Long> ids, @Param("area") String sido, Pageable pageable);
-
-
-    @Query("SELECT e " +
-            "FROM Event e " +
-            "JOIN EventStage es ON e.eventStage.stageId = es.stageId " +
-            "WHERE es.sido = :area " +
-            "AND e.eventId IN :ids")
-    List<Event> findAllByAreaAndIds(@Param("area")String area, @Param("ids") List<Long> ids);
-
 }
