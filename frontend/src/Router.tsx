@@ -22,6 +22,7 @@ import SuspendedUserPage from "./pages/login/Suspended.tsx";
 import UserManagePage from "./pages/admin/Customers.tsx";
 import EventScheduledOpen from "./pages/eventScheduledOpen/EventScheduledOpen.tsx";
 import SettlementManagePage from './pages/admin/Settlement.tsx';
+import GenreChoice from "./pages/event/GenreChoice.tsx";
 export default function Router() {
   const user = useStore(userStore);
   const navi = useNavigate();
@@ -60,6 +61,7 @@ export default function Router() {
       <Route path="events/detail/:eventId" element={<EventDetailPage />} />
       <Route path="contents/ranking" element={<ReservationRateRanking />} />
       <Route path="contents/scheduled-open" element={<EventScheduledOpen />} />
+      <Route path="/events/genre-choice" element={<GenreChoice />} />
 
       {/* FICKET USER TICKETING*/}
       <Route path="/my-ticket" element={<MyTicket />} />

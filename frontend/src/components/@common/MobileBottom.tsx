@@ -17,7 +17,7 @@ const BottomNav = () => {
           user.resetState();
           navi("/");
         },
-        () => {},
+        () => { },
       );
     } else {
       navi("/users/login");
@@ -25,7 +25,7 @@ const BottomNav = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 z-50">
+    <div className="block md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 z-50">
       <div className="w-full max-w-[400px] mx-auto flex justify-around items-center py-2">
         {/* 마이티켓 */}
         <div
