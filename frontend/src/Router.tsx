@@ -23,6 +23,7 @@ import UserManagePage from "./pages/admin/Customers.tsx";
 import EventScheduledOpen from "./pages/eventScheduledOpen/EventScheduledOpen.tsx";
 import SettlementManagePage from './pages/admin/Settlement.tsx';
 import GenreChoice from "./pages/event/GenreChoice.tsx";
+import CustomerFaceCheck from "./pages/ticketCheck/customerCheck.tsx";
 export default function Router() {
   const user = useStore(userStore);
   const navi = useNavigate();
@@ -65,6 +66,7 @@ export default function Router() {
 
       {/* FICKET USER TICKETING*/}
       <Route path="/my-ticket" element={<MyTicket />} />
+      <Route path="/TEST1" element={<CustomerFaceCheck />} />
     </Routes>
   );
 }
