@@ -667,4 +667,13 @@ public class OrderService {
 
         return faceApiResponse;
     }
+
+    public FaceApiResponse matchFace(MultipartFile userFaceImage, Long eventScheduledId){
+        log.info("TTEST : " +  eventScheduledId + " : "+ userFaceImage);
+        FaceApiResponse faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
+                "postMatchUserFaceImgCircuitBreaker",
+                () -> faceServiceClient.matchFace(userFaceImage, eventScheduledId)
+        );
+        return faceApiResponse;
+    }
 }

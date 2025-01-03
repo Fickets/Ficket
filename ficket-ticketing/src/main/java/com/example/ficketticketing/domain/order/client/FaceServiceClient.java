@@ -22,4 +22,10 @@ public interface FaceServiceClient {
 
     @PostMapping(value = "/api/v1/faces/set-relationship", consumes = MediaType.APPLICATION_JSON_VALUE)
     FaceApiResponse settingRelationship(@RequestBody UploadFaceInfo UploadFaceInfo);
+
+    @PostMapping(value = "/api/v1/faces/match", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    FaceApiResponse matchFace(
+            @RequestPart("file") MultipartFile file,
+            @RequestPart("event_schedule_id") Long eventScheduleId
+    );
 }

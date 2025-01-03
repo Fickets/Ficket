@@ -273,6 +273,11 @@ spring:
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
+            - Path=/api/v1/ticketing/check/{eventScheduleId}/user-match
+            - Method=POST
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
             - Path=/api/v1/ticketing/order/subscribe/{paymentId}
         - id: ticketing-service
           uri: lb://ticketing-service
