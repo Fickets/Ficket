@@ -17,7 +17,7 @@ public class CheckController {
 
     private final OrderService orderService;
 
-    @PostMapping("{eventScheduleId}/user-match")
+    @PostMapping("/{eventScheduleId}/user-match")
     public ResponseEntity<FaceApiResponse> userMatch(@RequestPart MultipartFile userImg, @PathVariable Long eventScheduleId) {
         return ResponseEntity.ok(orderService.matchFace(userImg, eventScheduleId));
     }

@@ -53,6 +53,8 @@ resilience4j:
         base-config: default
       deleteFaceCircuitBreaker:
         base-config: default
+      postMatchUserFaceImgCircuitBreaker:
+        base-config: default
 
 logging:
   level:

@@ -290,6 +290,23 @@ spring:
           predicates:
             - Path=/ticketing-swagger/v3/api-docs
 
+        # SEARCH-SERVICE
+        - id: search-service
+          uri: lb://search-service
+          predicates:
+            - Path=/search-service/actuator/**
+            - Method=GET,POST
+          filters:
+            - RewritePath=/search-service/(?<segment>.*), /${segment}
+        - id: search-service
+          uri: lb://search-service
+          predicates:
+            - Path=/api/v1/search/**
+        - id: search-service
+          uri: lb://search-service
+          predicates:
+            - Path=/search-swagger/v3/api-docs
+
 encrypt:
   key-store:
     password: test1234
@@ -318,6 +335,8 @@ springdoc:
         url: http://localhost:9000/queue-swagger/v3/api-docs
       - name: face-service
         url: http://localhost:5000/api/v1/faces/swagger.json
+      - name: search-service
+        url: http://localhost:9000/search-swagger/v3/api-docs
     persistAuthorization: true
     use-root-path: true
 

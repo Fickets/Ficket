@@ -73,6 +73,8 @@ dependencies {
 
 	// AWS S3
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+	implementation 'javax.xml.bind:jaxb-api:2.3.1'
+	implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
 
 	// Redis & Cache
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -103,6 +105,9 @@ dependencies {
 
 	// Kafka
 	implementation 'org.springframework.kafka:spring-kafka'
+
+	// OpenCSV
+	implementation 'com.opencsv:opencsv:5.9'
 
 }
 
