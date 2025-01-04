@@ -1,0 +1,88 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: search-service
+  profiles:
+    active: local
+  config:
+    import: optional:configserver:http://localhost:8888
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
+
+elasticsearch:
+  ca-certificate-path: |
+    MIIDSTCCAjGgAwIBAgIUJlnrPTnKkjjzDTRYohUIZR5Z5nEwDQYJKoZIhvcNAQEL
+    BQAwNDEyMDAGA1UEAxMpRWxhc3RpYyBDZXJ0aWZpY2F0ZSBUb29sIEF1dG9nZW5l
+    cmF0ZWQgQ0EwHhcNMjUwMTAzMTM1NDA2WhcNMjgwMTAzMTM1NDA2WjA0MTIwMAYD
+    VQQDEylFbGFzdGljIENlcnRpZmljYXRlIFRvb2wgQXV0b2dlbmVyYXRlZCBDQTCC
+    ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK1miajOA3To01MVQGX4052s
+    iNZg35ktDGVeXQRnwKw2zd9e8S/A+i8fFa/BFusXriw5dTqCZxeZQ8B3k5ZVEYH2
+    im0mIFKhintByoQ0TkeeRt9LvZg16qqTeC+oKPKaR5hlYZoqxr7uLqGIBQctud87
+    lRmXAOFf1i0QGtR2zWpHmrq5Dwi/JcmbXQvPeTo1Ts2X2QeVHxmmH64k8Ej1Z3E3
+    rIkRzsnFj8eYYMcEAWnEG+jmHPKoYT/MYEm2fOQdnyB+5/7QPVMlESXmYPKXil2f
+    BIpAEGF4+h7mZn7tRodhStOGQvHwvDAS8xn5oZJ9MnpA59lt9uJrR4IYSSBFZ8MC
+    AwEAAaNTMFEwHQYDVR0OBBYEFNZ49NzynLJIFswK/8hfknDt33GSMB8GA1UdIwQY
+    MBaAFNZ49NzynLJIFswK/8hfknDt33GSMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZI
+    hvcNAQELBQADggEBAKvegy1aVJ2pYRTrKmRCufblv0DKBBSMxcx6tXXH12IY7T6V
+    YNA4MkYUp9vU6NjBZxXpRKMTAqHcSW3hevTWcRwW0QVDm9+WdG0W0BcblB2hq3mD
+    MH1Qk4tz73IwawjQWjywBOH6dzE+FZL6yze6/8TMEv2fCIoPXC9Xr0UU+Vo8oNF1
+    6f5T9AaYpw8zQOR233oy8DdKjZzAX7koorK1tV7yljstr4b3CIUJuHnOqIh5Hru9
+    LwYfNPwZydce0Gc6ad4bUps4V4649Ri6qzz0MJ1Ds7pYvPJkCNF5ft1OswD7NrHM
+    Huq5dCtP79850D63Fxaz4wEx/qNDSZa5kMWAmRM=
+
+
+#resilience4j:
+#  circuitbreaker:
+#    configs:
+#      default:
+#        failure-rate-threshold: 50
+#        slow-call-rate-threshold: 80
+#        slow-call-duration-threshold: 10s
+#        permitted-number-of-calls-in-half-open-state: 3
+#        max-wait-duration-in-half-open-state: 0
+#        sliding-window-type: COUNT_BASED
+#        sliding-window-size: 10
+#        minimum-number-of-calls: 10
+#        wait-duration-in-open-state: 10s
+
+
+logging:
+  level:
+    com.example.ficketsearch.domain: DEBUG
+  pattern:
+    correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      consume: B3
+      produce: B3
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  endpoint:
+    health:
+      show-details: always
+    endpoints:
+      web:
+        exposure:
+          include: health
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: "/search-swagger/v3/api-docs"
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+encrypt:
+  key-store:
+    password: test1234
+    alias: apiEncryptionKey
+    location: classpath:/apiEncryptionKey.jks
+

@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.example.ficketevent.global.config.awsS3.AwsConstants;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static com.example.ficketevent.global.config.awsS3.AwsConstants.*;
 
@@ -83,5 +89,28 @@ public class AwsS3Service {
 
     public void delete(String filePath, String bucket) {
         amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, filePath));
+    }
+
+    public String uploadEventListInfoFile(File file) {
+
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentType("text/csv");
+        objectMetadata.setContentEncoding("UTF-8"); // UTF-8 인코딩 명시
+        objectMetadata.setContentLength(file.length());
+
+        String originalFileName = file.getName();
+
+        int index = originalFileName.lastIndexOf(".");
+        String ext = originalFileName.substring(index + 1);
+
+        String key = String.format("%s/events_version_%s.%s",EVENT_INFO_LIST_FOLDER, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd")), ext);
+
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            amazonS3Client.putObject(new PutObjectRequest(CONTENT_BUCKET_NAME, key, fileInputStream, objectMetadata));
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.ENTITY_NOT_FOUNT);
+        }
+
+        return amazonS3Client.getUrl(CONTENT_BUCKET_NAME, key).toString();
     }
 }

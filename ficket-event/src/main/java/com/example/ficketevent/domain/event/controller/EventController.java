@@ -12,6 +12,7 @@ import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.enums.Genre;
 import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.domain.event.service.EventService;
+import com.example.ficketevent.global.config.scheduler.EventToCSVScheduler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,6 +34,7 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+    private final EventToCSVScheduler schedulerService; // 삭제 에쩡
 
     /**
      * 행사 등록 API
@@ -345,4 +347,9 @@ public class EventController {
         return ResponseEntity.ok(eventService.getGenreList(genre,area, period, pageable));
     }
 
+    @PostMapping("/detail/test")
+    public ResponseEntity<Void> testCsv() {
+        schedulerService.test();
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -22,5 +22,6 @@ public class AwsConstants {
     // Content
     public static final String CONTENT_BUCKET_NAME = "ficket-event-content";
     public static final String ORIGIN_CONTENT_FOLDER = "content";
+    public static final String EVENT_INFO_LIST_FOLDER = "event_info_list";
 
 }

@@ -6,9 +6,12 @@ import com.example.ficketevent.domain.event.dto.request.*;
 import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.enums.Genre;
+import com.example.ficketevent.domain.event.enums.IndexingType;
+import com.example.ficketevent.domain.event.enums.OperationType;
 import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.domain.event.mapper.EventMapper;
 import com.example.ficketevent.domain.event.mapper.TicketMapper;
+import com.example.ficketevent.domain.event.messagequeue.IndexingProducer;
 import com.example.ficketevent.domain.event.repository.*;
 import com.example.ficketevent.global.common.Pair;
 import com.example.ficketevent.global.result.error.ErrorCode;
@@ -37,6 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,6 +70,7 @@ public class EventService {
     private final RedisTemplate<String, Object> redisTemplate;
     @Qualifier("rankingRedisTemplate") // 랭킹용 RedisTemplate
     private final RedisTemplate<String, Object> rankingRedisTemplate;
+    private final IndexingProducer indexingProducer;
 
 
     /**
@@ -105,11 +110,13 @@ public class EventService {
         eventStage.getEvents().add(newEvent);
 
         // 7. 총 정산 테이블 만들기
-        eventRepository.save(newEvent);
-        executeWithCircuitBreaker(circuitBreakerRegistry,
-                "createTotalSettlement",
-                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
+        Event savedEvent = eventRepository.save(newEvent);
+//        executeWithCircuitBreaker(circuitBreakerRegistry,
+//                "createTotalSettlement",
+//                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
 
+        // 8. 부분 색인 요청
+        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(savedEvent), OperationType.CREATE);
     }
 
 
@@ -231,6 +238,9 @@ public class EventService {
 
         // 6. 수동 캐시 삭제
         deleteCache(eventId);
+
+        // 7. 부분 색인 요청
+        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(findEvent), OperationType.UPDATE);
     }
 
     // 회사 정보 업데이트
@@ -455,6 +465,9 @@ public class EventService {
 
         // 이벤트 삭제
         eventRepository.delete(findEvent);
+
+        // 부분 색인 요청
+        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, String.valueOf(eventId), OperationType.DELETE);
     }
 
     /**
@@ -1018,20 +1031,22 @@ public class EventService {
     }
 
 
-    public List<SimpleEvent> getOpenRecent(String genre){
+    public List<SimpleEvent> getOpenRecent(String genre) {
         return eventRepository.openSearchTop6Genre(genre);
     }
 
-    public List<SimpleEvent> getGenreRank(String genre){
+    public List<SimpleEvent> getGenreRank(String genre) {
         return eventRepository.getGenreRank(genre);
     }
-    public List<String> allArea(){
+
+    public List<String> allArea() {
         return eventStageRepository.findAllSido();
     }
 
 
     /**
      * 장르,지역,랭킹 선택 이벤트 리스트 가져오기
+     *
      * @param genre
      * @param area
      * @param period
@@ -1099,6 +1114,42 @@ public class EventService {
                 .page(pageable.getPageNumber())
                 .size(content.size())
                 .build();
+    }
+
+    private Map<String, Object> parsingToIndexing(Event event) {
+        // 장르 리스트를 배열 형식으로 변환
+        List<Map<String, String>> genres = event.getGenre().stream()
+                .map(genre -> {
+                    Map<String, String> genreMap = new HashMap<>();
+                    genreMap.put("Genre", genre.toString());
+                    return genreMap;
+                })
+                .collect(Collectors.toList());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        // 스케줄 날짜 리스트를 배열 형식으로 변환
+        List<Map<String, String>> schedules = event.getEventSchedules().stream()
+                .map(schedule -> {
+                    Map<String, String> scheduleMap = new HashMap<>();
+                    scheduleMap.put("Schedule", schedule.getEventDate().format(formatter));
+                    return scheduleMap;
+                })
+                .toList();
+
+        // 데이터 맵으로 반환
+        Map<String, Object> indexingData = new HashMap<>();
+        indexingData.put("EventId", String.valueOf(event.getEventId()));
+        indexingData.put("Title", event.getTitle());
+        indexingData.put("Title_Keyword", event.getTitle());
+        indexingData.put("SubTitle", event.getSubTitle());
+        indexingData.put("Stage", event.getEventStage().getStageName());
+        indexingData.put("Stage_Keyword", event.getEventStage().getStageName());
+        indexingData.put("Location", event.getEventStage().getSido());
+        indexingData.put("Genres", genres);
+        indexingData.put("Schedules", schedules);
+        indexingData.put("Ticketing", event.getTicketingTime().format(formatter));
+
+        return indexingData;
     }
 
 }

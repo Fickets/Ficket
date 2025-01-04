@@ -32,6 +32,8 @@ public class FeignErrorDecoder implements ErrorDecoder {
 
         switch (response.status()) {
             case 400:
+                log.error("Bad Request for methodKey={} with status={} and reason={}", methodKey, response.status(), response.reason());
+
                 return new BusinessException(INVALID_REQUEST); // 적절한 ErrorCode 추가
             case 404:
                 if (methodKey.contains("getEventSchedule")) {
