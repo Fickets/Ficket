@@ -20,7 +20,7 @@ public class CSVGenerator {
              CSVWriter csvWriter = new CSVWriter(fileWriter)) {
 
             // 헤더 작성
-            csvWriter.writeNext(new String[]{"EventId", "Title", "Title_Keyword", "SubTitle", "Stage", "Stage_Keyword", "Location", "Genres", "Schedules", "Ticketing"});
+            csvWriter.writeNext(new String[]{"EventId", "Title", "Title_Keyword", "Poster_Url", "Stage", "Stage_Keyword", "Location", "Genres", "Schedules", "Ticketing"});
 
             // 데이터 작성
             for (Event event : events) {
@@ -37,7 +37,7 @@ public class CSVGenerator {
                         String.valueOf(event.getEventId()),
                         event.getTitle(),
                         event.getTitle(),
-                        event.getSubTitle(),
+                        event.getEventImage().getPosterPcUrl(),
                         event.getEventStage().getStageName(),
                         event.getEventStage().getStageName(),
                         event.getEventStage().getSido(),
