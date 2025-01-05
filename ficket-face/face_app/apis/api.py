@@ -2,10 +2,10 @@ from flask import request, Blueprint
 from flask_restx import Api, Resource, fields
 from werkzeug.datastructures import FileStorage
 from face_app.models.model import Face
-from utils import get_face_embedding, cosine_similarity, encrypt_vector, decrypt_vector, upload_file_to_s3, delete_file_from_s3, generate_presigned_url
+from utils import get_face_embedding, cosine_similarity, encrypt_vector, decrypt_vector, upload_file_to_s3, \
+    delete_file_from_s3, generate_presigned_url
 from database import db
 from config import config
-import base64
 from face_app.schemas.response import ResponseSchema
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -44,7 +44,6 @@ relationship_model = api.model(
     }
 )
 
-
 file_upload_parser = api.parser()
 file_upload_parser.add_argument("file", location="files", type=FileStorage, required=True, help="Face image file")
 file_upload_parser.add_argument("event_schedule_id", location="form", type=int, required=True, help="Event schedule ID")
@@ -76,9 +75,11 @@ def delete_null_ticket_faces():
         db.session.rollback()
         print(f"Error occurred while deleting faces with NULL ticket_id: {e}")
 
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(delete_null_ticket_faces, 'cron', hour=0, minute=0)
 scheduler.start()
+
 
 # API 리소스 정의
 @api.route("/upload")
@@ -114,7 +115,7 @@ class UploadFace(Resource):
 
         return ResponseSchema.make_response(200, "Face uploaded successfully.", {
             "faceId": new_face.face_id,
-            "faceUrl": new_face.face_img
+            "faceUrl": generate_presigned_url(new_face.face_img, 600)
         }), 200
 
 
@@ -150,7 +151,7 @@ class MatchFace(Resource):
                 max_similarity = similarity
                 best_match = {
                     "face_id": face.face_id,
-                    "face_img": face.face_img,
+                    "face_img": generate_presigned_url(face.face_img),
                     "ticket_id": face.ticket_id,
                     "event_schedule_id": face.event_schedule_id,
                     "similarity": float(similarity),
@@ -161,8 +162,6 @@ class MatchFace(Resource):
             return ResponseSchema.make_response(200, "Face match found.", best_match), 200
         else:
             return ResponseSchema.make_response(404, "No matching face found."), 404
-
-
 
 
 @api.route("/<int:ticket_id>")
@@ -221,6 +220,7 @@ class SetRelationship(Resource):
             db.session.rollback()
             return ResponseSchema.make_response(500, "데이터베이스 업데이트 중 오류가 발생했습니다.", {"error": str(e)}), 500
 
+
 @api.route("/presigned-url/<int:face_id>")
 class GetFileFromS3(Resource):
     @api.response(200, "Presigned URL 생성 성공", response_model)
@@ -247,6 +247,7 @@ class GetFileFromS3(Resource):
 
         except Exception as e:
             return ResponseSchema.make_response(500, "처리 중 오류 발생", {"error": str(e)}), 500
+
 
 @api.route("/delete-face/<int:face_id>")
 class DeleteImageByFaceId(Resource):

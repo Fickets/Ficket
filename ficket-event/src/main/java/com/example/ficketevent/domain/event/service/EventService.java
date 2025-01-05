@@ -111,9 +111,9 @@ public class EventService {
 
         // 7. 총 정산 테이블 만들기
         Event savedEvent = eventRepository.save(newEvent);
-//        executeWithCircuitBreaker(circuitBreakerRegistry,
-//                "createTotalSettlement",
-//                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
+        executeWithCircuitBreaker(circuitBreakerRegistry,
+                "createTotalSettlement",
+                () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
 
         // 8. 부분 색인 요청
         indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(savedEvent), OperationType.CREATE);
@@ -1141,7 +1141,7 @@ public class EventService {
         indexingData.put("EventId", String.valueOf(event.getEventId()));
         indexingData.put("Title", event.getTitle());
         indexingData.put("Title_Keyword", event.getTitle());
-        indexingData.put("SubTitle", event.getSubTitle());
+        indexingData.put("Poster_Url", event.getEventImage().getPosterPcUrl());
         indexingData.put("Stage", event.getEventStage().getStageName());
         indexingData.put("Stage_Keyword", event.getEventStage().getStageName());
         indexingData.put("Location", event.getEventStage().getSido());
