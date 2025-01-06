@@ -11,11 +11,11 @@ import org.springframework.web.servlet.function.EntityResponse;
 
 import java.math.BigDecimal;
 
-@FeignClient(name = "admins-service")
+@FeignClient(name = "admin-service")
 public interface AdminServiceClient {
 
     @PostMapping("api/v1/settlements/create")
-    EntityResponse<Void> createSettlement(@RequestBody OrderSimpleDto orderSimpleDto);
+    ResponseEntity<Void> createSettlement(@RequestBody OrderSimpleDto orderSimpleDto);
 
     @GetMapping("api/v1/settlements/refund")
     ResponseEntity<Void> refundSettlement(@RequestParam(name = "orderId") Long orderId, @RequestParam(name = "refund")BigDecimal refund);

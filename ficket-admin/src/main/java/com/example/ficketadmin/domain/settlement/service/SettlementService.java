@@ -76,7 +76,8 @@ public class SettlementService {
                 .vat(vat)
                 .serviceFee(serviceFee)
                 .settlementValue(settlementValue)
-//                .settlementRecord(settlementRecord)
+                .refundValue(BigDecimal.ZERO)
+                .settlementRecord(settlementRecord)
                 .settlementStatus(SettlementStatus.UNSETTLED)
                 .orderId(orderSimpleDto.getOrderId())
                 .build();

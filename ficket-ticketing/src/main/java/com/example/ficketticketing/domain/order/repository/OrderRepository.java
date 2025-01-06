@@ -83,5 +83,8 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     @Query("SELECT o.userId FROM Orders o WHERE o.paymentId = :paymentId")
     Long findUserIdByPaymentId(@Param("paymentId") String paymentId);
+
+    @Query("SELECT o FROM Orders o WHERE o.paymentId = :paymentId")
+    Optional<Orders> findByPaymentId(@Param("paymentId") String paymentId);
 }
 

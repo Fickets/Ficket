@@ -159,10 +159,43 @@ public class OrderService {
             case "Transaction.Ready":
                 log.info("결제창 오픈");
                 break;
+//            case "Transaction.Paid":
+//                if (verifyPaidInfo(paymentId)) {
+//                    orderRepository.updateOrderStatusToCompleted(paymentId);
+//                    notifyClient(paymentId, "Paid");
+//                } else {
+//                    portOneApiClient.cancelOrder(paymentId);
+//                    notifyClient(paymentId, "Failed");
+//                }
+//                break;
             case "Transaction.Paid":
                 if (verifyPaidInfo(paymentId)) {
                     orderRepository.updateOrderStatusToCompleted(paymentId);
+
+                    // TODO 여기서 해보자 order 찾고 paymentsId  >> 진행
+                    Orders order = orderRepository.findByPaymentId(paymentId)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
+
+                    // create settlement
+                    List<Long> ids = executeWithCircuitBreaker(
+                            circuitBreakerRegistry,
+                            "getCompanyEventIdByTicketId",
+                            () -> eventServiceClient.getCompanyEventId(order.getTicket().getTicketId()));
+
+                    OrderSimpleDto orderSimpleDto = orderMapper.toOrderSimpleDto(order);
+                    orderSimpleDto.setCompanyId(ids.get(0));
+                    orderSimpleDto.setEventId(ids.get(1));
+
+                    ResponseEntity<Void> settlementCreateByOrder = executeWithCircuitBreaker(
+                            circuitBreakerRegistry,
+                            "settlementCreateByOrder",
+                            () -> adminServiceClient.createSettlement(orderSimpleDto)
+                    );
+
+                    log.info("settlement created success");
+
                     notifyClient(paymentId, "Paid");
+
                 } else {
                     portOneApiClient.cancelOrder(paymentId);
                     notifyClient(paymentId, "Failed");
@@ -634,7 +667,7 @@ public class OrderService {
         return new DayCountResponse(dayCountMap);
     }
 
-    public List<OrderInfoDto> getCustomerTickets(Long userId){
+    public List<OrderInfoDto> getCustomerTickets(Long userId) {
 
         List<OrderInfoDto> res = new ArrayList<>();
         List<Orders> customerOrders = orderRepository.findAllByUserId(userId);
@@ -668,8 +701,8 @@ public class OrderService {
         return faceApiResponse;
     }
 
-    public FaceApiResponse matchFace(MultipartFile userFaceImage, Long eventScheduledId){
-        log.info("TTEST : " +  eventScheduledId + " : "+ userFaceImage);
+    public FaceApiResponse matchFace(MultipartFile userFaceImage, Long eventScheduledId) {
+        log.info("TTEST : " + eventScheduledId + " : " + userFaceImage);
         FaceApiResponse faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
                 "postMatchUserFaceImgCircuitBreaker",
                 () -> faceServiceClient.matchFace(userFaceImage, eventScheduledId)

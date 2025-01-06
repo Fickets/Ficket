@@ -59,17 +59,17 @@ public class IndexingConsumer {
                 switch (operationType) {
                     case "CREATE":
                         log.info("CREATE 작업을 처리 중입니다.");
-                        indexingService.handlePartialIndexingCreate((Map<String, Object>) response.getPayload());
+                        indexingService.handlePartialIndexingCreate((Map<String, Object>) response.getPayload(), operationType);
                         break;
 
                     case "UPDATE":
                         log.info("UPDATE 작업을 처리 중입니다.");
-                        indexingService.handlePartialIndexingUpdate((Map<String, Object>) response.getPayload());
+                        indexingService.handlePartialIndexingUpdate((Map<String, Object>) response.getPayload(), operationType);
                         break;
 
                     case "DELETE":
                         log.info("DELETE 작업을 처리 중입니다.");
-                        indexingService.handlePartialIndexingDelete((String) response.getPayload());
+                        indexingService.handlePartialIndexingDelete((String) response.getPayload(), operationType);
                         break;
 
                     default:
