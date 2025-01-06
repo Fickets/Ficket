@@ -63,6 +63,9 @@ public class QueueService {
      * @param max     최대 작업 가능한 슬롯 수
      */
     public void setMaxSlots(String eventId, int max) {
+        String kafkaTopic = KeyHelper.getFicketKafkaQueue(String.valueOf(eventId));
+        kafkaTemplate.send(kafkaTopic, null);
+        log.info("카프카 토픽 생성: {}", kafkaTopic);
         maxSlots.put(eventId, max);
         activeSlots.putIfAbsent(eventId, 0);
     }
@@ -235,7 +238,7 @@ public class QueueService {
 
         for (Long yesterdayOpenEventId : yesterdayOpenEvents) {
             String kafkaTopic = KeyHelper.getFicketKafkaQueue(String.valueOf(yesterdayOpenEventId));
-            kafkaTemplate.send("delete-topic", kafkaTopic);
+            kafkaTemplate.send(kafkaTopic, null);
             log.info("카프카 토픽 삭제: {}", kafkaTopic);
         }
 
@@ -247,7 +250,7 @@ public class QueueService {
 
         for (Long todayOpenEventId : todayOpenEvents) {
             String kafkaTopic = KeyHelper.getFicketKafkaQueue(String.valueOf(todayOpenEventId));
-            kafkaTemplate.send("create-topic", kafkaTopic);
+            kafkaTemplate.send(kafkaTopic, null);
             log.info("카프카 토픽 생성: {}", kafkaTopic);
 
             setMaxSlots(String.valueOf(todayOpenEventId), 100); // 예시로 최대 100 슬롯 설정
