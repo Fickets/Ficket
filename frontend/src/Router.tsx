@@ -23,7 +23,9 @@ import UserManagePage from "./pages/admin/Customers.tsx";
 import EventScheduledOpen from "./pages/eventScheduledOpen/EventScheduledOpen.tsx";
 import SettlementManagePage from './pages/admin/Settlement.tsx';
 import GenreChoice from "./pages/event/GenreChoice.tsx";
-import CustomerFaceCheck from "./pages/ticketCheck/customerCheck.tsx";
+import CustomerFaceCheck from "./pages/ticketCheck/customerCheck2.tsx";
+import FaceDetectionPage from "./pages/ticketCheck/customerCheck.tsx";
+import EventCheckPage from "./pages/ticketCheck/eventCheck.tsx";
 export default function Router() {
   const user = useStore(userStore);
   const navi = useNavigate();
@@ -47,7 +49,7 @@ export default function Router() {
         path="/admin/event-detail/:eventId"
         element={<AdminEventDetail />}
       />
-      <Route path="/events/:eventId/access" element={<TemporaryUrlPage />} />
+      {/* <Route path="/events/:eventId/access" element={<TemporaryUrlPage />} /> */}
       <Route path="/admin/customers" element={<UserManagePage />} />
       <Route path="/admin/settlements" element={<SettlementManagePage />} />
 
@@ -67,6 +69,8 @@ export default function Router() {
       {/* FICKET USER TICKETING*/}
       <Route path="/my-ticket" element={<MyTicket />} />
       <Route path="/TEST1" element={<CustomerFaceCheck />} />
+      <Route path="/TEST2" element={<FaceDetectionPage />} />
+      <Route path="/events/:eventId/access" element={<EventCheckPage />} />
     </Routes>
   );
 }
