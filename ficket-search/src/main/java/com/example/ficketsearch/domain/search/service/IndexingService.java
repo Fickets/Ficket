@@ -10,6 +10,8 @@ import co.elastic.clients.elasticsearch.snapshot.*;
 import co.elastic.clients.util.ApiTypeHelper;
 import com.example.ficketsearch.config.utils.CsvToBulkApiConverter;
 import com.example.ficketsearch.config.utils.S3Utils;
+import com.example.ficketsearch.domain.search.entity.PartialIndexing;
+import com.example.ficketsearch.domain.search.repository.IndexingRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,6 +33,7 @@ public class IndexingService {
     private final CsvToBulkApiConverter csvToBulkApiConverter;
     private final ElasticsearchClient elasticsearchClient;
     private final ObjectMapper objectMapper;
+    private final IndexingRepository indexingRepository;
 
     private static final int BULK_SIZE = 2000;
     private static final String INDEX_NAME = "event-data";
@@ -325,10 +328,19 @@ public class IndexingService {
      * Elasticsearch에 문서를 생성하는 메서드
      *
      * @param map - 삽입할 문서 데이터
+     * @param operationType - 동작 타입 (CREATE, UPDATE, DELETE)
      */
-    public void handlePartialIndexingCreate(Map<String, Object> map) {
+    public void handlePartialIndexingCreate(Map<String, Object> map, String operationType) {
         try {
             String eventId = (String) map.get("EventId");
+
+            // PartialIndexing 객체 생성 및 operationType 설정
+            PartialIndexing partialIndexing = objectMapper.convertValue(map, PartialIndexing.class);
+            partialIndexing.setOperationType(operationType); // 동작 타입 설정
+
+            // MongoDB에 데이터 저장
+            indexingRepository.save(partialIndexing).subscribe();
+
             IndexRequest<Map<String, Object>> request = IndexRequest.of(builder -> builder.index(INDEX_NAME).document(map));
             IndexResponse response = elasticsearchClient.index(request);
             log.info("Elasticsearch에 문서가 생성되었습니다: {}, 결과: {}", eventId, response.result());
@@ -342,11 +354,19 @@ public class IndexingService {
      * Elasticsearch에서 문서를 업데이트하는 메서드
      *
      * @param map - 업데이트할 문서 데이터
+     * @param operationType - 동작 타입 (CREATE, UPDATE, DELETE)
      */
-    public void handlePartialIndexingUpdate(Map<String, Object> map) {
+    public void handlePartialIndexingUpdate(Map<String, Object> map, String operationType) {
         try {
             String eventId = (String) map.get("EventId");
             if (eventId == null) throw new IllegalArgumentException("EventId가 없습니다");
+
+            // PartialIndexing 객체 생성 및 operationType 설정
+            PartialIndexing partialIndexing = objectMapper.convertValue(map, PartialIndexing.class);
+            partialIndexing.setOperationType(operationType); // 동작 타입 설정
+
+            // MongoDB에 데이터 저장
+            indexingRepository.save(partialIndexing).subscribe();
 
             SearchRequest searchRequest = SearchRequest.of(builder -> builder.index(INDEX_NAME).query(q -> q.term(t -> t.field("EventId").value(eventId))));
             SearchResponse<Map> searchResponse = elasticsearchClient.search(searchRequest, Map.class);
@@ -370,9 +390,17 @@ public class IndexingService {
      * Elasticsearch에서 문서를 삭제하는 메서드
      *
      * @param eventId - 삭제할 문서의 EventId
+     * @param operationType - 동작 타입 (CREATE, UPDATE, DELETE)
      */
-    public void handlePartialIndexingDelete(String eventId) {
+    public void handlePartialIndexingDelete(String eventId, String operationType) {
         try {
+            PartialIndexing partialIndexing = new PartialIndexing();
+            partialIndexing.setEventId(eventId);
+            partialIndexing.setOperationType(operationType);
+
+            // MongoDB에 데이터 저장
+            indexingRepository.save(partialIndexing).subscribe();
+
             DeleteByQueryRequest request = DeleteByQueryRequest.of(builder -> builder.index(INDEX_NAME).query(q -> q.term(t -> t.field("EventId").value(eventId))));
             long deletedCount = elasticsearchClient.deleteByQuery(request).deleted();
             log.info("EventId: {}에 해당하는 문서가 삭제되었습니다. 삭제된 문서 수: {}", eventId, deletedCount);

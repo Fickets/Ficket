@@ -13,8 +13,6 @@ import java.math.BigDecimal;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE membership SET deleted_at = CURRENT_TIMESTAMP WHERE membership_id = ?")
 public class Membership {
 
     @Id

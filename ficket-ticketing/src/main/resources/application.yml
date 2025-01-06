@@ -55,6 +55,10 @@ resilience4j:
         base-config: default
       postMatchUserFaceImgCircuitBreaker:
         base-config: default
+      getCompanyEventIdByTicketId:
+        base-config: default
+      settlementCreateByOrder:
+        base-config: default
 
 logging:
   level:

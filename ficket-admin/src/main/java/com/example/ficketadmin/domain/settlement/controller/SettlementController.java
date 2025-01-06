@@ -26,7 +26,7 @@ public class SettlementController {
 
 
     @PostMapping("/create")
-    ResponseEntity<Void> createSettlement(OrderSimpleDto orderSimpleDto){
+    ResponseEntity<Void> createSettlement(@RequestBody OrderSimpleDto orderSimpleDto){
         settlementService.createSettlement(orderSimpleDto);
         return ResponseEntity.noContent().build();
     }
