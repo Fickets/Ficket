@@ -23,6 +23,18 @@ export const checkFace = async (
         return response.data;
     } catch (error) {
         console.error(`Error match user face`, error);
-        // throw error;
+        throw error;
     }
 };
+
+
+export const checkUrl = async (
+    eventId: string,
+    uuid: string
+): Promise<String> => {
+    const params = new URLSearchParams({ uuid: uuid });
+    const response: AxiosResponse<{ guestToken: string }> =
+        await publicApi.get(`/admins/${eventId}/checkUrl?${params.toString()}`);
+
+    return response.data.guestToken;
+}
