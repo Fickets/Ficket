@@ -8,6 +8,7 @@ from database import db
 from config import config
 from face_app.schemas.response import ResponseSchema
 from apscheduler.schedulers.background import BackgroundScheduler
+from urllib.parse import urlparse
 
 # Blueprint 생성
 api_blueprint = Blueprint("api", __name__)
@@ -198,11 +199,18 @@ class SetRelationship(Resource):
         if not all([face_id, face_img_url, ticket_id, event_schedule_id]):
             return ResponseSchema.make_response(400, "모든 필드를 입력해야 합니다."), 400
 
+
         # 데이터베이스에서 Face 엔트리 조회
         face = Face.query.filter_by(face_id=face_id).first()
+
+        # URL 파싱
+        parsed_url = urlparse(face_img_url)
+        # 기본 URL 추출
+        parsed_face_url = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path
+
         if not face:
             return ResponseSchema.make_response(404, f"Face ID {face_id}에 해당하는 데이터가 없습니다."), 404
-        if face.face_img != face_img_url:
+        if face.face_img != parsed_face_url:
             return ResponseSchema.make_response(409, f"Face Img가 request와 일치하지 않습니다."), 409
         if face.event_schedule_id != event_schedule_id:
             return ResponseSchema.make_response(409, f"Event Schedule Id가 request와 일치하지 않습니다."), 409
