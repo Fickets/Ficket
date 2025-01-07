@@ -2,6 +2,8 @@ server:
   port: 8888
 
 spring:
+  config:
+    import: "optional:configserver:"
   profiles:
     active: local
     group:

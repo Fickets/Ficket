@@ -78,9 +78,6 @@ public class IndexingService {
     private TypeMapping createMappings() {
         return new TypeMapping.Builder()
                 .properties("Title", p -> p.text(t -> t.analyzer("ngram_analyzer").searchAnalyzer("remove_whitespace_analyzer")))
-                .properties("Title_Keyword", p -> p.keyword(k -> k))
-                .properties("Stage", p -> p.text(t -> t.analyzer("ngram_analyzer").searchAnalyzer("remove_whitespace_analyzer")))
-                .properties("Stage_Keyword", p -> p.keyword(k -> k))
                 .properties("Genres", p -> p.nested(n -> n.properties("Genre", pr -> pr.keyword(k -> k))))
                 .properties("Location", p -> p.keyword(k -> k))
                 .properties("Schedules", p -> p.nested(n -> n.properties("Schedule", pr -> pr.date(d -> d))))
@@ -97,6 +94,7 @@ public class IndexingService {
     private IndexSettingsAnalysis createAnalysis() {
         return new IndexSettingsAnalysis.Builder()
                 .charFilter("remove_whitespace", new CharFilter.Builder().definition(def -> def.patternReplace(r -> r.pattern("\\s+").replacement(""))).build())
+                .charFilter("remove_special_characters", new CharFilter.Builder().definition(def -> def.patternReplace(r -> r.pattern("[^\\w\\d]+").replacement(""))).build())  // 특수문자 제거
                 .tokenizer("ngram_tokenizer", new Tokenizer.Builder().definition(def -> def.ngram(new NGramTokenizer.Builder().minGram(1).maxGram(30).tokenChars(TokenChar.Letter, TokenChar.Digit).build())).build())
                 .analyzer("ngram_analyzer", new Analyzer.Builder().custom(custom -> custom.tokenizer("ngram_tokenizer").filter("lowercase").charFilter("remove_whitespace")).build())
                 .analyzer("remove_whitespace_analyzer", new Analyzer.Builder().custom(custom -> custom.tokenizer("standard").charFilter("remove_whitespace")).build())
@@ -327,7 +325,7 @@ public class IndexingService {
     /**
      * Elasticsearch에 문서를 생성하는 메서드
      *
-     * @param map - 삽입할 문서 데이터
+     * @param map           - 삽입할 문서 데이터
      * @param operationType - 동작 타입 (CREATE, UPDATE, DELETE)
      */
     public void handlePartialIndexingCreate(Map<String, Object> map, String operationType) {
@@ -353,7 +351,7 @@ public class IndexingService {
     /**
      * Elasticsearch에서 문서를 업데이트하는 메서드
      *
-     * @param map - 업데이트할 문서 데이터
+     * @param map           - 업데이트할 문서 데이터
      * @param operationType - 동작 타입 (CREATE, UPDATE, DELETE)
      */
     public void handlePartialIndexingUpdate(Map<String, Object> map, String operationType) {
@@ -389,7 +387,7 @@ public class IndexingService {
     /**
      * Elasticsearch에서 문서를 삭제하는 메서드
      *
-     * @param eventId - 삭제할 문서의 EventId
+     * @param eventId       - 삭제할 문서의 EventId
      * @param operationType - 동작 타입 (CREATE, UPDATE, DELETE)
      */
     public void handlePartialIndexingDelete(String eventId, String operationType) {

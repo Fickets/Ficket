@@ -1013,8 +1013,11 @@ public class EventService {
 
     public List<Long> getCompanyId(Long ticketId) {
         List<Long> res = new ArrayList<>();
-        SeatMapping seatMapping = seatMappingRepository.findByTicketId(ticketId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SEAT_NOT_FOUND));
+        List<SeatMapping> seatMappings = seatMappingRepository.findByTicketId(ticketId);
+        if(seatMappings.isEmpty()){
+            throw new BusinessException(ErrorCode.SEAT_NOT_FOUND);
+        }
+        SeatMapping seatMapping = seatMappings.get(0);
         Event event = seatMapping.getEventSchedule().getEvent();
         res.add(event.getCompanyId());
         res.add(event.getEventId());
@@ -1140,10 +1143,9 @@ public class EventService {
         Map<String, Object> indexingData = new HashMap<>();
         indexingData.put("EventId", String.valueOf(event.getEventId()));
         indexingData.put("Title", event.getTitle());
-        indexingData.put("Title_Keyword", event.getTitle());
+//        indexingData.put("Title_Keyword", event.getTitle());
         indexingData.put("Poster_Url", event.getEventImage().getPosterPcUrl());
         indexingData.put("Stage", event.getEventStage().getStageName());
-        indexingData.put("Stage_Keyword", event.getEventStage().getStageName());
         indexingData.put("Location", event.getEventStage().getSido());
         indexingData.put("Genres", genres);
         indexingData.put("Schedules", schedules);

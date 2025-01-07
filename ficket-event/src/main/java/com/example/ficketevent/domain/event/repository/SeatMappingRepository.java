@@ -53,7 +53,8 @@ public interface SeatMappingRepository extends JpaRepository<SeatMapping, Long> 
     @Query("SELECT COUNT(sm.ticketId) FROM SeatMapping sm WHERE sm.ticketId = :ticketId")
     int countSeatMappingByTicketId(@Param("ticketId") Long ticketId);
 
-    Optional<SeatMapping> findByTicketId(Long ticketId);
+    @Query("SELECT sm FROM SeatMapping sm WHERE sm.ticketId = :ticketId")
+    List<SeatMapping> findByTicketId(Long ticketId);
 
     List<SeatMapping> findAllByTicketId(Long ticketId);
 
