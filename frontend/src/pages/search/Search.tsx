@@ -1,16 +1,15 @@
 import UserHeader from "../../components/@common/UserHeader.tsx";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import {
-  SearchResult,
-  SearchParams,
-  SortBy,
-  SaleType,
-} from "../../types/search.ts";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { SearchResult, SearchParams, SortBy } from "../../types/search.ts";
 import FilterSection from "../../components/search/FilterSection.tsx";
 import TicketList from "../../components/search/TicketList.tsx";
 import { searchByFilter } from "../../service/search/api.ts";
 import { useMediaQuery } from "react-responsive";
+import { FaFilter } from "react-icons/fa";
+import Logo from "../../assets/logo.png";
+import SearchBar from "../../components/@common/SearchBar.tsx";
+import MobileBottom from "../../components/@common/MobileBottom.tsx";
 
 const Search = () => {
   const isMobile: boolean = useMediaQuery({ query: "(max-width: 768px)" });
@@ -30,7 +29,7 @@ const Search = () => {
     locationList: undefined,
     startDate: undefined,
     endDate: undefined,
-    saleTypeList: [SaleType.ON_SALE, SaleType.TO_BE_SALE],
+    saleTypeList: undefined,
     sortBy: SortBy.SORT_BY_ACCURACY,
     pageNumber: 1,
     pageSize: 20,
@@ -53,12 +52,19 @@ const Search = () => {
     }));
   };
 
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // 팝업 열기/닫기 핸들러
+  const toggleFilterSection = () => {
+    setIsFilterOpen((prev) => !prev);
+  };
+
   useEffect(() => {
     const fetchFilteredTickets = async () => {
       try {
         const searchParams: SearchParams = {
           ...filters,
-          title: keyword,
+          title: keyword.toLowerCase(),
         };
         const response = await searchByFilter(searchParams);
 
@@ -82,10 +88,69 @@ const Search = () => {
     }
   }, [filters, keyword]);
 
+  const navigate = useNavigate();
+
   return (
     <div>
       {isMobile ? (
-        <h2>ef</h2>
+        <div className="bg-gray-50 min-h-screen">
+          {/* 헤더 */}
+          <div className="bg-white shadow-md">
+            <div className="flex items-center justify-between px-4 py-3 max-w-4xl mx-auto">
+              {/* 로고 섹션 */}
+              <div
+                onClick={() => navigate("/")}
+                className="flex items-center cursor-pointer"
+              >
+                <img src={Logo} alt="Logo" className="w-[30px] h-[30px]" />
+                <p className="text-[15px] font-semibold ml-[10px] text-gray-800">
+                  Ficket
+                </p>
+              </div>
+              {/* 검색창 */}
+              <div className="relative w-full max-w-[230px]">
+                <SearchBar />
+              </div>
+            </div>
+          </div>
+
+          {/* 콘텐츠 영역 */}
+          <div className="relative">
+            {/* 버튼 */}
+            <button
+              className="bg-gray-100 p-2 rounded-full shadow hover:bg-gray-200 flex items-center justify-center absolute top-3 right-4"
+              onClick={toggleFilterSection}
+            >
+              <FaFilter className="text-gray-600 text-lg" />
+            </button>
+
+            {/* FilterSection 팝업 */}
+            {isFilterOpen && (
+              <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg shadow-lg p-6 w-[85%] max-w-md h-[80%] overflow-y-auto relative">
+                  {/* 닫기 버튼 */}
+                  <button
+                    className="absolute top-7 right-14 text-gray-500 hover:text-gray-700 mt-2"
+                    onClick={toggleFilterSection}
+                  >
+                    &#10005;
+                  </button>
+                  {/* FilterSection 컴포넌트 */}
+                  <FilterSection onFilterChange={handleFilterChange} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-7">
+            <TicketList ticketList={tickets} onPageChange={handlePageChange} />
+          </div>
+
+          {/* 모바일 하단 메뉴 */}
+          <div className="mb-20">
+            <MobileBottom />
+          </div>
+        </div>
       ) : (
         <div className="mt-6">
           <UserHeader />

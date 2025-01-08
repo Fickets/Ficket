@@ -78,7 +78,7 @@ const TicketList = ({ ticketList, onPageChange }: TicketListProps) => {
 
   return (
     <div>
-      <div className="grid grid-cols-4 gap-y-10 gap-x-7">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-10 gap-x-7 ml-[70px] sm:ml-0">
         {allTickets.map((ticket) => (
           <div
             key={ticket.EventId}
@@ -114,17 +114,17 @@ const TicketList = ({ ticketList, onPageChange }: TicketListProps) => {
 
       {allTickets.length > 0 && allTickets.length < ticketList.totalSize ? (
         <button
-          className="w-full mt-7 bg-gray-100 py-2 rounded hover:bg-gray-200 mb-10"
+          className="w-full sm:w-3/4 md:w-2/3 lg:w-1/2 mt-7 bg-gray-100 py-2 rounded hover:bg-gray-200 mb-10 text-sm sm:text-base md:text-lg lg:py-3 lg:text-lg mx-auto block"
           onClick={onPageChange}
         >
           티켓 더보기
         </button>
       ) : allTickets.length === 0 ? (
-        <div className="w-full mt-4 text-center text-gray-500">
+        <div className="w-full sm:w-3/4 md:w-2/3 lg:w-1/2 mt-4 text-center text-gray-500 text-sm sm:text-base mx-auto">
           해당 검색어 또는 필터와 일치하는 티켓이 없습니다.
         </div>
       ) : (
-        <div className="w-full mt-4 text-center text-gray-500 mb-10">
+        <div className="w-full sm:w-3/4 md:w-2/3 lg:w-1/2 mt-4 text-center text-gray-500 mb-10 text-sm sm:text-base mx-auto">
           더이상 해당 티켓이 없습니다.
         </div>
       )}
