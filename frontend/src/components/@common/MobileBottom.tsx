@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import { userLogout } from "../../service/user/userApi";
 import userImg from "../../assets/bottomNav/User.png";
@@ -9,6 +9,14 @@ import searchImg from "../../assets/bottomNav/Search.png";
 const BottomNav = () => {
   const [cookies] = useCookies(["isLogin"]);
   const navi = useNavigate();
+  const location = useLocation(); // 현재 경로 가져오기
+
+  const handleSearchNavigation = () => {
+    const searchPath = "/contents/search?keyword=null"; // 검색 페이지 경로
+    if (location.pathname + location.search !== searchPath) {
+      navi(searchPath); // 중복 방지: 현재 경로와 다른 경우만 이동
+    }
+  };
 
   const handleLoginToggle = async () => {
     if (Boolean(cookies.isLogin)) {
@@ -39,7 +47,7 @@ const BottomNav = () => {
 
         <div
           className="flex flex-col items-center text-sm text-gray-700 mt-1"
-          onClick={() => navi("contents/search?keyword=")} // 검색 페이지로 이동
+          onClick={handleSearchNavigation} // 검색 페이지로 이동
         >
           <img src={searchImg} alt="검색" className="w-7 h-7" />
           <p>검색</p>

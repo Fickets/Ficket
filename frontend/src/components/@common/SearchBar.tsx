@@ -13,12 +13,13 @@ const SearchBar = () => {
   // 디바운스된 검색 함수
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
-      if (query.trim() === "") {
+      const lowerCaseQuery = query.trim().toLowerCase(); // 검색어를 소문자로 변환
+      if (lowerCaseQuery === "") {
         setResults([]);
         return;
       }
       try {
-        const response = await searchAutoComplete(query);
+        const response = await searchAutoComplete(lowerCaseQuery);
         console.log("검색 결과:", response);
         setResults(response);
       } catch (error) {
@@ -65,9 +66,10 @@ const SearchBar = () => {
   const highlightText = (text: string, highlight: string) => {
     if (!highlight) return text;
 
-    const parts = text.split(new RegExp(`(${highlight})`, "gi")); // 검색어로 문자열 분리
+    const lowerCaseHighlight = highlight.toLowerCase(); // 검색어를 소문자로 변환
+    const parts = text.split(new RegExp(`(${lowerCaseHighlight})`, "gi")); // 소문자로 분리
     return parts.map((part, index) =>
-      part.toLowerCase() === highlight.toLowerCase() ? (
+      part.toLowerCase() === lowerCaseHighlight ? (
         <span key={index} style={{ color: "purple", fontWeight: "bold" }}>
           {part}
         </span>
