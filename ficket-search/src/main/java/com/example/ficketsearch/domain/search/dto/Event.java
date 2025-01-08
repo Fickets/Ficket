@@ -1,5 +1,6 @@
 package com.example.ficketsearch.domain.search.dto;
 
+import com.example.ficketsearch.domain.search.enums.SaleType;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,9 @@ public class Event {
 
     @JsonProperty("Ticketing")
     private LocalDateTime ticketing;
+
+    @JsonProperty("SaleType")
+    private SaleType saleType;
 
 
 }

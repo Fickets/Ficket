@@ -71,11 +71,15 @@ public class SearchService {
      */
     private Query createSaleTypeQuery(SaleType saleType, LocalDateTime now) {
         return switch (saleType) {
-            case ON_SALE -> Query.of(q -> q.range(r -> r.field("Ticketing").lte(JsonData.of(now.toString()))));
-            case TO_BE_SALE -> Query.of(q -> q.range(r -> r.field("Ticketing").gte(JsonData.of(now.toString()))));
+            case ON_SALE -> Query.of(q -> q.bool(b -> b
+                    .must(m -> m.range(r -> r.field("Ticketing").lte(JsonData.of(now.toString())))) // Ticketing <= now
+                    .must(m -> m.nested(n -> n
+                            .path("Schedules")
+                            .query(nq -> nq.range(r -> r.field("Schedules.Schedule").gt(JsonData.of(now.toString())))))))); // Schedules.Schedule > now
+            case TO_BE_SALE -> Query.of(q -> q.range(r -> r.field("Ticketing").gt(JsonData.of(now.toString()))));
             case END_OF_SALE -> Query.of(q -> q.nested(n -> n
                     .path("Schedules")
-                    .query(query -> query.range(r -> r.field("Schedules.Schedule").lte(JsonData.of(now.toString()))))));
+                    .query(query -> query.range(r -> r.field("Schedules.Schedule").lt(JsonData.of(now.toString()))))));
         };
     }
 
@@ -146,7 +150,7 @@ public class SearchService {
         }
 
         // 날짜 필터
-        if (startDate != null && endDate != null) {
+        if (startDate != null && !startDate.isEmpty() &&  endDate != null && !endDate.isEmpty()) {
             mustQueries.add(Query.of(q -> q.nested(n -> n
                     .path("Schedules")
                     .query(query -> query.range(r -> r
@@ -194,7 +198,31 @@ public class SearchService {
 
             long totalSize = response.hits().total().value();
             int totalPages = (int) Math.ceil((double) totalSize / pageSize);
-            List<Event> eventList = response.hits().hits().stream().map(Hit::source).toList();
+
+            List<Event> eventList = response.hits().hits().stream()
+                    .map(Hit::source)
+                    .peek(event -> {
+                        // 판매 상태 계산 로직 추가
+                        LocalDateTime now = LocalDateTime.now();
+                        if (event.getTicketing().isBefore(now)) {
+                            // Schedules에서 현재 시간을 기준으로 종료 여부 확인
+                            boolean isEventOver = event.getSchedules().stream()
+                                    .anyMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
+
+                            if (isEventOver) {
+                                event.setSaleType(SaleType.END_OF_SALE); // 판매 종료
+                            } else {
+                                event.setSaleType(SaleType.ON_SALE); // 판매 중
+                            }
+                        } else if (event.getTicketing().isEqual(now)) {
+                            // Ticketing 시간과 현재 시간이 같으면 판매 시작
+                            event.setSaleType(SaleType.ON_SALE);
+                        } else {
+                            // Ticketing 시간이 현재 시간 이후이면 판매 예정
+                            event.setSaleType(SaleType.TO_BE_SALE);
+                        }
+                    })
+                    .toList();
 
             return new SearchResult(totalSize, totalPages, eventList);
         } catch (Exception e) {

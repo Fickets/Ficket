@@ -34,7 +34,7 @@ public class SearchController {
      * 변경 이력:
      * 2025-01-06 오형상: 초기 작성
      */
-    @PostMapping("/auto-complete")
+    @GetMapping("/auto-complete")
     public Mono<List<AutoCompleteRes>> autoComplete(@RequestParam("query") String query) {
         return Mono.fromFuture(() -> CompletableFuture.supplyAsync(() -> searchService.autoComplete(query)));
     }
@@ -47,10 +47,11 @@ public class SearchController {
      * 변경 이력:
      * 2025-01-06 오형상: 초기 작성
      */
-    @PostMapping("/detail")
+    @GetMapping("/detail")
     public Mono<SearchResult> searchByFilter(
             @RequestParam(required = false) List<Genre> genreList, @RequestParam(required = false) List<Location> locationList, @RequestParam String title,
-            @RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
             @RequestParam(defaultValue = "ON_SALE,TO_BE_SALE") List<SaleType> saleTypeList,
             @RequestParam(defaultValue = "SORT_BY_ACCURACY") SortBy sortBy,
             @RequestParam(defaultValue = "1") int pageNumber, @RequestParam(defaultValue = "20") int pageSize
