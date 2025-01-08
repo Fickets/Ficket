@@ -1,5 +1,4 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
-import { useStore } from "zustand";
+import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/home/HomePage";
 import UserLogin from "./pages/login/UserLogin.tsx";
 import RegisterEvent from "./pages/register/RegisterEvent";
@@ -8,12 +7,11 @@ import Order from "./pages/order/Order.tsx";
 import NotFound from "./pages/errorpage/NotFound.tsx";
 import UserAdditionalInfo from "./pages/login/UserAdditionalInfo.tsx";
 import AdminLogin from "./pages/login/AdminLogin.tsx";
-import { userStore } from "./stores/UserStore";
 import SelectSeat from "./pages/selectseat/SelectSeat.tsx";
 import SeleteDate from "./pages/ticketing/SelectDate.tsx";
 import EventDetailPage from "./pages/event/EventDetail.tsx";
 import AdminEventList from "./pages/eventlist/AdminEventList.tsx";
-import TemporaryUrlPage from "./pages/temporaryurl/TemporaryUrlPage.tsx";
+import Search from "./pages/search/Search.tsx";
 import AdminEventDetail from "./pages/adminEventDetail/AdminEventDetail.tsx";
 import MyTicket from "./pages/myTicket/MyTicket.tsx";
 import ReservationRateRanking from "./pages/reservationRateRanking/ReservationRateRanking.tsx";
@@ -21,21 +19,20 @@ import Queue from "./pages/queue/Queue.tsx";
 import SuspendedUserPage from "./pages/login/Suspended.tsx";
 import UserManagePage from "./pages/admin/Customers.tsx";
 import EventScheduledOpen from "./pages/eventScheduledOpen/EventScheduledOpen.tsx";
-import SettlementManagePage from './pages/admin/Settlement.tsx';
+import SettlementManagePage from "./pages/admin/Settlement.tsx";
 import GenreChoice from "./pages/event/GenreChoice.tsx";
 import CustomerFaceCheck from "./pages/ticketCheck/customerCheck2.tsx";
 import FaceDetectionPage from "./pages/ticketCheck/customerCheck.tsx";
 import EventCheckPage from "./pages/ticketCheck/eventCheck.tsx";
-export default function Router() {
-  const user = useStore(userStore);
-  const navi = useNavigate();
 
+export default function Router() {
   return (
     <Routes location={location} key={location.pathname}>
       {/* ERROR PATH */}
       <Route path="*" element={<NotFound />} />
       {/* MAIN HOME */}
       <Route path="/" element={<HomePage />} />
+      <Route path="/contents/search" element={<Search />} />
       {/* USER LOGIN */}
       <Route path="/users/login" element={<UserLogin />} />
       <Route path="/users/addition-info" element={<UserAdditionalInfo />} />
@@ -49,7 +46,6 @@ export default function Router() {
         path="/admin/event-detail/:eventId"
         element={<AdminEventDetail />}
       />
-      {/* <Route path="/events/:eventId/access" element={<TemporaryUrlPage />} /> */}
       <Route path="/admin/customers" element={<UserManagePage />} />
       <Route path="/admin/settlements" element={<SettlementManagePage />} />
 

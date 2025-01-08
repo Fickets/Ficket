@@ -1,4 +1,5 @@
 import FaceImageUploader from "./FaceImageUploader";
+import FaceBaseline from "../../assets/ticketing/FaceBaseline.jpg";
 
 type PictureBoxProps = {
   onChange: (file: File | null) => void;
@@ -21,7 +22,7 @@ function PictureBox({ onChange }: PictureBoxProps) {
             사진 가이드
           </h2>
           <img
-            src="https://ficket-event-content.s3.ap-northeast-2.amazonaws.com/faces/face.png"
+            src={FaceBaseline}
             alt="사진 가이드"
             className="w-full h-full object-cover"
           />
