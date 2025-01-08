@@ -99,7 +99,7 @@ function Order() {
           mobile: "REDIRECTION",
         },
         noticeUrls: [
-          "https://7eb0-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
+          "https://350f-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
         ],
       });
 
@@ -146,6 +146,11 @@ function Order() {
             ws.close();
             navigate(`/ticketing/register-face`);
           } else if (event.data === WorkStatus.ORDER_PAID) {
+            const payload = {
+              eventScheduleId: eventScheduleId,
+              seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
+            };
+            await unLockSeats(payload); // 좌석 선점 해제 API 호출
             setWaitingPayment(false);
             alert("결제에 성공했습니다.");
             ws.close();

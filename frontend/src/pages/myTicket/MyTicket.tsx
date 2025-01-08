@@ -9,7 +9,9 @@ const MyTicket = () => {
       <UserHeader />
       <UserInfo />
       <MyTicketList />
-      <MobileBottom />
+      <div className="mb-[60px]">
+        <MobileBottom />
+      </div>
     </div>
   );
 };

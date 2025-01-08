@@ -112,13 +112,14 @@ const MyTicketList = () => {
         {!isMobile && (
           <div className="text-center">
             <h1 className="text-[40px] font-medium">마이티켓</h1>
+            <hr className="border-t-[1px] border-gray-300 my-[20px]" />
           </div>
         )}
 
         {/* 모바일 헤더 */}
         {isMobile && <MobileHeader title="마이티켓" />}
       </div>
-      <hr className="border-t-[1px] border-gray-300 my-[20px]" />
+
       {/* 필터 UI */}
       <div className="flex justify-end space-x-4 mr-5">
         {/* 정렬 순서 버튼 */}
@@ -189,7 +190,7 @@ const MyTicketList = () => {
               <div
                 key={index}
                 className={`relative rounded-md overflow-hidden shadow-md ${
-                  isMobile ? "w-[322px]" : "w-full max-w-[600px]"
+                  isMobile ? "w-[280px]" : "w-full max-w-[600px]"
                 }`}
               >
                 {/* 카드 상단 (이미지) */}
