@@ -4,6 +4,7 @@ import { userLogout } from "../../service/user/userApi";
 import userImg from "../../assets/bottomNav/User.png";
 import ticketImg from "../../assets/bottomNav/Ticket.png";
 import homeImg from "../../assets/bottomNav/Home.png";
+import searchImg from "../../assets/bottomNav/Search.png";
 
 const BottomNav = () => {
   const [cookies] = useCookies(["isLogin"]);
@@ -17,7 +18,7 @@ const BottomNav = () => {
           user.resetState();
           navi("/");
         },
-        () => { },
+        () => {},
       );
     } else {
       navi("/users/login");
@@ -27,15 +28,6 @@ const BottomNav = () => {
   return (
     <div className="block md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 z-50">
       <div className="w-full max-w-[400px] mx-auto flex justify-around items-center py-2">
-        {/* 마이티켓 */}
-        <div
-          className="flex flex-col items-center text-sm text-gray-700"
-          onClick={() => navi("/my-ticket")}
-        >
-          <img src={ticketImg} alt="마이티켓" className="w-8 h-8" />
-          <p>마이티켓</p>
-        </div>
-
         {/* 홈화면 */}
         <div
           className="flex flex-col items-center text-sm text-gray-700"
@@ -43,6 +35,23 @@ const BottomNav = () => {
         >
           <img src={homeImg} alt="홈화면" className="w-8 h-8" />
           <p>홈화면</p>
+        </div>
+
+        <div
+          className="flex flex-col items-center text-sm text-gray-700 mt-1"
+          onClick={() => navi("contents/search?keyword=")} // 검색 페이지로 이동
+        >
+          <img src={searchImg} alt="검색" className="w-7 h-7" />
+          <p>검색</p>
+        </div>
+
+        {/* 마이티켓 */}
+        <div
+          className="flex flex-col items-center text-sm text-gray-700"
+          onClick={() => navi("/my-ticket")}
+        >
+          <img src={ticketImg} alt="마이티켓" className="w-8 h-8" />
+          <p>마이티켓</p>
         </div>
 
         {/* 로그인/로그아웃 */}
