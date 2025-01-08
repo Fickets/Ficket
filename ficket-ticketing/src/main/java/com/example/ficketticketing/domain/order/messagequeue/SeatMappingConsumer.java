@@ -3,8 +3,10 @@ package com.example.ficketticketing.domain.order.messagequeue;
 import com.example.ficketticketing.domain.order.dto.kafka.SeatMappingUpdatedEvent;
 import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.repository.OrderRepository;
+import com.example.ficketticketing.domain.order.service.OrderService;
 import com.example.ficketticketing.global.result.error.ErrorCode;
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
+import com.example.ficketticketing.infrastructure.payment.PortOneApiClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SeatMappingConsumer {
     private final OrderRepository orderRepository;
+    private final PortOneApiClient portOneApiClient;
 
     @Transactional
     @KafkaListener(topics = "seat-mapping-events", groupId = "order-group")
@@ -30,6 +33,7 @@ public class SeatMappingConsumer {
             if (event.isSuccess()) {
                 orderRepository.updateOrderStatus(event.getOrderId(), OrderStatus.COMPLETED);
             } else {
+                portOneApiClient.cancelOrder(String.valueOf(event.getOrderId()));
                 orderRepository.updateOrderStatus(event.getOrderId(), OrderStatus.CANCELLED);
             }
         }

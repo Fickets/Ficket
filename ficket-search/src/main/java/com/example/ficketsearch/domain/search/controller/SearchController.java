@@ -49,12 +49,15 @@ public class SearchController {
      */
     @GetMapping("/detail")
     public Mono<SearchResult> searchByFilter(
-            @RequestParam(required = false) List<Genre> genreList, @RequestParam(required = false) List<Location> locationList, @RequestParam String title,
+            @RequestParam String title,
+            @RequestParam(required = false) List<Genre> genreList,
+            @RequestParam(required = false) List<Location> locationList,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            @RequestParam(defaultValue = "ON_SALE,TO_BE_SALE") List<SaleType> saleTypeList,
+            @RequestParam(required = false) List<SaleType> saleTypeList,
             @RequestParam(defaultValue = "SORT_BY_ACCURACY") SortBy sortBy,
-            @RequestParam(defaultValue = "1") int pageNumber, @RequestParam(defaultValue = "20") int pageSize
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "20") int pageSize
     ) {
         return Mono.fromFuture(() -> CompletableFuture.supplyAsync(() -> searchService.searchEventsByFilter(title, genreList, locationList, saleTypeList, startDate, endDate, sortBy, pageNumber, pageSize)));
     }

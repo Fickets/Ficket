@@ -25,13 +25,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.shaded.io.opentelemetry.proto.trace.v1.Status;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.function.EntityResponse;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -159,20 +157,10 @@ public class OrderService {
             case "Transaction.Ready":
                 log.info("결제창 오픈");
                 break;
-//            case "Transaction.Paid":
-//                if (verifyPaidInfo(paymentId)) {
-//                    orderRepository.updateOrderStatusToCompleted(paymentId);
-//                    notifyClient(paymentId, "Paid");
-//                } else {
-//                    portOneApiClient.cancelOrder(paymentId);
-//                    notifyClient(paymentId, "Failed");
-//                }
-//                break;
             case "Transaction.Paid":
                 if (verifyPaidInfo(paymentId)) {
                     orderRepository.updateOrderStatusToCompleted(paymentId);
 
-                    // TODO 여기서 해보자 order 찾고 paymentsId  >> 진행
                     Orders order = orderRepository.findByPaymentId(paymentId)
                             .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
 
@@ -247,25 +235,6 @@ public class OrderService {
         log.info(faceApiResponse.getMessage());
 
         orderProducer.send("order-events", new OrderDto(createOrderRequest.getEventScheduleId(), createdOrder.getOrderId(), seatMappingIds, createdOrder.getTicket().getTicketId()));
-
-        // create settlement
-//        List<Long> ids = executeWithCircuitBreaker(
-//                circuitBreakerRegistry,
-//                "getCompanyEventIdByTicketId",
-//                () -> eventServiceClient.getCompanyEventId(createdOrder.getTicket().getTicketId()));
-//
-//        OrderSimpleDto orderSimpleDto = orderMapper.toOrderSimpleDto(createdOrder);
-//        orderSimpleDto.setCompanyId(ids.get(0));
-//        orderSimpleDto.setEventId(ids.get(1));
-//
-//        EntityResponse<Void> settlementCreate = executeWithCircuitBreaker(
-//                circuitBreakerRegistry,
-//                "settlementCreateByOrder",
-//                () -> adminServiceClient.createSettlement(orderSimpleDto)
-//        );
-//        if (settlementCreate.statusCode().value() != 204) {
-//            log.info("settlement created fail");
-//        }
 
         return createdOrder.getOrderId();
     }
@@ -709,4 +678,6 @@ public class OrderService {
         );
         return faceApiResponse;
     }
+
+//    public void
 }

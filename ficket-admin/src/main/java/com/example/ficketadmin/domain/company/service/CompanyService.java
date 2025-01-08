@@ -7,7 +7,6 @@ import com.example.ficketadmin.domain.company.repository.CompanyRepository;
 import com.example.ficketadmin.domain.company.mapper.CompanyMapper;
 import com.example.ficketadmin.global.result.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,16 +26,10 @@ public class CompanyService {
     private final CompanyMapper companyMapper;
 
     /**
-     * 모든 회사 정보를 조회하고, 결과를 캐싱합니다.
+     * 모든 회사 정보를 조회
      *
      * @return 회사 목록을 포함한 CompanyListResponse 객체
      */
-    @Cacheable(
-            cacheNames = "companies",
-            key = "'all'",
-            cacheManager = "cacheManager",
-            unless = "#result == null"
-    )
     public CompanyListResponse getCompanies() {
         List<CompanyResponse> companyResponses = mapEventStagesToDto();
         return new CompanyListResponse(companyResponses);

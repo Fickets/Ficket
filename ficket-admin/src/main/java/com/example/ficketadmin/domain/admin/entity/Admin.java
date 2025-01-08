@@ -1,20 +1,15 @@
 package com.example.ficketadmin.domain.admin.entity;
 
 
-import com.example.ficketadmin.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Data
 @Builder
 @Entity
-@SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE admin SET deleted_at = CURRENT_TIMESTAMP WHERE admin_id = ?")
-public class Admin extends BaseEntity {
+public class Admin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +26,5 @@ public class Admin extends BaseEntity {
 
     @Column(name = "ROLE", nullable = false)
     private Role role;
-
 
 }
