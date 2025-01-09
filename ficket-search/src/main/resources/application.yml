@@ -16,27 +16,8 @@ spring:
       uri: mongodb://admin:testpassword1q2w3e4r@localhost:27017/partial-index?authSource=admin
       authentication-database: admin
 
-elasticsearch:
-  ca-certificate-path: |
-    MIIDSjCCAjKgAwIBAgIVAMRUfFqFJC6zApSnaFRKVSNz28dcMA0GCSqGSIb3DQEB
-    CwUAMDQxMjAwBgNVBAMTKUVsYXN0aWMgQ2VydGlmaWNhdGUgVG9vbCBBdXRvZ2Vu
-    ZXJhdGVkIENBMB4XDTI1MDEwNjA0MzczNVoXDTI4MDEwNjA0MzczNVowNDEyMDAG
-    A1UEAxMpRWxhc3RpYyBDZXJ0aWZpY2F0ZSBUb29sIEF1dG9nZW5lcmF0ZWQgQ0Ew
-    ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+ed1pM3yGm0mPTMPzsaFE
-    1ZNY81YyhmngAbE7X+SkvhBlQGdzTyvXpT8t/FPOylGn4+/aIig78M8ei0DNj0s/
-    A7MQuJDUPD7SnUhl6lRovs5q1I1xTsh5gvOLXSt6TjNq/wCPuZ9V9SYPK0ByoDuT
-    QTidr3TUqtBMZ0LNO2x0kRm38KzpyUEYxwYEaHnwIn7BsUULkFJp4auCPX586UQx
-    AETUonwSVOXcYOa/YCJGWJ9r5fUj8sBmOgFFL00EhETvS3lZzMiKs1QFzYdUzcln
-    1ZPRlXGSN6vGhu2fFqlTIE57d7wrCHo6Xpxvk6VFWje+gxvQQMCdIMIP/ZHCKn9F
-    AgMBAAGjUzBRMB0GA1UdDgQWBBRvuZrit/KIX+Qm+B+bcD4a9jGtlzAfBgNVHSME
-    GDAWgBRvuZrit/KIX+Qm+B+bcD4a9jGtlzAPBgNVHRMBAf8EBTADAQH/MA0GCSqG
-    SIb3DQEBCwUAA4IBAQCSx8ygsO1u1qcZNWLb0pK4iwzNyvGSJQcb8P/X5JP1GDZa
-    +gzN2+Mi0rqAD70Qg0eHv63wFe+mGcGEH6FGTwmymiApBULzZ2eZ/++vOuyxB7kN
-    N4KOnW29Xf7MvQdT7tK/7zidpPmqkFyOPCrJg9X0n0ZOfsgnZU7iEvozbscJJFup
-    VjLwPMRT/mf5oiHqZ/dJnxwFrVdwG7av8bwRMeARdZtsIeiJ68sgti+X18MAuAYU
-    jZkX33iqXQ7hkKyT84/6yifDw8k33nQmz9/eNO+S/npVr1y4F13m18ZP8G339OU3
-    QsEyv7rQs3N840aAb+Jpetpa2xr0Ac/rWfSTBVSu
-
+#elasticsearch:
+#  ca-certificate-path: ${ca-certificate}
 
 #resilience4j:
 #  circuitbreaker:

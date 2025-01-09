@@ -375,16 +375,15 @@ public class StageSeatService {
             Event event = eventSchedule.getEvent();
             String title = event.getTitle();
             String stageName = event.getEventStage().getStageName();
-            List<String> seatName = new ArrayList<>();
-            seatMappings.stream()
+            List<String> seatInfo = seatMappings.stream()
                     .map((seat) -> {
                         String row = seat.getStageSeat().getSeatRow();
                         String col = seat.getStageSeat().getSeatCol();
-                        seatName.add(row+"열"+col+"번");
-                        return null;
-                    });
+                        return (row + "열" + col + "번");
+                    })
+                    .toList();
             return TicketSimpleInfo.builder()
-                    .seatLoc(seatName)
+                    .seatLoc(seatInfo)
                     .eventTitle(title)
                     .stageName(stageName)
                     .build();

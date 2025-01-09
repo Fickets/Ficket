@@ -143,6 +143,10 @@ spring:
         - id: event-service
           uri: lb://event-service
           predicates:
+            - Path=/api/v1/events/events/getScheduleId
+        - id: event-service
+          uri: lb://event-service
+          predicates:
             - Path=/api/v1/events/genre-search
         - id: event-service
           uri: lb://event-service
@@ -223,6 +227,7 @@ spring:
           predicates:
             - Path=/work-status/**
           filters:
+            - PreserveHostHeader=true
             - QueryTokenExtractionFilter
             - RemoveRequestParameter=Authorization
         - id: queue-service
@@ -291,15 +296,10 @@ spring:
           uri: lb://ticketing-service
           predicates:
             - Path=/ticketing-swagger/v3/api-docs
-        - id: websocket-route
+        - id: stomp-route
           uri: lb:ws://ticketing-service
           predicates:
             - Path=/ticketing-check/ws
-#        - id: abcedef
-#          uri: lb://ticketing-service
-#          predicates:
-#            - Path=/ticketing-check/ws
-
 
         # SEARCH-SERVICE
         - id: search-service

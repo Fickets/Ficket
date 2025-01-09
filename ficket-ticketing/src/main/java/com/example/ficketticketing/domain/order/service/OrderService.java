@@ -685,16 +685,20 @@ public class OrderService {
                 () -> eventServiceClient.getScheduledId(eventId));
 
         for (Long eventScheduleId : eventScheduleIds) {
+            FaceApiResponse faceApiResponse = null;
+            try {
+                faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
+                        "postMatchUserFaceImgCircuitBreaker",
+                        () -> faceServiceClient.matchFace(userFaceImage, eventScheduleId)
+                );
+            } catch (Exception e) {
+                log.info("히히 : {}", eventScheduleId );
+            }
 
-            FaceApiResponse faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
-                    "postMatchUserFaceImgCircuitBreaker",
-                    () -> faceServiceClient.matchFace(userFaceImage, eventScheduleId)
-            );
-
-            if (faceApiResponse.getStatus() == 200) {
+            if (faceApiResponse != null && faceApiResponse.getStatus() == 200) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map<String, Object> map = objectMapper.convertValue(faceApiResponse.getData(), Map.class);
-                Long ticketId = Long.parseLong(map.get("ticketId").toString());
+                Long ticketId = ((Number) map.get("ticket_id")).longValue();
                 TicketSimpleInfo ticketSimpleInfo = executeWithCircuitBreaker(circuitBreakerRegistry,
                         "getCustomerSeat",
                         () -> eventServiceClient.getTicketSimpleInfo(ticketId));
