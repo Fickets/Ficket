@@ -1,5 +1,6 @@
 package com.example.ficketticketing.domain.order.service;
 
+import com.example.ficketticketing.domain.check.dto.CheckDto;
 import com.example.ficketticketing.domain.check.service.CheckService;
 import com.example.ficketticketing.domain.order.client.*;
 import com.example.ficketticketing.domain.order.dto.client.*;
@@ -71,7 +72,7 @@ public class OrderService {
     private final QueueServiceClient queueServiceClient;
     private final OrderMapper orderMapper;
     private final AdminServiceClient adminServiceClient;
-
+    private final CheckService checkService;
 
     public void processWebhook(String webhookId, String webhookSignature, String webhookTimestamp, String payload) {
         // 1. 타임스탬프 검증
@@ -707,9 +708,15 @@ public class OrderService {
                         "getUserByIdCircuitBreaker",
                         () -> userServiceClient.getUser(order.getUserId())
                 );
-
+                CheckDto message = CheckDto.builder()
+                        .data(faceApiResponse.getData())
+                        .name(userInfo.getUserName())
+                        .birth(userInfo.getBirth())
+                        .seatLoc(ticketSimpleInfo.getSeatLoc())
+                        .build();
+                checkService.sendMessage(eventId, connectId, message);
+                break;
             }
-
 
         }
     }
