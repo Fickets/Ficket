@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useStore } from "zustand";
+import { set } from "date-fns";
+
 import Logo from '../../assets/logo.png'
 import { checkUrl } from "../../service/ticketCheck/ticketCheck";
-import { set } from "date-fns";
+import { adminStore } from "../../stores/AdminStore";
 
 const EventCheckPage: React.FC = () => {
     const { eventId } = useParams<{ eventId: string }>();
@@ -10,6 +13,8 @@ const EventCheckPage: React.FC = () => {
 
     const queryParams = new URLSearchParams(location.search);
     const uuid = queryParams.get("uuid");
+
+    const admin = useStore(adminStore);
 
     const [ready, setReady] = useState<boolean>(false);
     const [inputValue, setInputValue] = useState<string>("");
@@ -22,7 +27,7 @@ const EventCheckPage: React.FC = () => {
     const navi = useNavigate();
     const goManager = () => {
         if (ready) {
-            navi("/")
+            navi(`/events/${eventId}/manager?connectId=${inputValue}`)
         } else {
             alert("잘못된 URL 입니다.")
         }
@@ -30,8 +35,8 @@ const EventCheckPage: React.FC = () => {
 
     const goCustomer = () => {
         if (ready) {
-            // 세션 연결? 여기서 아니면 이동해서 .어디에서
-            navi("/")
+            // 세션 연결? 여기서 아니면 이동해서 .어디에서 => 이동해서 하자
+            navi(`/events/${eventId}/customer?connectId=${inputValue}`)
         } else {
             alert("잘못된 URL 입니다.")
         }
@@ -39,10 +44,11 @@ const EventCheckPage: React.FC = () => {
 
     const checkUUID = async () => {
         try {
-            const guestUrl = await checkUrl(eventId, uuid);
-            console.log(guestUrl);
+            const guestTokenAndCheckUrl = await checkUrl(eventId, uuid);
+            console.log(guestTokenAndCheckUrl);
             setReady(true);
-            // 토큰 저장 로직 추가
+            // 토큰 저장 로직 추가 해야함 이거면 될듯?
+            admin.setAccessToken(guestTokenAndCheckUrl);
         } catch (error) {
             console.error("Error fetching guest URL:", error);
         }

@@ -99,7 +99,7 @@ function Order() {
           mobile: "REDIRECTION",
         },
         noticeUrls: [
-          "https://350f-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
+          "https://6d2c-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
         ],
       });
 
