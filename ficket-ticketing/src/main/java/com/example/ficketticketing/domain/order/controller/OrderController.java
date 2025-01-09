@@ -170,18 +170,4 @@ public class OrderController {
     public ResponseEntity<FaceApiResponse> uploadUserFace(@RequestPart MultipartFile userImg, @PathVariable Long eventScheduleId) {
         return ResponseEntity.ok(orderService.uploadUserFace(userImg, eventScheduleId));
     }
-
-    /**
-     * 티켓팅 얼굴 확인
-     * <p>
-     * 작업자: 최용수
-     * 작업 날짜: 2025-01-03
-     * 변경 이력:
-     * - 2024-12-22 최용수: 초기 작성
-     */
-    @PostMapping("{eventId}/{connectId}/user-match")
-    public ResponseEntity<Void> userMatch(@RequestPart MultipartFile userImg, @PathVariable(name = "eventId") Long eventId, @PathVariable(name = "connectId") Long connectId) {
-        orderService.matchFace(userImg,eventId, connectId);
-        return ResponseEntity.noContent().build();
-    }
 }
