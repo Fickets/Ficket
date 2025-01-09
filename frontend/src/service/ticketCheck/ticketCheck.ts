@@ -5,14 +5,15 @@ import { adminPrivateApi, publicApi } from '../../utils/http-common.ts';
 
 export const checkFace = async (
     userFace: File,
-    eventScheduleId: number
+    eventId: string,
+    connectId: number,
 ): Promise<FaceApiResponse> => {
     try {
         const formData = new FormData();
         formData.append('userImg', userFace);
 
         const response: AxiosResponse<FaceApiResponse> = await publicApi.post(
-            `/ticketing/check/${eventScheduleId}/user-match`,
+            `/ticketing/order/${eventId}/${connectId}/user-match`,
             formData,
             {
                 headers: {
