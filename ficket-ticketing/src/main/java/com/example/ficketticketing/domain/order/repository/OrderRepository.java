@@ -2,7 +2,6 @@ package com.example.ficketticketing.domain.order.repository;
 
 import com.example.ficketticketing.domain.order.dto.client.DailyRevenueResponse;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
-import com.example.ficketticketing.domain.order.dto.response.TicketDto;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
 import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
@@ -29,8 +28,8 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     void updateOrderStatusToCompleted(@Param("paymentId") String paymentId);
 
     @Modifying
-    @Query("UPDATE Orders o SET o.orderStatus = 'REFUNDED' WHERE o.paymentId = :paymentId AND o.orderStatus = 'COMPLETED'")
-    void updateOrderStatusToRefunded(@Param("paymentId") String paymentId);
+    @Query("UPDATE Orders o SET o.orderStatus = 'CANCELLED' WHERE o.paymentId = :paymentId AND o.orderStatus = 'INPROGRESS'")
+    void cancelByPaymentId(@Param("paymentId") String paymentId);
 
     @Modifying
     @Query("UPDATE Orders o SET o.orderStatus = :orderStatus WHERE o.orderId = :orderId")
@@ -84,6 +83,9 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     @Query("SELECT o.userId FROM Orders o WHERE o.paymentId = :paymentId")
     Long findUserIdByPaymentId(@Param("paymentId") String paymentId);
+
+    @Query("SELECT o.userId FROM Orders o WHERE o.orderId = :orderId")
+    Long findUserIdByOrderId(@Param("orderId") Long orderId);
 
     @Query("SELECT o FROM Orders o WHERE o.paymentId = :paymentId")
     Optional<Orders> findByPaymentId(@Param("paymentId") String paymentId);

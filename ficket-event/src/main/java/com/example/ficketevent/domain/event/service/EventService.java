@@ -220,6 +220,7 @@ public class EventService {
     public void updateEvent(Long eventId, Long adminId, EventUpdateReq req, MultipartFile poster, MultipartFile banner) {
         Event findEvent = findEventByEventId(eventId);
 
+
         // 1. 회사 정보 및 관리자 정보 업데이트
         updateCompanyInfo(req, findEvent);
         updateAdminInfo(findEvent, adminId);
@@ -230,8 +231,12 @@ public class EventService {
         // 3. 이벤트 정보 업데이트
         findEvent.updatedEvent(req);
 
-        // 4. 스케줄 및 좌석 매핑, 좌석 구분 업데이트
-        updateEventScheduleAndSeatMappingAndPartition(req, findEvent);
+        // 4. 스케줄 및 좌석 매핑, 좌석 구분 업데이트 (티케팅 시작 후에는 수정 불가)
+        if (findEvent.getTicketingTime().isBefore(LocalDateTime.now())) {
+            throw new BusinessException(ErrorCode.ALREADY_STARTED_TICKETING);
+        } else {
+            updateEventScheduleAndSeatMappingAndPartition(req, findEvent);
+        }
 
         // 5. 이미지 업데이트
         updateEventImages(findEvent, poster, banner);
@@ -344,7 +349,10 @@ public class EventService {
             }
 
             // 5. 삭제된 스케줄 처리
-            eventScheduleRepository.deleteAll(schedulesToDelete);
+            List<Long> deleteScheduleIds = schedulesToDelete.stream()
+                    .map(EventSchedule::getEventScheduleId)
+                    .toList();
+            eventScheduleRepository.deleteBySchedule(deleteScheduleIds);
         } else {
             for (EventDateDto eventDateDto : schedulesToAdd) {
                 for (SessionDto sessionDto : eventDateDto.getSessions()) {
@@ -377,7 +385,10 @@ public class EventService {
                 }
             }
 
-            eventScheduleRepository.deleteAll(schedulesToDelete);
+            List<Long> deleteScheduleIds = schedulesToDelete.stream()
+                    .map(EventSchedule::getEventScheduleId)
+                    .toList();
+            eventScheduleRepository.deleteBySchedule(deleteScheduleIds);
         }
     }
 
@@ -445,6 +456,10 @@ public class EventService {
         return EventDetail.toEventDetail(findEvent, companyResponse.getCompanyName());
     }
 
+    /**
+     * 해당 행사를 삭제합니다.
+     * @param eventId 삭제 대상 행사 ID
+     */
     @Caching(evict = {
             @CacheEvict(cacheNames = "events", key = "#eventId"),
             @CacheEvict(cacheNames = "searchEventScheduledOpen", allEntries = true)
@@ -452,6 +467,11 @@ public class EventService {
     @Transactional
     public void deleteEvent(Long eventId) {
         Event findEvent = findEventByEventId(eventId);
+
+        if (findEvent.getTicketingTime().isBefore(LocalDateTime.now())) {
+            throw new BusinessException(ErrorCode.ALREADY_STARTED_TICKETING);
+        }
+
         EventImage eventImage = findEvent.getEventImage();
 
         // 이미지 삭제 처리
@@ -1143,7 +1163,6 @@ public class EventService {
         Map<String, Object> indexingData = new HashMap<>();
         indexingData.put("EventId", String.valueOf(event.getEventId()));
         indexingData.put("Title", event.getTitle());
-//        indexingData.put("Title_Keyword", event.getTitle());
         indexingData.put("Poster_Url", event.getEventImage().getPosterPcUrl());
         indexingData.put("Stage", event.getEventStage().getStageName());
         indexingData.put("Location", event.getEventStage().getSido());

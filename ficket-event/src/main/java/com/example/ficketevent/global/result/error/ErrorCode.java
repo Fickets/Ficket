@@ -34,6 +34,7 @@ public enum ErrorCode {
     EVENT_SESSION_NOT_FOUND(404, "해당 회차 공연이 존재하지 않습니다."),
     PARTITION_NOT_FOUND(404, "해당 좌석 등급 구분이 존재하지 않습니다."),
     EMPTY_EVENT_SCHEDULE(400,"회차 정보가 공백입니다."),
+    ALREADY_STARTED_TICKETING(400, "이미 티켓팅이 시작 된 행사는 행사 일정 및 좌석 수정/삭제가 불가합니다"),
 
     //SEAT
     FAILED_TRY_ROCK(409, "락에 실패했습니다."),

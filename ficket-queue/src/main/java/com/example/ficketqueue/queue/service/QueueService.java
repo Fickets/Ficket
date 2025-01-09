@@ -63,9 +63,6 @@ public class QueueService {
      * @param max     최대 작업 가능한 슬롯 수
      */
     public void setMaxSlots(String eventId, int max) {
-        String kafkaTopic = KeyHelper.getFicketKafkaQueue(String.valueOf(eventId));
-        kafkaTemplate.send(kafkaTopic, null);
-        log.info("카프카 토픽 생성: {}", kafkaTopic);
         maxSlots.put(eventId, max);
         activeSlots.putIfAbsent(eventId, 0);
     }

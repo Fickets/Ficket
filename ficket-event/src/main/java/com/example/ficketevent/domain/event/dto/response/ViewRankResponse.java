@@ -40,7 +40,7 @@ public class ViewRankResponse {
                 .eventStageName(eventDetailRes.getStageName())
                 .eventDateList(eventDateParsingList)
                 .eventOriginBannerUrl(eventDetailRes.getBannerOriginUrl())
-                .eventPcPosterUrl(eventDetailRes.getPosterPcUrl())
+                .eventPcPosterUrl(eventDetailRes.getPosterPcMainUrl())
                 .build();
     }
 }

@@ -1,6 +1,5 @@
 package com.example.ficketticketing.domain.order.service;
 
-import com.example.ficketticketing.domain.check.dto.CheckDto;
 import com.example.ficketticketing.domain.check.service.CheckService;
 import com.example.ficketticketing.domain.order.client.*;
 import com.example.ficketticketing.domain.order.dto.client.*;
@@ -10,6 +9,7 @@ import com.example.ficketticketing.domain.order.dto.request.SelectSeatInfo;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDtoList;
+import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.entity.RefundPolicy;
 import com.example.ficketticketing.domain.order.entity.Ticket;
@@ -21,15 +21,12 @@ import com.example.ficketticketing.domain.order.repository.TicketRepository;
 import com.example.ficketticketing.domain.order.repository.RefundPolicyRepository;
 import com.example.ficketticketing.global.result.error.ErrorCode;
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
-import com.example.ficketticketing.global.utils.CircuitBreakerUtils;
 import com.example.ficketticketing.infrastructure.payment.PortOneApiClient;
 import com.example.ficketticketing.infrastructure.payment.dto.WebhookPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.shaded.io.opentelemetry.proto.trace.v1.Status;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -165,44 +162,50 @@ public class OrderService {
                 break;
             case "Transaction.Paid":
                 if (verifyPaidInfo(paymentId)) {
-                    orderRepository.updateOrderStatusToCompleted(paymentId);
-                    notifyClient(paymentId, "Paid");
-                    // TODO 여기서 해보자 order 찾고 paymentsId  >> 진행
-                    Orders order = orderRepository.findByPaymentId(paymentId)
-                            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
 
-                    // create settlement
-                    List<Long> ids = executeWithCircuitBreaker(
-                            circuitBreakerRegistry,
-                            "getCompanyEventIdByTicketId",
-                            () -> eventServiceClient.getCompanyEventId(order.getTicket().getTicketId()));
+                    try {
+                        orderRepository.updateOrderStatusToCompleted(paymentId);
 
-                    OrderSimpleDto orderSimpleDto = orderMapper.toOrderSimpleDto(order);
-                    orderSimpleDto.setCompanyId(ids.get(0));
-                    orderSimpleDto.setEventId(ids.get(1));
+                        Orders order = orderRepository.findByPaymentId(paymentId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
 
-                    ResponseEntity<Void> settlementCreate = executeWithCircuitBreaker(
-                            circuitBreakerRegistry,
-                            "settlementCreateByOrder",
-                            () -> adminServiceClient.createSettlement(orderSimpleDto)
-                    );
-                    if (settlementCreate.getStatusCode().value() != 204) {
-                        log.info("settlement created fail");
+                        // create settlement
+                        List<Long> ids = executeWithCircuitBreaker(
+                                circuitBreakerRegistry,
+                                "getCompanyEventIdByTicketId",
+                                () -> eventServiceClient.getCompanyEventId(order.getTicket().getTicketId()));
+
+                        OrderSimpleDto orderSimpleDto = orderMapper.toOrderSimpleDto(order);
+                        orderSimpleDto.setCompanyId(ids.get(0));
+                        orderSimpleDto.setEventId(ids.get(1));
+
+                        ResponseEntity<Void> settlementCreateByOrder = executeWithCircuitBreaker(
+                                circuitBreakerRegistry,
+                                "settlementCreateByOrder",
+                                () -> adminServiceClient.createSettlement(orderSimpleDto)
+                        );
+
+                        log.info("settlement created success");
+
+                        notifyClient(paymentId, "Paid");
+                    } catch (Exception e) {
+                        portOneApiClient.cancelOrder(paymentId);
                     }
 
                 } else {
                     portOneApiClient.cancelOrder(paymentId);
-                    notifyClient(paymentId, "Failed");
                 }
                 break;
             case "Transaction.Cancelled":
                 Long ticketIdByPaymentId = orderRepository.findTicketIdByPaymentId(paymentId);
+                orderRepository.cancelByPaymentId(paymentId);
                 ticketRepository.deleteByTicketId(ticketIdByPaymentId);
                 executeWithCircuitBreaker(
                         circuitBreakerRegistry,
                         "deleteFaceCircuitBreaker",
                         () -> faceServiceClient.deleteFace(ticketIdByPaymentId)
                 );
+                notifyClient(paymentId, "Failed");
                 break;
             default:
                 log.warn("알 수 없는 이벤트 타입: {}", type);
@@ -642,7 +645,7 @@ public class OrderService {
         return new DayCountResponse(dayCountMap);
     }
 
-    public List<OrderInfoDto> getCustomerTickets(Long userId){
+    public List<OrderInfoDto> getCustomerTickets(Long userId) {
 
         List<OrderInfoDto> res = new ArrayList<>();
         List<Orders> customerOrders = orderRepository.findAllByUserId(userId);
@@ -688,7 +691,7 @@ public class OrderService {
                     () -> faceServiceClient.matchFace(userFaceImage, eventScheduleId)
             );
 
-            if(faceApiResponse.getStatus() == 200){
+            if (faceApiResponse.getStatus() == 200) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map<String, Object> map = objectMapper.convertValue(faceApiResponse.getData(), Map.class);
                 Long ticketId = Long.parseLong(map.get("ticketId").toString());
@@ -706,16 +709,27 @@ public class OrderService {
                         () -> userServiceClient.getUser(order.getUserId())
                 );
 
-
-                CheckDto message = CheckDto.builder()
-                        .data(faceApiResponse.getData())
-                        .name(userInfo.getUserName())
-                        .birth(userInfo.getBirth())
-                        .seatLoc(ticketSimpleInfo.getSeatLoc())
-                .build();
-                checkService.sendMessage(eventId, connectId, message);
-                break;
             }
+
+
         }
+    }
+
+    /**
+     * 주문 생성 실패 시 보상적 트랜잭션 실행
+     *
+     * @param orderId 취소할 orderId
+     */
+    public void cancelOrder(Long orderId) {
+        portOneApiClient.cancelOrder(String.valueOf(orderId));
+        orderRepository.updateOrderStatus(orderId, OrderStatus.CANCELLED);
+
+        Long userId = orderRepository.findUserIdByOrderId(orderId);
+
+        executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "sendOrderStatusCircuitBreaker",
+                () -> queueServiceClient.sendOrderStatus(userId, "Failed")
+        );
     }
 }
