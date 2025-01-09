@@ -13,7 +13,7 @@ export const checkFace = async (
         formData.append('userImg', userFace);
 
         const response: AxiosResponse<FaceApiResponse> = await publicApi.post(
-            `/ticketing/order/${eventId}/${connectId}/user-match`,
+            `ticketing/check/${eventId}/${connectId}/user-match`,
             formData,
             {
                 headers: {
