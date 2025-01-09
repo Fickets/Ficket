@@ -31,10 +31,10 @@ export const checkFace = async (
 export const checkUrl = async (
     eventId: string,
     uuid: string
-): Promise<String> => {
+): Promise<string> => {
     const params = new URLSearchParams({ uuid: uuid });
     const response: AxiosResponse<{ guestToken: string }> =
-        await publicApi.get(`/admins/${eventId}/checkUrl?${params.toString()}`);
+        await publicApi.get(`/admins/check-url/${eventId}?${params.toString()}`);
 
     return response.data.guestToken;
 }
