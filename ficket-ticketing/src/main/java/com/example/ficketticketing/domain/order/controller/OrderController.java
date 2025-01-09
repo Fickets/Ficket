@@ -179,8 +179,9 @@ public class OrderController {
      * 변경 이력:
      * - 2024-12-22 최용수: 초기 작성
      */
-    @PostMapping("{eventScheduleId}/user-match")
-    public ResponseEntity<FaceApiResponse> userMatch(@RequestPart MultipartFile userImg, @PathVariable Long eventScheduleId) {
-        return ResponseEntity.ok(orderService.matchFace(userImg, eventScheduleId));
+    @PostMapping("{eventScheduleId}/{connectId}/user-match")
+    public ResponseEntity<Void> userMatch(@RequestPart MultipartFile userImg, @PathVariable Long eventId, @PathVariable Long connectId) {
+        orderService.matchFace(userImg,eventId, connectId);
+        return ResponseEntity.noContent().build();
     }
 }

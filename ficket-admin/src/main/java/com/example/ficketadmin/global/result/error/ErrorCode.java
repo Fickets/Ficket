@@ -19,6 +19,7 @@ public enum ErrorCode {
 
     // Event
     COMPANY_NOT_FOUND(404, "해당 회사가 존재하지 않습니다."),
+    URL_NOT_FOUNT(404, "없는 URL 입니다."),
 
     // Admin
     NOT_ADMIN_FOUND(404, "해당 관리자가 존재하지 않습니다."),

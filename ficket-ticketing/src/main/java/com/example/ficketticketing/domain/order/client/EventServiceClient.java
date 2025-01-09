@@ -43,4 +43,7 @@ public interface EventServiceClient {
 
     @GetMapping("/api/v1/events/company-id")
     List<Long> getCompanyEventId(@RequestParam Long ticketId);
+
+    @GetMapping("/api/v1/events/getScheduleId")
+    List<Long> getScheduledId(@RequestParam Long eventId);
 }

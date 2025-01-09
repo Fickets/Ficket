@@ -51,7 +51,12 @@ public enum ErrorCode {
     NO_MATCHING_REFUND_POLICY(409, "일치하는 환불 정책이 없습니다."),
     REFUND_FAILED(409, "티켓 환불 처리 중 오류가 발생했습니다."),
     PURCHASE_LIMIT_MET(400, "구매 제한을 충족했습니다."),
+
+    //TICKET
+    NOT_FOUND_TICKET(404, "해당 티켓을 조회할 수 없습니다"),
     ;
+
+
 
     private final int status;
     private final String message;

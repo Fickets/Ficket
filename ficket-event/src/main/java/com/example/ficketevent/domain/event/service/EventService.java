@@ -116,7 +116,7 @@ public class EventService {
                 () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
 
         // 8. 부분 색인 요청
-        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(savedEvent), OperationType.CREATE);
+//        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(savedEvent), OperationType.CREATE);
     }
 
 
@@ -1152,6 +1152,14 @@ public class EventService {
         indexingData.put("Ticketing", event.getTicketingTime().format(formatter));
 
         return indexingData;
+    }
+
+    public List<Long> getScheduleId(Long eventId){
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+        List<Long> res = event.getEventSchedules().stream().map(eventSchedule -> eventSchedule.getEventScheduleId()).toList();
+
+        return res;
     }
 
 }

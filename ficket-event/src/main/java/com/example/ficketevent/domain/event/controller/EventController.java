@@ -352,4 +352,10 @@ public class EventController {
         schedulerService.test();
         return ResponseEntity.noContent().build();
     }
+
+
+    @GetMapping("/events/getScheduleId")
+    List<Long> getScheduledId(@RequestParam Long eventId){
+        return eventService.getScheduleId(eventId);
+    }
 }

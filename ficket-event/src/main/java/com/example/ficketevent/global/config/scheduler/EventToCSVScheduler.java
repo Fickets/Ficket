@@ -5,6 +5,8 @@ import com.example.ficketevent.domain.event.enums.IndexingType;
 import com.example.ficketevent.domain.event.enums.OperationType;
 import com.example.ficketevent.domain.event.messagequeue.IndexingProducer;
 import com.example.ficketevent.domain.event.repository.EventRepository;
+import com.example.ficketevent.global.result.error.ErrorCode;
+import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.AwsS3Service;
 import com.example.ficketevent.global.utils.CSVGenerator;
 import lombok.RequiredArgsConstructor;

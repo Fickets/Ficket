@@ -37,4 +37,5 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
     @Query("SELECT e.title FROM Event e")
     List<String> findEventTitle();
 
+
 }

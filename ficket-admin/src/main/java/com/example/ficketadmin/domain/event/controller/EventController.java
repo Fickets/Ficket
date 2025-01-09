@@ -3,6 +3,7 @@ package com.example.ficketadmin.domain.event.controller;
 
 import com.example.ficketadmin.domain.event.dto.response.DailyRevenueResponse;
 import com.example.ficketadmin.domain.event.dto.response.DayCountResponse;
+import com.example.ficketadmin.domain.event.dto.response.GuestTokenResponse;
 import com.example.ficketadmin.domain.event.dto.response.TemporaryUrlResponse;
 import com.example.ficketadmin.domain.event.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +65,11 @@ public class EventController {
     @PostMapping("/generate-url")
     public TemporaryUrlResponse generateUrl(@RequestParam Long eventId) {
         return eventService.generateTemporaryUrl(eventId);
+    }
+
+    @GetMapping("/check-url/{eventId}")
+    public GuestTokenResponse checkUrl(@PathVariable(name = "eventId")Long eventId, @RequestParam(name = "uuid") String uuid){
+        return eventService.checkUrl(eventId, uuid);
     }
 
 }
