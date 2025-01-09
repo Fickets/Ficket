@@ -346,8 +346,11 @@ public class StageSeatService {
         List<Long> ticketIds = ticketDto.getTicketIds();
         Long eventScheduleId = ticketDto.getEventScheduleId();
 
+        System.out.println("TEST FUICK "+ eventScheduleId + " F");
         // 이벤트 스케줄에 설정된 예약 제한 수를 조회
         int reservationLimit = eventScheduleRepository.findReservationLimit(eventScheduleId);
+
+        log.info("FUCK IS NULL", reservationLimit);
 
         // 구매된 티켓 수를 저장할 변수 초기화
         Integer count;

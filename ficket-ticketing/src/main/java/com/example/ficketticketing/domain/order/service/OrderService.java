@@ -1,5 +1,7 @@
 package com.example.ficketticketing.domain.order.service;
 
+import com.example.ficketticketing.domain.check.dto.CheckDto;
+import com.example.ficketticketing.domain.check.service.CheckService;
 import com.example.ficketticketing.domain.order.client.*;
 import com.example.ficketticketing.domain.order.dto.client.*;
 import com.example.ficketticketing.domain.order.dto.kafka.OrderDto;
@@ -10,6 +12,7 @@ import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDtoList;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.entity.RefundPolicy;
+import com.example.ficketticketing.domain.order.entity.Ticket;
 import com.example.ficketticketing.domain.order.mapper.OrderMapper;
 import com.example.ficketticketing.domain.order.mapper.TicketMapper;
 import com.example.ficketticketing.domain.order.messagequeue.OrderProducer;
@@ -25,6 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.shaded.io.opentelemetry.proto.trace.v1.Status;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -69,6 +74,7 @@ public class OrderService {
     private final QueueServiceClient queueServiceClient;
     private final OrderMapper orderMapper;
     private final AdminServiceClient adminServiceClient;
+    private final CheckService checkService;
 
 
     public void processWebhook(String webhookId, String webhookSignature, String webhookTimestamp, String payload) {
@@ -160,7 +166,8 @@ public class OrderService {
             case "Transaction.Paid":
                 if (verifyPaidInfo(paymentId)) {
                     orderRepository.updateOrderStatusToCompleted(paymentId);
-
+                    notifyClient(paymentId, "Paid");
+                    // TODO 여기서 해보자 order 찾고 paymentsId  >> 진행
                     Orders order = orderRepository.findByPaymentId(paymentId)
                             .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
 
@@ -174,15 +181,14 @@ public class OrderService {
                     orderSimpleDto.setCompanyId(ids.get(0));
                     orderSimpleDto.setEventId(ids.get(1));
 
-                    ResponseEntity<Void> settlementCreateByOrder = executeWithCircuitBreaker(
+                    ResponseEntity<Void> settlementCreate = executeWithCircuitBreaker(
                             circuitBreakerRegistry,
                             "settlementCreateByOrder",
                             () -> adminServiceClient.createSettlement(orderSimpleDto)
                     );
-
-                    log.info("settlement created success");
-
-                    notifyClient(paymentId, "Paid");
+                    if (settlementCreate.getStatusCode().value() != 204) {
+                        log.info("settlement created fail");
+                    }
 
                 } else {
                     portOneApiClient.cancelOrder(paymentId);
@@ -636,13 +642,13 @@ public class OrderService {
         return new DayCountResponse(dayCountMap);
     }
 
-    public List<OrderInfoDto> getCustomerTickets(Long userId) {
+    public List<OrderInfoDto> getCustomerTickets(Long userId){
 
         List<OrderInfoDto> res = new ArrayList<>();
         List<Orders> customerOrders = orderRepository.findAllByUserId(userId);
 
         for (Orders order : customerOrders) {
-            TicketSimpleInfo ticketInfo = CircuitBreakerUtils.executeWithCircuitBreaker(
+            TicketSimpleInfo ticketInfo = executeWithCircuitBreaker(
                     circuitBreakerRegistry,
                     "getTicketSimpleInfo",
                     () -> eventServiceClient.getTicketSimpleInfo(order.getOrderId()));
@@ -670,14 +676,46 @@ public class OrderService {
         return faceApiResponse;
     }
 
-    public FaceApiResponse matchFace(MultipartFile userFaceImage, Long eventScheduledId) {
-        log.info("TTEST : " + eventScheduledId + " : " + userFaceImage);
-        FaceApiResponse faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
-                "postMatchUserFaceImgCircuitBreaker",
-                () -> faceServiceClient.matchFace(userFaceImage, eventScheduledId)
-        );
-        return faceApiResponse;
-    }
+    public void matchFace(MultipartFile userFaceImage, Long eventId, Long connectId) {
+        List<Long> eventScheduleIds = executeWithCircuitBreaker(circuitBreakerRegistry,
+                "getEventScheduleIdList",
+                () -> eventServiceClient.getScheduledId(eventId));
 
-//    public void
+        for (Long eventScheduleId : eventScheduleIds) {
+
+            FaceApiResponse faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
+                    "postMatchUserFaceImgCircuitBreaker",
+                    () -> faceServiceClient.matchFace(userFaceImage, eventScheduleId)
+            );
+
+            if(faceApiResponse.getStatus() == 200){
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> map = objectMapper.convertValue(faceApiResponse.getData(), Map.class);
+                Long ticketId = Long.parseLong(map.get("ticketId").toString());
+                TicketSimpleInfo ticketSimpleInfo = executeWithCircuitBreaker(circuitBreakerRegistry,
+                        "getCustomerSeat",
+                        () -> eventServiceClient.getTicketSimpleInfo(ticketId));
+
+                Ticket ticket = ticketRepository.findById(ticketId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TICKET));
+                Orders order = orderRepository.findByTicket(ticket)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
+
+                UserSimpleDto userInfo = executeWithCircuitBreaker(circuitBreakerRegistry,
+                        "getUserByIdCircuitBreaker",
+                        () -> userServiceClient.getUser(order.getUserId())
+                );
+
+
+                CheckDto message = CheckDto.builder()
+                        .data(faceApiResponse.getData())
+                        .name(userInfo.getUserName())
+                        .birth(userInfo.getBirth())
+                        .seatLoc(ticketSimpleInfo.getSeatLoc())
+                .build();
+                checkService.sendMessage(eventId, connectId, message);
+                break;
+            }
+        }
+    }
 }

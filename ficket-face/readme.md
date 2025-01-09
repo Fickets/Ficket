@@ -61,7 +61,7 @@ Flask 애플리케이션을 실행하여 초기 설정이 완료되었는지 확
 
 ```bash
 flask run
-python app.py
+python app.py 
 ```
 
 ### 실행 결과

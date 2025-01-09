@@ -48,6 +48,11 @@ public class AdminServiceClientFallbackFactory implements FallbackFactory<AdminS
             public int createTotalSettlement(Long eventId) {
                 return 404;
             }
+
+            @Override
+            public String createTemporaryUrl(Long eventId) {
+                return "";
+            }
         };
     }
 }

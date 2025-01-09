@@ -26,4 +26,7 @@ public interface AdminServiceClient {
 
     @GetMapping("/api/v1/settlements/create-total")
     int createTotalSettlement(@RequestParam Long eventId);
+
+    @GetMapping("/api/v1/admins/temporary-url")
+    String createTemporaryUrl(@RequestParam Long eventId);
 }

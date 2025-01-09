@@ -74,7 +74,10 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
-
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/admins/check-url/**
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -289,6 +292,15 @@ spring:
           uri: lb://ticketing-service
           predicates:
             - Path=/ticketing-swagger/v3/api-docs
+        - id: websocket-route
+          uri: lb:ws://ticketing-service
+          predicates:
+            - Path=/ticketing-check/ws
+#        - id: abcedef
+#          uri: lb://ticketing-service
+#          predicates:
+#            - Path=/ticketing-check/ws
+
 
         # SEARCH-SERVICE
         - id: search-service

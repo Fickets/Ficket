@@ -1,9 +1,15 @@
 package com.example.ficketadmin.domain.event.service;
 
+import com.example.ficketadmin.domain.admin.dto.common.AdminInfoDto;
+import com.example.ficketadmin.domain.admin.entity.Role;
 import com.example.ficketadmin.domain.event.client.EventServiceClient;
 import com.example.ficketadmin.domain.event.dto.response.DailyRevenueResponse;
 import com.example.ficketadmin.domain.event.dto.response.DayCountResponse;
+import com.example.ficketadmin.domain.event.dto.response.GuestTokenResponse;
 import com.example.ficketadmin.domain.event.dto.response.TemporaryUrlResponse;
+import com.example.ficketadmin.global.jwt.JwtUtils;
+import com.example.ficketadmin.global.result.error.ErrorCode;
+import com.example.ficketadmin.global.result.error.exception.BusinessException;
 import com.example.ficketadmin.global.utils.CircuitBreakerUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +35,7 @@ public class EventService {
     private final StringRedisTemplate redisTemplate; // Redis와의 연동을 위한 템플릿
     private final EventServiceClient eventServiceClient; // 이벤트 서비스 클라이언트 (FeignClient)
     private final CircuitBreakerRegistry circuitBreakerRegistry; // Circuit Breaker 등록 객체
+    private final JwtUtils jwtUtils;
 
     private static final long EXPIRATION_TIME = 24 * 60 * 60; // 하루 동안(초 단위) 만료 시간
 
@@ -81,5 +88,25 @@ public class EventService {
         log.info("생성된 URL: {}, 이벤트 ID: {}", url, eventId);
 
         return new TemporaryUrlResponse(url); // URL 응답 객체 반환
+    }
+
+    public GuestTokenResponse checkUrl(Long eventId, String url){
+        String redisKey = "url:" + eventId;
+        String redisUrl = redisTemplate.opsForValue().get(redisKey);
+        if (redisUrl == null){
+            throw new BusinessException(ErrorCode.URL_NOT_FOUNT);
+        }
+        if(!redisUrl.equals(url)){
+            throw new BusinessException(ErrorCode.URL_NOT_FOUNT);
+        }
+        // admin 토큰 발급
+        AdminInfoDto guest = AdminInfoDto.builder()
+                .adminId(eventId)
+                .name("GUEST")
+                .role(Role.GUEST)
+                .build();
+        String guestToken = jwtUtils.createAccessToken(guest);
+
+        return new GuestTokenResponse(guestToken);
     }
 }
