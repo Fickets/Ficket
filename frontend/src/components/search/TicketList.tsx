@@ -92,7 +92,7 @@ const TicketList = ({ ticketList, onPageChange }: TicketListProps) => {
             />
             <div className="p-2 w-full">
               {/* 제목 */}
-              <h3 className="text-md font-semibold text-black leading-tight mb-2">
+              <h3 className="text-md font-semibold text-black leading-tight mb-2 word-break">
                 {ticket.Title}
               </h3>
               {/* 스테이지 */}

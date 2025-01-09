@@ -175,7 +175,7 @@ const MyTicketList = () => {
           <div className="flex justify-center items-center mt-6">
             <div>
               <p className="text-gray-600 text-sm font-medium">
-                더 이상 데이터가 없습니다 🎉
+                더 이상 구매 티켓이 없습니다 🎉
               </p>
             </div>
           </div>

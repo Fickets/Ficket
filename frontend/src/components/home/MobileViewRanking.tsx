@@ -66,7 +66,7 @@ const MobileViewRanking = () => {
             onClick={handleImageClick} // Click event handler added
           >
             <img
-              src={viewRankingResponse[currentIndex]?.eventOriginBannerUrl}
+              src={viewRankingResponse[currentIndex]?.eventPcPosterUrl}
               alt={viewRankingResponse[currentIndex]?.eventTitle}
               className="w-full h-full object-cover"
             />

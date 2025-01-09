@@ -125,21 +125,23 @@ const Search = () => {
             </button>
 
             {/* FilterSection 팝업 */}
-            {isFilterOpen && (
-              <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg shadow-lg p-6 w-[85%] max-w-md h-[80%] overflow-y-auto relative">
-                  {/* 닫기 버튼 */}
-                  <button
-                    className="absolute top-7 right-14 text-gray-500 hover:text-gray-700 mt-2"
-                    onClick={toggleFilterSection}
-                  >
-                    &#10005;
-                  </button>
-                  {/* FilterSection 컴포넌트 */}
-                  <FilterSection onFilterChange={handleFilterChange} />
-                </div>
+            <div
+              className={`fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-opacity ${
+                isFilterOpen ? "opacity-100 visible" : "opacity-0 invisible"
+              }`}
+            >
+              <div className="bg-white rounded-lg shadow-lg p-6 w-[85%] max-w-md h-[80%] overflow-y-auto relative">
+                {/* 닫기 버튼 */}
+                <button
+                  className="absolute top-7 right-14 text-gray-500 hover:text-gray-700 mt-2"
+                  onClick={toggleFilterSection}
+                >
+                  &#10005;
+                </button>
+                {/* FilterSection 컴포넌트 */}
+                <FilterSection onFilterChange={handleFilterChange} />
               </div>
-            )}
+            </div>
           </div>
 
           <div className="mt-7">

@@ -118,6 +118,7 @@ const EditEvent = ({ eventId }: { eventId: string }) => {
             initialData={originalEventData.eventSchedules}
             onChange={handleFormChange}
           />
+
           <EditSeatSetting
             stageId={originalEventData.stageId}
             stageImg={originalEventData.stageImg}

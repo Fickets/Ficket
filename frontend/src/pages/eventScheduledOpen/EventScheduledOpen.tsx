@@ -18,7 +18,9 @@ const EventScheduledOpen = () => {
         </div>
       ) : (
         <div>
-          <UserHeader />
+          <div className="mt-6">
+            <UserHeader />
+          </div>
           <PcEventOpenList />
         </div>
       )}

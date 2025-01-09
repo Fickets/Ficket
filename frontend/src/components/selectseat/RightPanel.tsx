@@ -27,7 +27,9 @@ const RightPanel = ({
         {/* 행사 정보 영역 */}
         <div className="w-[60%] pl-2 mt-2">
           <h3 className="text-white font-bold text-sm p-1 break-words">
-            {eventTitle}
+            {eventTitle.length > 15
+              ? `${eventTitle.substring(0, 15)}...`
+              : eventTitle}
           </h3>
           <div className="text-xs text-gray-700 mt-2">
             <p>일시: {eventDate}</p>
