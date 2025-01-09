@@ -71,7 +71,6 @@ public class OrderService {
     private final QueueServiceClient queueServiceClient;
     private final OrderMapper orderMapper;
     private final AdminServiceClient adminServiceClient;
-    private final CheckService checkService;
 
 
     public void processWebhook(String webhookId, String webhookSignature, String webhookTimestamp, String payload) {
@@ -721,15 +720,8 @@ public class OrderService {
      * @param orderId 취소할 orderId
      */
     public void cancelOrder(Long orderId) {
-        portOneApiClient.cancelOrder(String.valueOf(orderId));
-        orderRepository.updateOrderStatus(orderId, OrderStatus.CANCELLED);
-
-        Long userId = orderRepository.findUserIdByOrderId(orderId);
-
-        executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "sendOrderStatusCircuitBreaker",
-                () -> queueServiceClient.sendOrderStatus(userId, "Failed")
-        );
+        Orders findOrder = orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
+        portOneApiClient.cancelOrder(findOrder.getPaymentId());
     }
 }

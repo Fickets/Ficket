@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,9 +30,9 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     @Query("UPDATE Orders o SET o.orderStatus = 'CANCELLED' WHERE o.paymentId = :paymentId AND o.orderStatus = 'INPROGRESS'")
     void cancelByPaymentId(@Param("paymentId") String paymentId);
 
-    @Modifying
-    @Query("UPDATE Orders o SET o.orderStatus = :orderStatus WHERE o.orderId = :orderId")
-    void updateOrderStatus(@Param("orderId") Long orderId, @Param("orderStatus") OrderStatus orderStatus);
+//    @Modifying
+//    @Query("UPDATE Orders o SET o.orderStatus = :orderStatus WHERE o.orderId = :orderId")
+//    void updateOrderStatus(@Param("orderId") Long orderId, @Param("orderStatus") OrderStatus orderStatus);
 
     @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse(o.orderStatus) FROM Orders o WHERE o.orderId = :orderId")
     Optional<OrderStatusResponse> findOrderStatusByOrderId(@Param("orderId") Long orderId);
@@ -84,8 +83,11 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     @Query("SELECT o.userId FROM Orders o WHERE o.paymentId = :paymentId")
     Long findUserIdByPaymentId(@Param("paymentId") String paymentId);
 
-    @Query("SELECT o.userId FROM Orders o WHERE o.orderId = :orderId")
-    Long findUserIdByOrderId(@Param("orderId") Long orderId);
+//    @Query("SELECT o.userId FROM Orders o WHERE o.orderId = :orderId")
+//    Long findUserIdByOrderId(@Param("orderId") Long orderId);
+
+    @Query("SELECT o From Orders o WHERE o.orderId = :orderId")
+    Optional<Orders> findByOrderId(@Param("orderId") Long orderId);
 
     @Query("SELECT o FROM Orders o WHERE o.paymentId = :paymentId")
     Optional<Orders> findByPaymentId(@Param("paymentId") String paymentId);
