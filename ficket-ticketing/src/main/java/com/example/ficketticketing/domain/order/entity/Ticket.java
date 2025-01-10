@@ -9,6 +9,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Builder
 @Entity
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction("deleted_at IS NULL")

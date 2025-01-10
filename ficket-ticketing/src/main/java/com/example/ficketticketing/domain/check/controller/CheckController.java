@@ -51,5 +51,12 @@ public class CheckController {
         checkService.sendMessage(eventId, connectId, checkDto);
     }
 
+    @GetMapping("/ticket-watch/{ticketId}")
+    public ResponseEntity<Void> ticketWatchedChange(@PathVariable(name = "ticketId")Long ticketId,
+                                                    @RequestParam(name = "eventId")Long eventId,
+                                                    @RequestParam(name = "connectId")Long connectId){
+        checkService.changeTicketWatched(ticketId, eventId, connectId);
+        return ResponseEntity.noContent().build();
+    }
 
 }

@@ -77,6 +77,10 @@ spring:
         - id: admin-service
           uri: lb://admin-service
           predicates:
+            - Path=/api/v1/admins/ticket-watch/**
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
             - Path=/api/v1/admins/check-url/**
         - id: admin-service
           uri: lb://admin-service
@@ -265,6 +269,10 @@ spring:
           filters:
             - AuthorizationHeaderFilter
             - UserTokenExtractionFilter
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
+            - Path=/api/v1/ticketing/check/ticket-watch/**
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
