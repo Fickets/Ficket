@@ -10,6 +10,7 @@ import { FaFilter } from "react-icons/fa";
 import Logo from "../../assets/logo.png";
 import SearchBar from "../../components/@common/SearchBar.tsx";
 import MobileBottom from "../../components/@common/MobileBottom.tsx";
+import { Helmet } from "react-helmet-async";
 
 const Search = () => {
   const isMobile: boolean = useMediaQuery({ query: "(max-width: 768px)" });
@@ -92,6 +93,9 @@ const Search = () => {
 
   return (
     <div>
+      <Helmet>
+        <title>{keyword} - Ficket Search</title>
+      </Helmet>
       {isMobile ? (
         <div className="bg-gray-50 min-h-screen">
           {/* 헤더 */}

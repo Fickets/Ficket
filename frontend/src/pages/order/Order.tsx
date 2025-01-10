@@ -1,5 +1,5 @@
 import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { releaseSlot } from "../../service/queue/api.ts";
 import { useStore } from "zustand/index";
 import { eventDetailStore } from "../../stores/EventStore.tsx";
@@ -10,6 +10,7 @@ import { unLockSeats } from "../../service/selectseat/api.ts";
 import { createOrder } from "../../service/order/api.ts";
 import { CreateOrderRequest } from "../../types/order.ts";
 import PortOne from "@portone/browser-sdk/v2";
+import { Helmet } from "react-helmet-async";
 
 const STORE_ID: string = import.meta.env.VITE_STORE_ID;
 const CHANNEL_KEY: string = import.meta.env.VITE_CHANNEL_KEY;
@@ -99,7 +100,7 @@ function Order() {
           mobile: "REDIRECTION",
         },
         noticeUrls: [
-          "https://6d2c-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
+          "https://9940-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
         ],
       });
 
@@ -198,6 +199,9 @@ function Order() {
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
+      <Helmet>
+        <title>티켓팅 - 결제</title>
+      </Helmet>
       {/* 헤더 */}
       <div className="relative z-10 h-[192px] bg-black hidden sm:block">
         <TicketingHeader step={4} />

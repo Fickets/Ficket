@@ -16,7 +16,7 @@ import {
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import MobileHeader from "../../components/@common/MobileHeader";
-import { GenderStatisticRes } from "../../types/ApiResponseType";
+import { Helmet } from "react-helmet-async";
 import { canEnterTicketingPage, occupySlot } from "../../service/queue/api.ts";
 import {
   checkEnterTicketing,
@@ -326,6 +326,9 @@ const EventDetail: React.FC = () => {
 
   return (
     <div>
+      <Helmet>
+        <title>{event.title}</title>
+      </Helmet>
       {/** PC SCREEN */}
       <div className="ticket-page p-6 font-sans hidden md:block">
         {/* 상단 헤더 영역 */}

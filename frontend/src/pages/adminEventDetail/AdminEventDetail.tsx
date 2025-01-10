@@ -7,6 +7,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import NotFound from "../errorpage/NotFound.tsx";
 import { deleteEvent } from "../../service/admineventlist/api.ts";
 import AdminEventInfo from "../../components/adminEventDetail/AdminEventInfo.tsx";
+import { Helmet } from "react-helmet-async";
 
 const AdminEventDetail = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -41,6 +42,9 @@ const AdminEventDetail = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      <Helmet>
+        <title>관리자 - 공연 상세</title>
+      </Helmet>
       {/* 사이드바 */}
       <div className="w-64 h-full">
         <Sidebar currentStep={"performance"} />

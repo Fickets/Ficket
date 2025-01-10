@@ -82,7 +82,7 @@ const TicketList = ({ ticketList, onPageChange }: TicketListProps) => {
         {allTickets.map((ticket) => (
           <div
             key={ticket.EventId}
-            className="border rounded-lg overflow-hidden shadow-sm bg-white w-[220px] h-[420px] cursor-pointer"
+            className="border rounded-lg overflow-hidden shadow-sm bg-white w-[220px] h-[470px] cursor-pointer"
             onClick={() => navigate(`/events/detail/${ticket.EventId}`)}
           >
             <img
@@ -92,18 +92,16 @@ const TicketList = ({ ticketList, onPageChange }: TicketListProps) => {
             />
             <div className="p-2 w-full">
               {/* 제목 */}
-              <h3 className="text-md font-semibold text-black leading-tight mb-2 word-break">
+              <h3 className="text-md font-semibold text-black h-[60px] leading-tight mb-2 overflow-hidden text-ellipsis">
                 {ticket.Title}
               </h3>
               {/* 스테이지 */}
               <p className="text-sm text-gray-800 leading-tight mb-1">
                 {ticket.Stage}
               </p>
-              {/* 스케줄 */}
-              <p className="text-sm text-gray-500 leading-tight mb-2">
+              <p className="text-sm text-gray-500 leading-tight mb-2 truncate overflow-hidden">
                 {formatSchedule(ticket.Schedules)}
               </p>
-              {/* SaleType */}
               <span className={`${getSaleTypeStyle(ticket.SaleType)}`}>
                 {getSaleTypeText(ticket.SaleType)}
               </span>

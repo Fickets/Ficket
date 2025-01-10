@@ -4,6 +4,7 @@ import EventSearchBar from "../../components/eventList/EventSearchBar.tsx";
 import { useEffect, useState } from "react";
 import { fetchEventListByCond } from "../../service/admineventlist/api.ts";
 import { ApiResponse, SearchParams } from "../../types/eventList.ts";
+import { Helmet } from "react-helmet-async";
 
 const AdminEventList = () => {
   const [data, setData] = useState<ApiResponse>({
@@ -50,6 +51,9 @@ const AdminEventList = () => {
 
   return (
     <div className="flex h-screen bg-[#F0F2F5]">
+      <Helmet>
+        <title>관리자 - 행사 관리</title>
+      </Helmet>
       <div className="w-64 h-full">
         <Sidebar currentStep={"performance"} />
       </div>

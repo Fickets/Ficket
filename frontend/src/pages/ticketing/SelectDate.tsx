@@ -7,6 +7,7 @@ import { eventDetailStore } from "../../stores/EventStore";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { releaseSlot } from "../../service/queue/api.ts";
+import { Helmet } from "react-helmet-async";
 
 const SelectDate: React.FC = () => {
   const eventDetail = useStore(eventDetailStore);
@@ -47,6 +48,9 @@ const SelectDate: React.FC = () => {
 
   return (
     <div>
+      <Helmet>
+        <title>티켓팅 - 관람일 선택</title>
+      </Helmet>
       {/* pc 버전 */}
       <div
         className="w-[900px] h-[599px] min-w-[900px] min-h-[599px] bg-white hidden md:block"

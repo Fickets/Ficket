@@ -26,7 +26,7 @@ const RightPanel = ({
 
         {/* 행사 정보 영역 */}
         <div className="w-[60%] pl-2 mt-2">
-          <h3 className="text-white font-bold text-sm p-1 break-words">
+          <h3 className="text-white font-bold text-sm p-1 break-words h-[50px] flex items-center">
             {eventTitle.length > 15
               ? `${eventTitle.substring(0, 15)}...`
               : eventTitle}

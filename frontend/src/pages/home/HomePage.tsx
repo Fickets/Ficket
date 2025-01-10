@@ -18,6 +18,7 @@ import family from "../../assets/navi/family.png";
 import Logo from "../../assets/logo.png";
 import SearchBar from "../../components/@common/SearchBar.tsx";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 const HomePage = () => {
   const navi = useNavigate();
@@ -71,6 +72,9 @@ const HomePage = () => {
 
   return (
     <div className="p-6">
+      <Helmet>
+        <title>Ficket</title>
+      </Helmet>
       <UserHeader />
 
       <div className="block md:hidden flex">

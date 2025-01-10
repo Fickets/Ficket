@@ -48,7 +48,7 @@ const GenreRank = () => {
                     : "bg-white text-black" // 기본 버튼 스타일
                 }`}
               >
-                {genreName}
+                {genreName.replace("_", "/")}
               </button>
             ))}
           </div>
@@ -88,7 +88,9 @@ const GenreRank = () => {
         <div className="flex justify-center items-center">
           <button
             className=" text-[18px] mt-[30px] font-medium border border-2 rounded-full w-[200px] "
-            onClick={() => navi(`/contents/ranking?tab=${genre}`)}
+            onClick={() =>
+              navi(`/contents/ranking?tab=${genre.replace("_", "/")}`)
+            }
           >
             {genre.replace("_", "/")} 전체보기
           </button>
@@ -110,7 +112,7 @@ const GenreRank = () => {
                   : "bg-white text-black" // 기본 버튼 스타일
               }`}
             >
-              {genreName}
+              {genreName.replace("_", "/")}
             </button>
           ))}
         </div>
@@ -150,7 +152,9 @@ const GenreRank = () => {
         <div className="flex justify-center items-center pb-[100px]">
           <button
             className=" text-[18px] mt-[30px] font-medium border border-2 rounded-full w-[200px] "
-            onClick={() => navi(`/contents/ranking?tab=${genre}`)}
+            onClick={() =>
+              navi(`/contents/ranking?tab=${genre.replace("_", "/")}`)
+            }
           >
             {genre.replace("_", "/")} 전체보기
           </button>

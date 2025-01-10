@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import MobileHeader from "../../components/@common/MobileHeader.tsx";
 import { Genre, Period } from "../../types/ReservationRateRanking.ts";
 import MobileBottom from "../../components/@common/MobileBottom.tsx";
+import { Helmet } from "react-helmet-async";
 
 const ReservationRateRanking = () => {
   const [isMobile, setIsMobile] = useState<boolean>(
@@ -55,8 +56,10 @@ const ReservationRateRanking = () => {
 
   return (
     <div className="p-6">
+      <Helmet>
+        <title>장르별 랭킹</title>
+      </Helmet>
       <div className="hidden md:block">
-
         <UserHeader />
       </div>
 
@@ -74,19 +77,21 @@ const ReservationRateRanking = () => {
         {/* 탭 메뉴 */}
         <div className="mt-4">
           <div
-            className={`${isMobile
-              ? "flex overflow-x-auto whitespace-nowrap scrollbar-hide border-b mt-10"
-              : "grid grid-cols-6 border"
-              }`}
+            className={`${
+              isMobile
+                ? "flex overflow-x-auto whitespace-nowrap scrollbar-hide border-b mt-10"
+                : "grid grid-cols-6 border"
+            }`}
           >
             {Object.values(Genre).map((tab) => (
               <button
                 key={tab}
                 onClick={() => handleTabChange(tab)}
-                className={`py-2 px-4 text-sm font-medium flex-shrink-0 ${activeTab === tab
-                  ? "text-white bg-purple-500 rounded-full"
-                  : "text-gray-600 hover:bg-gray-100"
-                  } ${isMobile ? "mx-1 border rounded-full" : "border-r"}`}
+                className={`py-2 px-4 text-sm font-medium flex-shrink-0 ${
+                  activeTab === tab
+                    ? "text-white bg-purple-500 rounded-full"
+                    : "text-gray-600 hover:bg-gray-100"
+                } ${isMobile ? "mx-1 border rounded-full" : "border-r"}`}
               >
                 {tab}
               </button>
@@ -120,10 +125,11 @@ const ReservationRateRanking = () => {
                 <button
                   key={p.value}
                   onClick={() => setPeriod(p.value)}
-                  className={`${period === p.value
-                    ? "text-purple-600 font-medium border-b-2 border-purple-500"
-                    : "text-gray-500"
-                    }`}
+                  className={`${
+                    period === p.value
+                      ? "text-purple-600 font-medium border-b-2 border-purple-500"
+                      : "text-gray-500"
+                  }`}
                 >
                   {p.label}
                 </button>

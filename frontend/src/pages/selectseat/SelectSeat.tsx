@@ -25,6 +25,7 @@ import { useStore } from "zustand";
 import { userStore } from "../../stores/UserStore.tsx";
 import { WorkStatus } from "../../types/queue.ts";
 import { releaseSlot } from "../../service/queue/api.ts";
+import { Helmet } from "react-helmet-async";
 
 const SelectSeat = () => {
   const navigate = useNavigate();
@@ -219,6 +220,9 @@ const SelectSeat = () => {
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
+      <Helmet>
+        <title>티켓팅 - 좌석 선택</title>
+      </Helmet>
       <div className="relative z-10 h-[192px] bg-black hidden sm:block">
         <TicketingHeader step={2} />
       </div>
