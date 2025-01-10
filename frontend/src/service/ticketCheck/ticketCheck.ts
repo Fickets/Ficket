@@ -13,7 +13,7 @@ export const checkFace = async (
         formData.append('userImg', userFace);
 
         const response: AxiosResponse<FaceApiResponse> = await publicApi.post(
-            `ticketing/check/${eventId}/${connectId}/user-match`,
+            `/admins/check/${eventId}/${connectId}/user-match`,
             formData,
             {
                 headers: {
@@ -48,7 +48,7 @@ export const ticketStatusChange = async (
 ): Promise<Object> => {
     const params = new URLSearchParams({ eventId: eventId, connectId: connectId.toString() });
     const response: AxiosResponse<{ res: string }> =
-        await publicApi.get(`/api/v1/admins/ticket-watch/${ticketId}?${params.toString()}`);
+        await publicApi.get(`/admins/ticket-watch/${ticketId}?${params.toString()}`);
 
     return response;
 }
