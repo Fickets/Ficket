@@ -97,7 +97,10 @@ const SearchBar = () => {
   }, []);
 
   return (
-    <div ref={searchBarRef} className="relative z-50 w-full max-w-lg mx-auto">
+    <div
+      ref={searchBarRef}
+      className="relative z-50 w-full max-w-[300px] md:max-w-full mx-auto"
+    >
       {/* 입력창 */}
       <div className="flex items-center border border-gray-300 rounded-full px-4 py-2 shadow-sm bg-white">
         <input
@@ -107,7 +110,7 @@ const SearchBar = () => {
           onChange={handleInputChange}
           onFocus={handleInputFocus} // 포커스 시 검색 결과 다시 표시
           onKeyDown={handleKeyDown}
-          className="flex-1 outline-none text-gray-700 bg-transparent"
+          className="flex-1 w-full max-w-full outline-none text-gray-700 bg-transparent"
         />
         {title && (
           <button

@@ -45,7 +45,7 @@ const HomePage = () => {
           user.setAccessToken(response.headers["authorization"]);
           // user.setIsLogin(true);
         },
-        () => { },
+        () => {},
       );
       await getMyInfo(
         (response) => {
@@ -54,7 +54,7 @@ const HomePage = () => {
           changeMyInfo(res);
         },
 
-        () => { },
+        () => {},
       );
     } else if (!Boolean(cookies.isLogin)) {
       user.setIsLogin(false);
@@ -67,8 +67,7 @@ const HomePage = () => {
     user.setGender(res["gender"]);
     user.setUserId(res["userId"]);
     user.setIsLogin(true);
-  }
-
+  };
 
   return (
     <div className="p-6">
