@@ -28,7 +28,6 @@ ext {
 }
 
 dependencies {
-//	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	// JUnit (테스트용)
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -58,6 +57,7 @@ dependencies {
 
 	// Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+//	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0'
 
 	// config
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
@@ -92,7 +92,6 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 
 	// Redis
-//	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
 }
 

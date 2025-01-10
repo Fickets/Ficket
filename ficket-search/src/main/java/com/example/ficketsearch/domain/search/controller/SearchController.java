@@ -2,7 +2,6 @@ package com.example.ficketsearch.domain.search.controller;
 
 import co.elastic.clients.elasticsearch.snapshot.CreateRepositoryResponse;
 import com.example.ficketsearch.domain.search.dto.AutoCompleteRes;
-import com.example.ficketsearch.domain.search.dto.Event;
 import com.example.ficketsearch.domain.search.dto.SearchResult;
 import com.example.ficketsearch.domain.search.enums.Genre;
 import com.example.ficketsearch.domain.search.enums.Location;

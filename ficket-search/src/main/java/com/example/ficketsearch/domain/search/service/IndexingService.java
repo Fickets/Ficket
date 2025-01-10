@@ -496,9 +496,7 @@ public class IndexingService {
             return response;
         } catch (Exception e) {
             log.error("S3 저장소 등록에 실패했습니다: {}", e.getMessage(), e);
+            throw new RuntimeException("S3 저장소 등록에 실패했습니다.");
         }
-
-        return null;
     }
-
 }

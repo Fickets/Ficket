@@ -116,7 +116,7 @@ public class EventService {
                 () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
 
         // 8. 부분 색인 요청
-//        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(savedEvent), OperationType.CREATE);
+        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(savedEvent), OperationType.CREATE);
     }
 
 
@@ -220,7 +220,6 @@ public class EventService {
     public void updateEvent(Long eventId, Long adminId, EventUpdateReq req, MultipartFile poster, MultipartFile banner) {
         Event findEvent = findEventByEventId(eventId);
 
-
         // 1. 회사 정보 및 관리자 정보 업데이트
         updateCompanyInfo(req, findEvent);
         updateAdminInfo(findEvent, adminId);
@@ -233,8 +232,6 @@ public class EventService {
 
         // 4. 스케줄 및 좌석 매핑, 좌석 구분 업데이트 (티케팅 시작 후에는 수정 불가)
         if (findEvent.getTicketingTime().isBefore(LocalDateTime.now())) {
-            throw new BusinessException(ErrorCode.ALREADY_STARTED_TICKETING);
-        } else {
             updateEventScheduleAndSeatMappingAndPartition(req, findEvent);
         }
 
