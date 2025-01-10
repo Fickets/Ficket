@@ -21,7 +21,6 @@ import UserManagePage from "./pages/admin/Customers.tsx";
 import EventScheduledOpen from "./pages/eventScheduledOpen/EventScheduledOpen.tsx";
 import SettlementManagePage from "./pages/admin/Settlement.tsx";
 import GenreChoice from "./pages/event/GenreChoice.tsx";
-import CustomerFaceCheck from "./pages/ticketCheck/customerCheck2.tsx";
 import FaceDetectionPage from "./pages/ticketCheck/customerCheck.tsx";
 import EventCheckPage from "./pages/ticketCheck/eventCheck.tsx";
 import ManagerCheckPage from "./pages/ticketCheck/managerCheck.tsx";
