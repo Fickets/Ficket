@@ -77,6 +77,10 @@ spring:
         - id: admin-service
           uri: lb://admin-service
           predicates:
+            - Path=/api/v1/admin/check/**
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
             - Path=/api/v1/admins/ticket-watch/**
         - id: admin-service
           uri: lb://admin-service
@@ -120,6 +124,10 @@ spring:
           uri: lb://admin-service
           predicates:
             - Path=/admin-swagger/v3/api-docs
+        - id: stomp-route
+          uri: lb:ws://admin-service
+          predicates:
+            - Path=/ticketing-check/ws
         # EVENT-SERVICE
         - id: event-service
           uri: lb://event-service
@@ -272,7 +280,11 @@ spring:
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
-            - Path=/api/v1/ticketing/check/ticket-watch/**
+            - Path=/api/v1/ticketing/check/ticket-watch
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
+            - Path=/api/v1/ticketing/order/getUserId
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
@@ -286,10 +298,7 @@ spring:
           predicates:
             - Path=/api/v1/ticketing/order/valid
             - Method=POST
-        - id: ticketing-service
-          uri: lb://ticketing-service
-          predicates:
-            - Path=/api/v1/ticketing/check/**
+
         - id: ticketing-service
           uri: lb://ticketing-service
           predicates:
@@ -304,10 +313,7 @@ spring:
           uri: lb://ticketing-service
           predicates:
             - Path=/ticketing-swagger/v3/api-docs
-        - id: stomp-route
-          uri: lb:ws://ticketing-service
-          predicates:
-            - Path=/ticketing-check/ws
+
 
         # SEARCH-SERVICE
         - id: search-service

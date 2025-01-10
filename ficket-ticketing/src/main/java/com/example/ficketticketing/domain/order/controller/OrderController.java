@@ -170,4 +170,16 @@ public class OrderController {
     public ResponseEntity<FaceApiResponse> uploadUserFace(@RequestPart MultipartFile userImg, @PathVariable Long eventScheduleId) {
         return ResponseEntity.ok(orderService.uploadUserFace(userImg, eventScheduleId));
     }
+
+    @GetMapping("/getUserId")
+    public UserSimpleDto getUserIdByTicketId(@RequestParam(name = "ticketId")Long ticketId){
+        return  orderService.getUserIdByTicketId(ticketId);
+    }
+
+    @GetMapping("/ticket-watch")
+    public ResponseEntity<Void> ticketWatchedChange(@RequestParam(name = "ticketId")Long ticketId){
+        orderService.changeTicketWatched(ticketId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
