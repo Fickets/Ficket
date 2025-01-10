@@ -1,4 +1,4 @@
-package com.example.ficketticketing.domain.check.dto;
+package com.example.ficketadmin.domain.check.dto;
 
 
 import lombok.Builder;

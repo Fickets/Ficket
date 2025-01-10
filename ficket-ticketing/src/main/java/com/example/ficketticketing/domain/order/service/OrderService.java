@@ -736,4 +736,25 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
         portOneApiClient.cancelOrder(findOrder.getPaymentId());
     }
+
+    public UserSimpleDto getUserIdByTicketId(Long ticketId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TICKET));
+        Orders order = orderRepository.findByTicket(ticket)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
+
+        UserSimpleDto userInfo = executeWithCircuitBreaker(circuitBreakerRegistry,
+                "getUserByIdCircuitBreaker",
+                () -> userServiceClient.getUser(order.getUserId())
+        );
+        return userInfo;
+    }
+
+    @Transactional
+    public void changeTicketWatched(Long ticketId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TICKET));
+        ticket.setViewingStatus(ViewingStatus.WATCHED);
+
+    }
 }
