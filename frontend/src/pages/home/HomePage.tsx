@@ -36,32 +36,43 @@ const HomePage = () => {
   };
 
   const getAccess = async () => {
-    if (Boolean(cookies.isLogin) && user.accessToken === "") {
+    if (Boolean(cookies.isLogin) && user.accessToken == "") {
       user.resetState();
       await userTokenRefresh(
         (response) => {
           console.log("HERE");
           user.setAccessToken(response.headers["authorization"]);
-          user.setIsLogin(true);
+          // user.setIsLogin(true);
         },
-        () => {},
+        () => { },
       );
       await getMyInfo(
         (response) => {
           const res = response.data;
           console.log(res);
-          user.setUserName(res["userName"]);
-          user.setBirth(res["birth"]);
-          user.setGender(res["gender"]);
-          user.setUserId(res["userId"]);
-          user.setIsLogin(true);
+          changeMyInfo(res);
+          // user.setUserName(res["userName"]);
+          // user.setBirth(res["birth"]);
+          // user.setGender(res["gender"]);
+          // user.setUserId(res["userId"]);
+          // user.setIsLogin(true);
         },
-        () => {},
+
+        () => { },
       );
-    } else {
+    } else if (!Boolean(cookies.isLogin)) {
       user.setIsLogin(false);
     }
   };
+
+  const changeMyInfo = (res: Object) => {
+    user.setUserName(res["userName"]);
+    user.setBirth(res["birth"]);
+    user.setGender(res["gender"]);
+    user.setUserId(res["userId"]);
+    user.setIsLogin(true);
+  }
+
 
   return (
     <div className="p-6">
