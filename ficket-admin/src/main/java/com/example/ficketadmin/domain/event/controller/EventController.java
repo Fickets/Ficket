@@ -71,5 +71,10 @@ public class EventController {
     public GuestTokenResponse checkUrl(@PathVariable(name = "eventId")Long eventId, @RequestParam(name = "uuid") String uuid){
         return eventService.checkUrl(eventId, uuid);
     }
-
+    @GetMapping("/ticket-watch/{ticketId}")
+    public void ticketWatchedChange(@PathVariable(name = "ticketId")Long ticketId,
+                                    @RequestParam(name = "eventId")Long eventId,
+                                    @RequestParam(name = "connectId")Long connectId){
+        eventService.ticketStatusChange(ticketId, eventId, connectId);
+    }
 }

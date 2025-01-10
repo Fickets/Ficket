@@ -3,6 +3,7 @@ package com.example.ficketadmin.domain.event.service;
 import com.example.ficketadmin.domain.admin.dto.common.AdminInfoDto;
 import com.example.ficketadmin.domain.admin.entity.Role;
 import com.example.ficketadmin.domain.event.client.EventServiceClient;
+import com.example.ficketadmin.domain.event.client.TicketingServiceClient;
 import com.example.ficketadmin.domain.event.dto.response.DailyRevenueResponse;
 import com.example.ficketadmin.domain.event.dto.response.DayCountResponse;
 import com.example.ficketadmin.domain.event.dto.response.GuestTokenResponse;
@@ -34,6 +35,7 @@ public class EventService {
 
     private final StringRedisTemplate redisTemplate; // Redis와의 연동을 위한 템플릿
     private final EventServiceClient eventServiceClient; // 이벤트 서비스 클라이언트 (FeignClient)
+    private final TicketingServiceClient ticketingServiceClient;
     private final CircuitBreakerRegistry circuitBreakerRegistry; // Circuit Breaker 등록 객체
     private final JwtUtils jwtUtils;
 
@@ -108,5 +110,15 @@ public class EventService {
         String guestToken = jwtUtils.createAccessToken(guest);
 
         return new GuestTokenResponse(guestToken);
+    }
+
+    public void ticketStatusChange(Long ticketId, Long eventId, Long connectId){
+
+        executeWithCircuitBreaker(
+                circuitBreakerRegistry,
+                "deleteFaceCircuitBreaker",
+                () -> ticketingServiceClient.ticketWatchedChange(ticketId, eventId, connectId) // Feign 클라이언트를 통해 외부 API 호출
+        );
+
     }
 }
