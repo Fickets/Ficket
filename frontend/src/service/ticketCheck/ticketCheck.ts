@@ -39,3 +39,16 @@ export const checkUrl = async (
 
     return response.data.guestToken;
 }
+
+
+export const ticketStatusChange = async (
+    ticketId: number,
+    eventId: string,
+    connectId: number,
+): Promise<Object> => {
+    const params = new URLSearchParams({ eventId: eventId, connectId: connectId.toString() });
+    const response: AxiosResponse<{ res: string }> =
+        await publicApi.get(`/api/v1/admins/ticket-watch/${ticketId}?${params.toString()}`);
+
+    return response;
+}

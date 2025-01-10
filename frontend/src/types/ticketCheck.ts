@@ -6,9 +6,10 @@ export interface SocketMessage {
 }
 
 export interface FaceInfo {
-  face_id: number;
-  face_img: string;
-  ticket_id: number;
-  eventScheduleId: number;
-  similarity: number;
+    face_id: number;
+    face_img: string;
+    ticket_id: number;
+    event_schedule_id: number;
+    similarity: number;
+    message: string;
 }

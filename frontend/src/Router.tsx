@@ -21,7 +21,6 @@ import UserManagePage from "./pages/admin/Customers.tsx";
 import EventScheduledOpen from "./pages/eventScheduledOpen/EventScheduledOpen.tsx";
 import SettlementManagePage from "./pages/admin/Settlement.tsx";
 import GenreChoice from "./pages/event/GenreChoice.tsx";
-import CustomerFaceCheck from "./pages/ticketCheck/customerCheck2.tsx";
 import FaceDetectionPage from "./pages/ticketCheck/customerCheck.tsx";
 import EventCheckPage from "./pages/ticketCheck/eventCheck.tsx";
 import ManagerCheckPage from "./pages/ticketCheck/managerCheck.tsx";
@@ -66,9 +65,8 @@ export default function Router() {
 
       {/* FICKET USER TICKETING*/}
       <Route path="/my-ticket" element={<MyTicket />} />
-      <Route path="/TEST2" element={<FaceDetectionPage />} />  {/** 이게 진짜 customer */}
-      <Route path="/events/:eventId/access" element={<EventCheckPage />} />  {/**클리어? */}
-      <Route path="/events/:eventId/customer" element={<CustomerFaceCheck />} />
+      <Route path="/events/:eventId/access" element={<EventCheckPage />} />
+      <Route path="/events/:eventId/customer" element={<FaceDetectionPage />} />
       <Route path="/events/:eventId/manager" element={<ManagerCheckPage />} />
     </Routes>
   );
