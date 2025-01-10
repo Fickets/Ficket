@@ -51,11 +51,6 @@ const HomePage = () => {
           const res = response.data;
           console.log(res);
           changeMyInfo(res);
-          // user.setUserName(res["userName"]);
-          // user.setBirth(res["birth"]);
-          // user.setGender(res["gender"]);
-          // user.setUserId(res["userId"]);
-          // user.setIsLogin(true);
         },
 
         () => { },
