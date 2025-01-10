@@ -10,10 +10,7 @@ import com.example.ficketticketing.domain.order.dto.request.SelectSeatInfo;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDtoList;
-import com.example.ficketticketing.domain.order.entity.OrderStatus;
-import com.example.ficketticketing.domain.order.entity.Orders;
-import com.example.ficketticketing.domain.order.entity.RefundPolicy;
-import com.example.ficketticketing.domain.order.entity.Ticket;
+import com.example.ficketticketing.domain.order.entity.*;
 import com.example.ficketticketing.domain.order.mapper.OrderMapper;
 import com.example.ficketticketing.domain.order.mapper.TicketMapper;
 import com.example.ficketticketing.domain.order.messagequeue.OrderProducer;
@@ -316,6 +313,10 @@ public class OrderService {
         // 주문 ID로 주문 정보 조회, 주문이 없거나 완료 상태가 아니면 예외 발생
         Orders order = orderRepository.findByIdCompletedStatus(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
+
+        if (!order.getTicket().getViewingStatus().equals(ViewingStatus.NOT_WATCHED)) {
+            throw new BusinessException(ErrorCode.ALREADY_WATCHED);
+        }
 
         // 관람일 정보 조회
         LocalDateTime eventDateTime = eventServiceClient.getEventDateTime(order.getTicket().getEventScheduleId());

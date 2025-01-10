@@ -54,6 +54,7 @@ public enum ErrorCode {
 
     //TICKET
     NOT_FOUND_TICKET(404, "해당 티켓을 조회할 수 없습니다"),
+    ALREADY_WATCHED(409, "이미 관람한 티켓은 환불이 불가합니다."),
     ;
 
 
