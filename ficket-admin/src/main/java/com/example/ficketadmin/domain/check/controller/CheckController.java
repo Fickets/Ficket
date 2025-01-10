@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/admin/check")
+@RequestMapping("/api/v1/admins/check")
 public class CheckController {
 
     private final CheckService checkService;
