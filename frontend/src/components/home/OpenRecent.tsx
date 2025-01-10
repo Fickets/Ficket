@@ -15,8 +15,8 @@ const OpenRecent = ({ genre }: { genre: string }) => {
         getOpenRecent();
     }, []);
 
-  const firstRow = open6.slice(0, 3);
-  const secondRow = open6.slice(3);
+    const firstRow = open6.slice(0, 3);
+    const secondRow = open6.slice(3);
 
     const getOpenRecent = async () => {
         console.log(genre)
@@ -34,33 +34,33 @@ const OpenRecent = ({ genre }: { genre: string }) => {
         }
     };
 
-  const formatDate = (dateString: string): string => {
-    const inputDate = new Date(dateString); // 입력된 날짜
-    const now = new Date(); // 현재 시간
+    const formatDate = (dateString: string): string => {
+        const inputDate = new Date(dateString); // 입력된 날짜
+        const now = new Date(); // 현재 시간
 
-    // 오늘인지 확인 (연, 월, 일 비교)
-    const isToday =
-      inputDate.getFullYear() === now.getFullYear() &&
-      inputDate.getMonth() === now.getMonth() &&
-      inputDate.getDate() === now.getDate();
+        // 오늘인지 확인 (연, 월, 일 비교)
+        const isToday =
+            inputDate.getFullYear() === now.getFullYear() &&
+            inputDate.getMonth() === now.getMonth() &&
+            inputDate.getDate() === now.getDate();
 
-    // 현재 시간과 비교
-    if (inputDate > now) {
-      // 입력된 시간이 현재 시간 이후라면 "오늘 HH시 mm분" 반환
-      const hours = inputDate.getHours().toString().padStart(2, "0");
-      const minutes = inputDate.getMinutes().toString().padStart(2, "0");
-      return `오늘 ${hours}시 ${minutes}분`;
-    } else {
-      // 입력된 시간이 현재 시간 이전이라면 "예매 가능" 반환
-      return "예매 가능";
-    }
-  };
-  const open6Click = (eventId: number) => {
-    navi(`events/detail/${eventId}`);
-  };
-  const goOpenTicket = () => {
-    navi("/contents/scheduled-open");
-  };
+        // 현재 시간과 비교
+        if (inputDate > now) {
+            // 입력된 시간이 현재 시간 이후라면 "오늘 HH시 mm분" 반환
+            const hours = inputDate.getHours().toString().padStart(2, "0");
+            const minutes = inputDate.getMinutes().toString().padStart(2, "0");
+            return `오늘 ${hours}시 ${minutes}분`;
+        } else {
+            // 입력된 시간이 현재 시간 이전이라면 "예매 가능" 반환
+            return "예매 가능";
+        }
+    };
+    const open6Click = (eventId: number) => {
+        navi(`events/detail/${eventId}`);
+    };
+    const goOpenTicket = () => {
+        navi("/contents/scheduled-open");
+    };
 
     return (
         <div className="">
@@ -77,11 +77,13 @@ const OpenRecent = ({ genre }: { genre: string }) => {
                             className="  rounded shadow w-1/3 mx-[15px] border"
                             onClick={() => open6Click(event.eventId)}
                         >
-                            <div className="flex">
+                            <div className="flex text-ellipsis overflow-hidden">
                                 <img src={event.pcImg} alt="" />
                                 <div className="flex flex-col ">
                                     <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]">{formatDate(event.date)}</p>
-                                    <p className="ml-[30px] mt-[20px] font-bold text-[18px]">{event.title}</p>
+                                    <p className="ml-[30px] mt-[20px] font-bold text-[18px] line-clamp-2">
+                                        {event.title}
+                                    </p>
                                     <p className="ml-[30px] mt-[10px] text-[#666666]">일반예매</p>
                                 </div>
                             </div>
@@ -97,11 +99,13 @@ const OpenRecent = ({ genre }: { genre: string }) => {
                             className="  rounded shadow w-1/3 mx-[15px] border"
                             onClick={() => open6Click(event.eventId)}
                         >
-                            <div className="flex">
+                            <div className="flex text-ellipsis overflow-hidden">
                                 <img src={event.pcImg} alt="" />
                                 <div className="flex flex-col ">
-                                    <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]">{formatDate(event.date)}</p>
-                                    <p className="ml-[30px] mt-[20px] font-bold text-[18px]">{event.title}</p>
+                                    <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]" >{formatDate(event.date)}</p>
+                                    <p className="ml-[30px] mt-[20px] font-bold text-[18px] line-clamp-2">
+                                        {event.title}
+                                    </p>
                                     <p className="ml-[30px] mt-[10px] text-[#666666]">일반예매</p>
                                 </div>
                             </div>
@@ -133,7 +137,7 @@ const OpenRecent = ({ genre }: { genre: string }) => {
                             >
                                 <div className="flex">
                                     <img src={event.mobileImg} alt="" />
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col text-ellipsis overflow-hidden">
                                         <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]">{formatDate(event.date)}</p>
                                         <p className="ml-[30px] mt-[20px] font-bold text-[18px]">{event.title}</p>
                                         <p className="ml-[30px] mt-[10px] text-[#666666]">일반예매</p>
@@ -149,7 +153,7 @@ const OpenRecent = ({ genre }: { genre: string }) => {
                                 className="rounded shadow w-[350px] mx-[15px] border inline-block"
                                 onClick={() => open6Click(event.eventId)}
                             >
-                                <div className="flex">
+                                <div className="flex text-ellipsis overflow-hidden">
                                     <img src={event.mobileImg} alt="" />
                                     <div className="flex flex-col">
                                         <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]">{formatDate(event.date)}</p>

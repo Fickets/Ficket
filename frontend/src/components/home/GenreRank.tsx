@@ -42,11 +42,10 @@ const GenreRank = () => {
               <button
                 key={genreName}
                 onClick={() => setGenre(genreName)}
-                className={`border rounded-full m-[5px] px-[20px] h-[40px] mt-[10px] ${
-                  genre === genreName
-                    ? "bg-blue-500 text-white" // 선택된 버튼 스타일
-                    : "bg-white text-black" // 기본 버튼 스타일
-                }`}
+                className={`border rounded-full m-[5px] px-[20px] h-[40px] mt-[10px] ${genre === genreName
+                  ? "bg-blue-500 text-white" // 선택된 버튼 스타일
+                  : "bg-white text-black" // 기본 버튼 스타일
+                  }`}
               >
                 {genreName.replace("_", "/")}
               </button>
@@ -64,7 +63,7 @@ const GenreRank = () => {
               {rankGenre.map((event, index) => (
                 <div
                   key={index}
-                  className="relative mx-[10px] border rounded-full"
+                  className="relative mx-[10px] w-[244px]"
                   onClick={() => navi(`events/detail/${event.eventId}`)}
                 >
                   {/* 이미지 */}
@@ -78,7 +77,9 @@ const GenreRank = () => {
                     <p className="absolute bottom-2 left-2 bg-[] text-shadow text-white text-[70px] font-bold px-[5px] py-[2px] rounded">
                       {index + 1}
                     </p>
-                    <p className="font-bold">{event.title}</p>
+                    <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap">
+                      {event.title}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -106,11 +107,10 @@ const GenreRank = () => {
             <button
               key={genreName}
               onClick={() => setGenre(genreName)}
-              className={`border rounded-full m-[5px] px-[20px] h-[40px] mt-[10px] ${
-                genre === genreName
-                  ? "bg-blue-500 text-white" // 선택된 버튼 스타일
-                  : "bg-white text-black" // 기본 버튼 스타일
-              }`}
+              className={`border rounded-full m-[5px] px-[20px] h-[40px] mt-[10px] ${genre === genreName
+                ? "bg-blue-500 text-white" // 선택된 버튼 스타일
+                : "bg-white text-black" // 기본 버튼 스타일
+                }`}
             >
               {genreName.replace("_", "/")}
             </button>
@@ -122,11 +122,11 @@ const GenreRank = () => {
               <img src={NoContent} alt="" className="h-[187px]" />
             </div>
           ) : (
-            <div className="flex">
+            <div className="flex ">
               {rankGenre.map((event, index) => (
                 <div
                   key={index}
-                  className="relative mx-[10px]  rounded-full"
+                  className="relative mx-[10px] w-[140px]"
                   onClick={() => navi(`events/detail/${event.eventId}`)}
                 >
                   {/* 이미지 */}
@@ -137,10 +137,10 @@ const GenreRank = () => {
                   />
                   {/* Index 표시 */}
                   <div className="">
-                    <p className="absolute bottom-2 left-2 bg-[] text-shadow text-white text-[50px] font-bold px-[5px] py-[50px] rounded">
+                    <p className="absolute bottom-2 left-2 bg-[] text-shadow text-white text-[50px] font-bold px-[5px] py-[50px] rounded ">
                       {index + 1}
                     </p>
-                    <p className="font-bold text-clip overflow-hidden">
+                    <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap">
                       {event.title}
                     </p>
                   </div>
