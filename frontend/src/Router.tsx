@@ -66,9 +66,8 @@ export default function Router() {
 
       {/* FICKET USER TICKETING*/}
       <Route path="/my-ticket" element={<MyTicket />} />
-      <Route path="/TEST2" element={<FaceDetectionPage />} />  {/** 이게 진짜 customer */}
-      <Route path="/events/:eventId/access" element={<EventCheckPage />} />  {/**클리어? */}
-      <Route path="/events/:eventId/customer" element={<CustomerFaceCheck />} />
+      <Route path="/events/:eventId/access" element={<EventCheckPage />} />
+      <Route path="/events/:eventId/customer" element={<FaceDetectionPage />} />
       <Route path="/events/:eventId/manager" element={<ManagerCheckPage />} />
     </Routes>
   );

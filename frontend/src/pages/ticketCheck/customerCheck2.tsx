@@ -66,15 +66,16 @@ const CustomerFaceCheck: React.FC = () => {
 
         newClient.configure(connectionOptions);
 
-        // 웹소켓 세션 활성화
-        newClient.activate();
-        setClient(newClient);
-        // return () => {
-        //     newClient.deactivate();
-        // };
-      }
-    }
-  }, []);
+                // 웹소켓 세션 활성화
+                newClient.activate();
+                setClient(newClient);
+                return () => {
+                    newClient.deactivate();
+                };
+            }
+        }
+    }, []);
+
 
   // 데이터 URL을 파일로 변환하는 함수
   const dataUrlToFile = (url: string, fileName: string) => {
