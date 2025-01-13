@@ -19,6 +19,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +126,18 @@ public class IndexingService {
             insertDataToElasticsearch(bulkJsonStream); // Elasticsearch에 데이터 삽입
         } catch (Exception e) {
             log.error("전체 색인 처리 중 오류 발생: {}", e.getMessage(), e);
+        } finally {
+            deleteDownloadFile(downloadPath);
+        }
+    }
+
+    // 다운로드한 파일 삭제
+    private static void deleteDownloadFile(String downloadPath) {
+        try {
+            Files.deleteIfExists(Paths.get(downloadPath));
+            log.info("다운로드한 파일 삭제 완료: {}", downloadPath);
+        } catch (IOException e) {
+            log.warn("다운로드한 파일 삭제 중 오류 발생: {}", e.getMessage(), e);
         }
     }
 
