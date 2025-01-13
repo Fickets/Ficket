@@ -58,13 +58,13 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 4. 기술 스택 🛠
 
-- Language:**`Java`**, **`TypeScript`**
-- Framework:**`Springboot`**, **`React`**
-- Build Tool:**`Gradle`**, **`Vite`**
-- DB:**`MySQL`**,**`Redis`**,**`MongoDB`**
-- Server:**`AWS EC2`**,**`AWS S3`**
-- Other Tools :**`GitHub`,`Jira`,`Figma`,`swagger`,`AWS`,`OAuth`,`notion`**
-
+- **Language:** `Java`, `TypeScript`
+- **Framework:** `Spring Boot`, `React`
+- **Build Tool:** `Gradle`, `Vite`
+- **DB:** `MySQL`, `Redis`, `MongoDB`
+- **Server:** `AWS EC2`, `AWS S3`
+- **Messaging:** `Kafka`, `RabbitMQ`
+- **Other Tools:** `GitHub`, `Jira`, `Figma`, `Swagger`, `AWS`, `OAuth`, `Notion`
 ---
 
 ## 5. 아키텍처 📃
