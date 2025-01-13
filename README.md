@@ -62,13 +62,14 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 - **Framework:** `Spring Boot`, `React`, `Flask`
 - **Build Tool:** `Gradle`, `Vite`
 - **DB:** `MySQL`, `Redis`, `MongoDB`
-- **Server:** `AWS EC2`, `AWS S3`
+- **Server:** `AWS EC2`, `AWS S3`, `AWS Lambda`
 - **Search Engine:** `Elasticsearch`
 - **Messaging:** `Kafka`, `RabbitMQ`
-- **Microservices Architecture**: `Spring Cloud`, `Feign`, `Eureka`
+- **Microservices Architecture**: `Spring Cloud`, `Feign`, `Eureka`, `Resilience4j`
+- **Authentication/Authorization:** `JWT`, `OAuth`, `Spring Security`
 - **Monitoring/Tracing:** `Prometheus`, `Grafana`, `Zipkin`
 - **Load Testing:** `Locust`
-- **Other Tools:** `GitHub`, `Jira`, `Figma`, `Swagger`, `AWS`, `OAuth`, `Notion`
+- **Other Tools:** `GitHub`, `Jira`, `Figma`, `Swagger`, `Notion`
 ---
 
 ## 5. 아키텍처 📃
