@@ -49,10 +49,10 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ### 2024-11-16 ~ 2024-01-20🔥
 
-| 이름                                 | 담당 기능                                                                       |
-|------------------------------------|-----------------------------------------------------------------------------|
-| [최용수](https://github.com/TutiTuti) | 쿠버네티스, Jekins, CI/CD, OAuth2 인증/인가, 정산, 메인페이지, 티켓 검사, 회원 관리, 날짜 선택, 공연 조회 등 |
-| [오형상](https://github.com/ohy1023)  | MSA 구성, 좌석 선점, 얼굴 인식, 랭킹, 대기열, Locust 부하 테스트 ,PortOne 결제, 마이티켓, 공연 관리 등     |
+| 이름                                 | 담당 기능                                                                        |
+|------------------------------------|------------------------------------------------------------------------------|
+| [최용수](https://github.com/TutiTuti) | Kubernetes, Jenkins, CI/CD, OAuth2 인증/인가, 정산, 메인페이지, 티켓 검사, 회원 관리, 날짜 선택, 공연 조회 등 |
+| [오형상](https://github.com/ohy1023)  | MSA 구성, 좌석 선점, 얼굴 인식, 랭킹, 대기열, Locust 부하 테스트 ,PortOne 결제, 마이티켓, 공연 관리 등      |
 
 ---
 
@@ -62,8 +62,10 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 - **Framework:** `Spring Boot`, `React`, `Flask`
 - **Build Tool:** `Gradle`, `Vite`
 - **DB:** `MySQL`, `Redis`, `MongoDB`
-- **Server:** `AWS EC2`, `AWS S3`, `AWS Lambda`
+- **Server:** `AWS EC2`, `AWS Lambda`
+- **Storage:** `AWS S3`
 - **Search Engine:** `Elasticsearch`
+- **Containerization & Orchestration:** `Docker`, `Kubernetes`
 - **Messaging:** `Kafka`, `RabbitMQ`
 - **Microservices Architecture**: `Spring Cloud`, `Feign`, `Eureka`, `Resilience4j`
 - **Authentication/Authorization:** `JWT`, `OAuth`, `Spring Security`
