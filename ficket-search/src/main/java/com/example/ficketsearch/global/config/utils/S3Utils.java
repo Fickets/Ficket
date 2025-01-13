@@ -1,4 +1,4 @@
-package com.example.ficketsearch.config.utils;
+package com.example.ficketsearch.global.config.utils;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.S3Object;
@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-import static com.example.ficketsearch.config.awsS3.AwsConstants.*;
+import static com.example.ficketsearch.global.config.awsS3.AwsConstants.*;
 
 @Slf4j
 @Component

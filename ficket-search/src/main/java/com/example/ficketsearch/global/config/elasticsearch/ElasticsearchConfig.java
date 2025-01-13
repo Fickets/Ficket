@@ -1,4 +1,4 @@
-package com.example.ficketsearch.config.elasticsearch;
+package com.example.ficketsearch.global.config.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;

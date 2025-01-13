@@ -1,4 +1,4 @@
-package com.example.ficketsearch.config.utils;
+package com.example.ficketsearch.global.config.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

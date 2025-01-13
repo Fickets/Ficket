@@ -1,4 +1,4 @@
-package com.example.ficketsearch.config.awsS3;
+package com.example.ficketsearch.global.config.awsS3;
 
 public class AwsConstants {
 

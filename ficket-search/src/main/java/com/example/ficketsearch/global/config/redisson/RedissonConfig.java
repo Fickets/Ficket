@@ -1,4 +1,4 @@
-package com.example.ficketsearch.config.redisson;
+package com.example.ficketsearch.global.config.redisson;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;

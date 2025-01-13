@@ -1,4 +1,4 @@
-package com.example.ficketsearch.config.swagger;
+package com.example.ficketsearch.global.config.swagger;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
