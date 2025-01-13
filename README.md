@@ -58,12 +58,16 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 4. 기술 스택 🛠
 
-- **Language:** `Java`, `TypeScript`
-- **Framework:** `Spring Boot`, `React`
+- **Language:** `Java`, `TypeScript`, `Python`
+- **Framework:** `Spring Boot`, `React`, `Flask`
 - **Build Tool:** `Gradle`, `Vite`
 - **DB:** `MySQL`, `Redis`, `MongoDB`
 - **Server:** `AWS EC2`, `AWS S3`
+- **Search Engine:** `Elasticsearch`
 - **Messaging:** `Kafka`, `RabbitMQ`
+- **Microservices Architecture**: `Spring Cloud`, `Feign`, `Eureka`
+- **Monitoring/Tracing:** `Prometheus`, `Grafana`, `Zipkin`
+- **Load Testing:** `Locust`
 - **Other Tools:** `GitHub`, `Jira`, `Figma`, `Swagger`, `AWS`, `OAuth`, `Notion`
 ---
 
