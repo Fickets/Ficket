@@ -1,17 +1,16 @@
 package com.example.ficketuser.global.jwt;
 
-import com.example.ficketuser.Entity.State;
-import com.example.ficketuser.Entity.User;
-import com.example.ficketuser.Entity.UserTokenRedis;
-import com.example.ficketuser.dto.resquest.CustomOAuth2User;
+import com.example.ficketuser.domain.Entity.State;
+import com.example.ficketuser.domain.Entity.User;
+import com.example.ficketuser.domain.Entity.UserTokenRedis;
+import com.example.ficketuser.domain.dto.resquest.CustomOAuth2User;
 import com.example.ficketuser.global.result.error.ErrorCode;
 import com.example.ficketuser.global.result.error.exception.BusinessException;
-import com.example.ficketuser.repository.UserRepository;
-import com.example.ficketuser.repository.UserTokenRedisRepository;
+import com.example.ficketuser.domain.repository.UserRepository;
+import com.example.ficketuser.domain.repository.UserTokenRedisRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;

@@ -1,7 +1,5 @@
 package com.example.ficketticketing.domain.order.service;
 
-import com.example.ficketticketing.domain.check.dto.CheckDto;
-import com.example.ficketticketing.domain.check.service.CheckService;
 import com.example.ficketticketing.domain.order.client.*;
 import com.example.ficketticketing.domain.order.dto.client.*;
 import com.example.ficketticketing.domain.order.dto.kafka.OrderDto;
@@ -69,7 +67,6 @@ public class OrderService {
     private final QueueServiceClient queueServiceClient;
     private final OrderMapper orderMapper;
     private final AdminServiceClient adminServiceClient;
-    private final CheckService checkService;
 
     public void processWebhook(String webhookId, String webhookSignature, String webhookTimestamp, String payload) {
         // 1. 타임스탬프 검증
@@ -678,52 +675,6 @@ public class OrderService {
         log.info(faceApiResponse.getMessage());
 
         return faceApiResponse;
-    }
-
-    public void matchFace(MultipartFile userFaceImage, Long eventId, Long connectId) {
-        List<Long> eventScheduleIds = executeWithCircuitBreaker(circuitBreakerRegistry,
-                "getEventScheduleIdList",
-                () -> eventServiceClient.getScheduledId(eventId));
-
-        for (Long eventScheduleId : eventScheduleIds) {
-            FaceApiResponse faceApiResponse = null;
-            try {
-                faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
-                        "postMatchUserFaceImgCircuitBreaker",
-                        () -> faceServiceClient.matchFace(userFaceImage, eventScheduleId)
-                );
-            } catch (Exception e) {
-                log.info("히히 : {}", eventScheduleId );
-            }
-
-            if (faceApiResponse != null && faceApiResponse.getStatus() == 200) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Object> map = objectMapper.convertValue(faceApiResponse.getData(), Map.class);
-                Long ticketId = ((Number) map.get("ticket_id")).longValue();
-                TicketSimpleInfo ticketSimpleInfo = executeWithCircuitBreaker(circuitBreakerRegistry,
-                        "getCustomerSeat",
-                        () -> eventServiceClient.getTicketSimpleInfo(ticketId));
-
-                Ticket ticket = ticketRepository.findById(ticketId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TICKET));
-                Orders order = orderRepository.findByTicket(ticket)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER));
-
-                UserSimpleDto userInfo = executeWithCircuitBreaker(circuitBreakerRegistry,
-                        "getUserByIdCircuitBreaker",
-                        () -> userServiceClient.getUser(order.getUserId())
-                );
-                CheckDto message = CheckDto.builder()
-                        .data(faceApiResponse.getData())
-                        .name(userInfo.getUserName())
-                        .birth(userInfo.getBirth())
-                        .seatLoc(ticketSimpleInfo.getSeatLoc())
-                        .build();
-                checkService.sendMessage(eventId, connectId, message);
-                break;
-            }
-
-        }
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.example.ficketuser.global.jwt;
 
 
-import com.example.ficketuser.dto.resquest.CustomOAuth2User;
+import com.example.ficketuser.domain.dto.resquest.CustomOAuth2User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;

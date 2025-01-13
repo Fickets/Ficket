@@ -1,8 +1,8 @@
 package com.example.ficketuser.global.jwt;
 
 
-import com.example.ficketuser.dto.response.CustomUserDetails;
-import com.example.ficketuser.dto.response.UserDto;
+import com.example.ficketuser.domain.dto.response.CustomUserDetails;
+import com.example.ficketuser.domain.dto.response.UserDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
