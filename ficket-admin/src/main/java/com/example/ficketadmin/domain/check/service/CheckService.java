@@ -1,13 +1,13 @@
 package com.example.ficketadmin.domain.check.service;
 
 
-import com.example.ficketadmin.domain.check.client.EventServiceClient;
 import com.example.ficketadmin.domain.check.client.FaceServiceClient;
-import com.example.ficketadmin.domain.check.client.TicketingServiceClient;
 import com.example.ficketadmin.domain.check.dto.CheckDto;
 import com.example.ficketadmin.domain.check.dto.FaceApiResponse;
 import com.example.ficketadmin.domain.check.dto.TicketSimpleInfo;
 import com.example.ficketadmin.domain.check.dto.UserSimpleDto;
+import com.example.ficketadmin.domain.event.client.EventServiceClient;
+import com.example.ficketadmin.domain.event.client.TicketingServiceClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;

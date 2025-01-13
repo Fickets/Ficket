@@ -1,5 +1,6 @@
 package com.example.ficketadmin.domain.event.client;
 
+import com.example.ficketadmin.domain.check.dto.TicketSimpleInfo;
 import com.example.ficketadmin.domain.event.dto.response.DailyRevenueResponse;
 import com.example.ficketadmin.domain.event.dto.response.DayCountResponse;
 import com.example.ficketadmin.domain.settlement.dto.common.EventTitleDto;
@@ -21,4 +22,11 @@ public interface EventServiceClient {
 
     @GetMapping("/api/v1/events/search-ids")
     List<EventTitleDto> getEventIds(@RequestParam String title);
+
+    @GetMapping("/api/v1/events/events/getScheduleId")
+    List<Long> getScheduledId(@RequestParam Long eventId);
+
+    @GetMapping("/api/v1/events/customer-ticket-info")
+    TicketSimpleInfo getTicketSimpleInfo(@RequestParam Long ticketId);
+
 }

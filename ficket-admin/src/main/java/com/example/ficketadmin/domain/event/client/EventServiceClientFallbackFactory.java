@@ -1,6 +1,7 @@
 package com.example.ficketadmin.domain.event.client;
 
 
+import com.example.ficketadmin.domain.check.dto.TicketSimpleInfo;
 import com.example.ficketadmin.domain.event.dto.response.DailyRevenueResponse;
 import com.example.ficketadmin.domain.event.dto.response.DayCountResponse;
 import com.example.ficketadmin.domain.settlement.dto.common.EventTitleDto;
@@ -38,6 +39,16 @@ public class EventServiceClientFallbackFactory implements FallbackFactory<EventS
             @Override
             public List<EventTitleDto> getEventIds(String title) {
                 return List.of();
+            }
+
+            @Override
+            public List<Long> getScheduledId(Long eventId) {
+                throw new UnsupportedOperationException("Fallback not implemented for getReservedSeats");
+            }
+
+            @Override
+            public TicketSimpleInfo getTicketSimpleInfo(Long ticketId) {
+                throw new UnsupportedOperationException("Fallback not implemented for getReservedSeats");
             }
         };
     }
