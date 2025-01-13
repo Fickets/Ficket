@@ -52,7 +52,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 7. ERD 🗄️
 
-![ficket_erd.png](img%2Fficket_erd.png)![img.png](img.png)
+![ficket_erd.png](img%2Fficket_erd.png)
 
 ## 8. 외부 리소스 정보 📁
 
