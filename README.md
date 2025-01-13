@@ -35,6 +35,10 @@
 
 ## 2. 기획 및 설계 💡
 
+### 프로젝트 명세
+
+https://www.notion.so/Ficket-125cb8b3a5cf80f5966bd3497a28b95d?pvs=4
+
 ### 와이어 프레임 & 화면 설계
 
 https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZDQ4gt0FRLL1xA-1
