@@ -75,8 +75,8 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 6. API 명세서 📡
 
-- Swagger:[http://ec2-52-78-23-203.ap-northeast-2.compute.amazonaws.com:9000/swagger-ui/index.html](http://ec2-52-78-23-203.ap-northeast-2.compute.amazonaws.com:9000/swagger-ui/index.html)
-- Notion:[API 명세서 바로가기](https://www.notion.so/API-125cb8b3a5cf81dbbff3cec772823e6a?pvs=4)
+- Swagger: [http://ec2-52-78-23-203.ap-northeast-2.compute.amazonaws.com:9000/swagger-ui/index.html](http://ec2-52-78-23-203.ap-northeast-2.compute.amazonaws.com:9000/swagger-ui/index.html)
+- Notion: [API 명세서 바로가기](https://www.notion.so/API-125cb8b3a5cf81dbbff3cec772823e6a?pvs=4)
 
 ---
 
