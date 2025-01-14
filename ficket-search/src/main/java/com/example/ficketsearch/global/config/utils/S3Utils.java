@@ -19,6 +19,20 @@ public class S3Utils {
 
     private final AmazonS3Client amazonS3Client;
 
+    public String downloadFileWithRetry(String s3Url) {
+        int maxRetry = 3;
+        int retryCount = 0;
+        while (retryCount < maxRetry) {
+            try {
+                return downloadFile(s3Url);
+            } catch (Exception e) {
+                retryCount++;
+                log.warn("S3 파일 다운로드 재시도 중 ({}/{}): {}", retryCount, maxRetry, e.getMessage());
+            }
+        }
+        throw new RuntimeException("S3 파일 다운로드 실패 (최대 재시도 초과)");
+    }
+
     public String downloadFile(String s3Url) {
         try {
             // S3에서 객체 가져오기

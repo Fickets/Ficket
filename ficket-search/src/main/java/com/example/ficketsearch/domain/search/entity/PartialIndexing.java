@@ -40,4 +40,6 @@ public class PartialIndexing {
     private LocalDateTime ticketing;
 
     private String operationType;
+
+    private boolean indexed;
 }

@@ -58,24 +58,45 @@ public class EventToCSVScheduler {
         try {
             // 1. MySQL 데이터 조회
             List<Event> events = eventRepository.findAll();
+            if (events.isEmpty()) {
+                log.warn("조회된 이벤트 데이터가 없습니다.");
+                return;
+            }
 
             // 2. CSV 파일 생성
             String filePath = "events.csv";
             File csvFile = csvGenerator.generateCsv(events, filePath);
 
             // 3. S3에 파일 업로드
-            String eventListInfoFileUrl = awsS3Service.uploadEventListInfoFile(csvFile);
+            String eventListInfoFileUrl = null;
+            int maxRetry = 3;
+            for (int attempt = 1; attempt <= maxRetry; attempt++) {
+                try {
+                    eventListInfoFileUrl = awsS3Service.uploadEventListInfoFile(csvFile);
+                    break; // 업로드 성공 시 루프 종료
+                } catch (Exception e) {
+                    log.warn("S3 업로드 실패. 재시도 중... ({}/{})", attempt, maxRetry, e);
+                    if (attempt == maxRetry) {
+                        throw new RuntimeException("S3 업로드 실패: 최대 재시도 초과", e);
+                    }
+                }
+            }
 
             // 4. 로컬 파일 삭제
-            if (csvFile.exists()) {
-                csvFile.delete();
+            if (csvFile.exists() && !csvFile.delete()) {
+                log.warn("로컬 CSV 파일 삭제 실패: {}", csvFile.getAbsolutePath());
             }
 
             // 5. Kafka 메시지 전송
-            indexingProducer.sendIndexingMessage(IndexingType.FULL_INDEXING, eventListInfoFileUrl, OperationType.CREATE); // 전체 인덱싱 메시지 전송
-            log.info("Kafka 메시지 전송 성공: CSV 파일 URL: {}", eventListInfoFileUrl);
+            try {
+                indexingProducer.sendIndexingMessage(IndexingType.FULL_INDEXING, eventListInfoFileUrl, OperationType.CREATE);
+                log.info("Kafka 메시지 전송 성공: CSV 파일 URL: {}", eventListInfoFileUrl);
+            } catch (Exception e) {
+                log.error("Kafka 메시지 전송 실패: {}", e.getMessage(), e);
+                throw new RuntimeException("Kafka 메시지 전송 실패", e);
+            }
         } catch (Exception e) {
-            log.error("CSV 파일 생성 또는 S3 업로드 실패 : {}", e.getMessage());
+            log.error("CSV 파일 생성, S3 업로드, 또는 Kafka 메시지 전송 중 오류 발생: {}", e.getMessage(), e);
         }
     }
 }
