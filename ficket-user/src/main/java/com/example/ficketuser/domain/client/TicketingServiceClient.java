@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @FeignClient(name = "ticketing-service", fallbackFactory = TicketingServiceClientFallbackFactory.class)
+@CircuitBreaker(name = "circuit")
 public interface TicketingServiceClient {
 
     @GetMapping("/api/v1/ticketing/order/my")
