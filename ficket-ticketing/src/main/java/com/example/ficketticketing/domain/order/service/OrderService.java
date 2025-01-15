@@ -509,6 +509,7 @@ public class OrderService {
      * @throws BusinessException 외부 서비스 호출 실패 또는 Circuit Breaker 트리거 시 예외 발생 가능
      */
     public List<TicketInfoDto> getMyTickets(Long userId) {
+
         // 사용자 ID를 기반으로 구매한 티켓 ID 목록 조회
         List<TicketInfoCreateDto> myTicketIds = orderRepository.findTicketIdsByUserId(userId);
 
@@ -520,6 +521,8 @@ public class OrderService {
                 () -> eventServiceClient.getMyTicketInfo(new TicketInfoCreateDtoList(myTicketIds))
         );
     }
+
+
 
     /**
      * 티켓팅 엔트리 포인트로, 사용자가 특정 이벤트 스케줄에 대해 남은 구매 가능 티켓 수를 확인하고,
@@ -688,7 +691,7 @@ public class OrderService {
         portOneApiClient.cancelOrder(findOrder.getPaymentId());
     }
 
-    public UserSimpleDto getUserIdByTicketId(Long ticketId){
+    public UserSimpleDto getUserIdByTicketId(Long ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TICKET));
         Orders order = orderRepository.findByTicket(ticket)
@@ -702,7 +705,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void changeTicketWatched(Long ticketId){
+    public void changeTicketWatched(Long ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TICKET));
         ticket.setViewingStatus(ViewingStatus.WATCHED);

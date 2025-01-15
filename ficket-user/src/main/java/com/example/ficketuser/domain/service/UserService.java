@@ -281,11 +281,13 @@ public class UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
         // CircuitBreaker를 사용하여 외부 서비스 호출
-        List<TicketInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "getMyTicketCircuitBreaker",
-                () -> ticketingServiceClient.getMyTickets(user.getUserId())
-        );
+//        List<TicketInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
+//                circuitBreakerRegistry,
+//                "getMyTicketCircuitBreaker",
+//                () -> ticketingServiceClient.getMyTickets(user.getUserId())
+//        );
+        List<TicketInfoDto> ticketInfoDtoList = ticketingServiceClient.getMyTickets(user.getUserId());
+
 
         // 시/도 필터 적용
         if (sidoFilter != null && !sidoFilter.isBlank()) {

@@ -3,6 +3,7 @@ package com.example.ficketuser.domain.client;
 import com.example.ficketuser.domain.dto.client.OrderInfoDto;
 import com.example.ficketuser.domain.dto.client.TicketInfoDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.circuitbreaker.NoFallbackAvailableException;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
@@ -18,13 +19,12 @@ public class TicketingServiceClientFallbackFactory implements FallbackFactory<Ti
         return new TicketingServiceClient() {
             @Override
             public List<TicketInfoDto> getMyTickets(Long userId) {
-                log.error("Fallback triggered due to: {}", cause.getMessage());
                 return Collections.emptyList();
             }
 
             @Override
             public List<OrderInfoDto> getCustomerTicket(Long userId) {
-                return Collections.emptyList();
+                throw new NoFallbackAvailableException("No Fallback", new RuntimeException());
             }
         };
     }

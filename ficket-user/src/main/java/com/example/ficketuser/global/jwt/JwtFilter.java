@@ -24,7 +24,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
 
-    private static final String[] NO_CHECK_URL = new String[]{"/api/v1/users/login", "/actuator/**"};
+    private static final String[] NO_CHECK_URL = new String[]{"/api/v1/users/login","/api/v1/users/my-ticket", "/actuator/**"};
 
 
     @Override

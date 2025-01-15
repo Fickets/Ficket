@@ -16,6 +16,9 @@ public enum ErrorCode {
     ENTITY_NOT_FOUNT(500, "존재하지 않는 Entity입니다."),
     FORBIDDEN_ERROR(403, "작업을 수행하기 위한 권한이 없습니다."),
     IS_NOT_IMAGE(400, "이미지가 아닙니다."),
+    CIRCUIT_BREAKER_OPEN(500, "Circuit Breaker 상태가 오픈입니다. 10초후 다시 시도해 주세요."),
+    FALLBACK_NOT_AVAILABLE(500, "OpenFeign의 Fallback이 정의되지 않았습니다."),
+    FEIGN_CLIENT_ERROR(500, "Feign Client error"),
 
     // User
     NOT_USER_FOUND(404, "유저를 찾을 수 없습니다."),

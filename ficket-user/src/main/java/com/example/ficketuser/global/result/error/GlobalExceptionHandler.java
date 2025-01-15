@@ -2,7 +2,10 @@ package com.example.ficketuser.global.result.error;
 
 
 import com.example.ficketuser.global.result.error.exception.BusinessException;
+import feign.FeignException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.cloud.client.circuitbreaker.NoFallbackAvailableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,9 +23,31 @@ import java.util.List;
 
 import static com.example.ficketuser.global.result.error.ErrorCode.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    public ResponseEntity<ErrorResponse> handleCallNotPermittedException(CallNotPermittedException e) {
+        // Circuit Breaker가 열려서 호출이 차단된 경우 처리
+        final ErrorResponse response = ErrorResponse.of(CIRCUIT_BREAKER_OPEN);
+        return new ResponseEntity<>(response, SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(NoFallbackAvailableException.class)
+    public ResponseEntity<ErrorResponse> handleNoFallbackAvailableException(NoFallbackAvailableException e) {
+        // Fallback이 없는 경우 처리
+        final ErrorResponse response = ErrorResponse.of(FALLBACK_NOT_AVAILABLE);
+        return new ResponseEntity<>(response, SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ErrorResponse> handleFeignException(FeignException e) {
+        // Feign 클라이언트 호출 중 예외가 발생한 경우 처리
+        final ErrorResponse response = ErrorResponse.of(FEIGN_CLIENT_ERROR, e.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.valueOf(e.status()));
+    }
 
     @ExceptionHandler
     protected ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
