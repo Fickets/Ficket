@@ -3,7 +3,6 @@ package com.example.ficketadmin.domain.admin.controller;
 
 import com.example.ficketadmin.domain.admin.dto.common.AdminDto;
 import com.example.ficketadmin.domain.admin.dto.request.AdminLoginReq;
-import com.example.ficketadmin.domain.admin.dto.response.AdminLoginRes;
 import com.example.ficketadmin.domain.admin.service.AdminService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -116,17 +115,5 @@ public class AdminController {
     public List<AdminDto> getAdminsByIds(@RequestBody Set<Long> adminIds) {
         return adminService.getAdminsByIds(adminIds);
     }
-    
-    
-    //TODO   기능                 메소드/이름     path:/api/v1
-    //TODO  수동정산                /GET/CYS     /admins/adjustment/{event_id}
-    
-    //TODO  거래처리스트조회        /GET/OHS        /admins/companies
-    //TODO  관리자상세공연조회      /GET/CYS         /admins/events/{eventId}
-    
-    //TODO  관리자리스트조회        /GET/OHS        /admins/list
-    //TODO  고객리스트조회         /GET/CYS         /admins/users
-    //TODO  고객상세조회           /GET/CYS         /admins/users/{userId}
-    //TODO  고겍예매취소시키기      /DELETE/CYS      /admins/users/{userId}/{ticketId}
-    //TODO  고객회원탈퇴시키기      /DELETE/CYS      /admins/users/{userId}
+
 }

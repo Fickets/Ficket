@@ -135,7 +135,7 @@ public class AdminService {
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
-        //TODO 로그아웃시 홈으로 보내버리기
+        //  로그아웃시 홈으로 보내버리기
         // response.redirect("HOME_ADDRESS") 이거 좋을듯
     }
 

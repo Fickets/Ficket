@@ -3,7 +3,6 @@ package com.example.ficketuser.domain.controller;
 import com.example.ficketuser.domain.dto.UserSimpleDto;
 import com.example.ficketuser.domain.dto.client.OrderInfoDto;
 import com.example.ficketuser.domain.dto.response.MyTicketResponse;
-import com.example.ficketuser.domain.dto.response.PageResponse;
 import com.example.ficketuser.domain.dto.response.PagedResponse;
 import com.example.ficketuser.domain.dto.resquest.AdditionalInfoDto;
 import com.example.ficketuser.domain.dto.resquest.CustomerReq;
@@ -189,7 +188,7 @@ public class UserController {
      * - 2024-12-17 최용수: 초기 작성
      */
     @GetMapping("/customers")
-    public ResponseEntity<PageResponse<UserSimpleDto>> customerSearch(CustomerReq customerReq, Pageable pageable) {
+    public ResponseEntity<PagedResponse<UserSimpleDto>> customerSearch(CustomerReq customerReq, Pageable pageable) {
         return ResponseEntity.ok(userService.getCustomerSearch(customerReq, pageable));
     }
 

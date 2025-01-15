@@ -127,7 +127,7 @@ public class UserService {
                 break;
             }
         }
-        //TODO 서버가 꺼지고 켜지면 날라가서 일단 주석 처리
+        // 서버가 꺼지고 켜지면 날라가서 일단 주석 처리
 //        if (refresh == null) {
 //            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
 //        }
@@ -153,7 +153,7 @@ public class UserService {
         cookie2.setMaxAge(1209600000); // 2주
         cookie2.setPath("/");
         response.addCookie(cookie2);
-        //TODO 로그아웃시 홈으로 보내버리기
+        // 로그아웃시 홈으로 보내버리기
         // response.redirect("HOME_ADDRESS") 이거 좋을듯
     }
 
@@ -295,13 +295,10 @@ public class UserService {
         }
 
         // 이벤트별로 그룹화
-//        Map<String, List<TicketInfoDto>> groupedByEvent = ticketInfoDtoList.stream()
-//                .collect(Collectors.groupingBy(this::generateEventKey));
-
         Map<Long, List<TicketInfoDto>> groupedByEvent = ticketInfoDtoList.stream()
                 .collect(Collectors.groupingBy(TicketInfoDto::getOrderId));
 
-//        // 그룹화된 데이터를 MyTicketResponse로 변환
+        // 그룹화된 데이터를 MyTicketResponse로 변환
         List<MyTicketResponse> allResponses = groupedByEvent.values().stream()
                 .map(this::convertGroupedTicketsToMyTicketResponse)
                 .toList();
@@ -340,25 +337,6 @@ public class UserService {
         );
     }
 
-    /**
-     * 이벤트 그룹화를 위한 키 생성
-     *
-     * @param ticket 티켓 정보
-     * @return 그룹화 키
-     */
-    private String generateEventKey(TicketInfoDto ticket) {
-        return String.join("|",
-                ticket.getOrderId().toString(),
-                ticket.getCreatedAt().toString(), // 생성일
-                ticket.getEventDateTime().toString(), // 이벤트 날짜 및 시간
-                ticket.getEventStageName(), // 공연장 이름
-                ticket.getSido(), // 시/도
-                ticket.getEventPcBannerUrl(), // PC 배너 URL
-                ticket.getEventMobileBannerUrl(), // 모바일 배너 URL
-                ticket.getEventName(), // 이벤트 이름
-                ticket.getCompanyName() // 회사 이름
-        );
-    }
 
     /**
      * 그룹화된 티켓 리스트를 MyTicketResponse로 변환
@@ -409,7 +387,7 @@ public class UserService {
                 .toList();
         return res;
     }
-    public PageResponse<UserSimpleDto> getCustomerSearch(CustomerReq customerReq, Pageable pageable){
+    public PagedResponse<UserSimpleDto> getCustomerSearch(CustomerReq customerReq, Pageable pageable){
         List<UserSimpleDto> results = userCustomRepository.getUserPage(customerReq, pageable);
 
         // 페이징 처리
@@ -417,7 +395,7 @@ public class UserService {
         int end = Math.min(start + pageable.getPageSize(), results.size());
         List<UserSimpleDto> pagedResults = results.subList(start, end);
 
-        return new PageResponse<>(
+        return new PagedResponse<>(
                 pagedResults,
                 pageable. getPageNumber(),
                 pageable.getPageSize(),

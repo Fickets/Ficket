@@ -21,12 +21,6 @@ public class EventController {
 
     private final EventService eventService;
 
-    //TODO   기능                 메소드/담당     path:/api/v1/admins
-    
-    //TODO  성별예매율조회           /GET/OHS     /{eventId}/gender-ratio
-    //TODO  연령별예매율조회         /GET/OHS      /{eventId}/age-ratio
-    //TODO  임시URL검증           /GET/CYS         /validation/{uuid}
-
     /**
      * 날짜 별 수익 (admin -> event) API
      * <p>
