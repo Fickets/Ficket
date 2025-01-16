@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static co.elastic.clients.elasticsearch._types.SortOptionsBuilders.doc;
+
 
 /**
  * 검색 서비스 클래스
@@ -77,9 +79,12 @@ public class SearchService {
                             .path("Schedules")
                             .query(nq -> nq.range(r -> r.field("Schedules.Schedule").gt(JsonData.of(now.toString())))))))); // Schedules.Schedule > now
             case TO_BE_SALE -> Query.of(q -> q.range(r -> r.field("Ticketing").gt(JsonData.of(now.toString()))));
-            case END_OF_SALE -> Query.of(q -> q.nested(n -> n
-                    .path("Schedules")
-                    .query(query -> query.range(r -> r.field("Schedules.Schedule").lt(JsonData.of(now.toString()))))));
+            case END_OF_SALE -> Query.of(q -> q.bool(b -> b
+                    .must(m -> m.range(r -> r
+                            .field("Schedules.Schedule")
+                            .lt(JsonData.of(now.toString()))
+                    ))
+            ));
         };
     }
 
@@ -207,7 +212,7 @@ public class SearchService {
                         if (event.getTicketing().isBefore(now)) {
                             // Schedules에서 현재 시간을 기준으로 종료 여부 확인
                             boolean isEventOver = event.getSchedules().stream()
-                                    .anyMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
+                                    .allMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
 
                             if (isEventOver) {
                                 event.setSaleType(SaleType.END_OF_SALE); // 판매 종료
