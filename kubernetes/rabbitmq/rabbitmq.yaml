@@ -9,7 +9,9 @@ spec:
     - key: "node-role.kubernetes.io/control-plane"
       operator: "Exists"
       effect: "NoSchedule"
-      
+  nodeSelector:
+    role: worker1
+
   containers:
     - name: rabbitmq
       image: rabbitmq:3-management
