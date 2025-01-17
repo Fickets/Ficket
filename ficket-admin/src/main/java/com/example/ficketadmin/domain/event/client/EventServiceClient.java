@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "event-service", fallback = EventServiceClientFallbackFactory.class)
+@FeignClient(name = "event-service")
 public interface EventServiceClient {
 
     @GetMapping("/api/v1/events/{eventId}/daily-revenue")

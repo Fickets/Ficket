@@ -11,19 +11,20 @@ import com.example.ficketadmin.domain.event.dto.response.TemporaryUrlResponse;
 import com.example.ficketadmin.global.jwt.JwtUtils;
 import com.example.ficketadmin.global.result.error.ErrorCode;
 import com.example.ficketadmin.global.result.error.exception.BusinessException;
-import com.example.ficketadmin.global.utils.CircuitBreakerUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.example.ficketadmin.global.utils.CircuitBreakerUtils.*;
 
 @Slf4j
 @Service
@@ -36,7 +37,6 @@ public class EventService {
     private final StringRedisTemplate redisTemplate; // Redis와의 연동을 위한 템플릿
     private final EventServiceClient eventServiceClient; // 이벤트 서비스 클라이언트 (FeignClient)
     private final TicketingServiceClient ticketingServiceClient;
-    private final CircuitBreakerRegistry circuitBreakerRegistry; // Circuit Breaker 등록 객체
     private final JwtUtils jwtUtils;
 
     private static final long EXPIRATION_TIME = 24 * 60 * 60; // 하루 동안(초 단위) 만료 시간
@@ -47,12 +47,9 @@ public class EventService {
      * @param eventId 수익 정보를 계산할 이벤트의 ID
      * @return 날짜별 수익 정보를 담은 리스트 (각 날짜별로 수익 데이터 포함)
      */
+    @CircuitBreaker(name = "calculateDailyRevenueCircuitBreaker")
     public List<DailyRevenueResponse> calculateDailyRevenue(Long eventId) {
-        return executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "calculateDailyRevenueCircuitBreaker", // Circuit Breaker 이름
-                () -> eventServiceClient.calculateDailyRevenue(eventId) // Feign 클라이언트를 통해 외부 API 호출
-        );
+        return eventServiceClient.calculateDailyRevenue(eventId);
     }
 
     /**
@@ -61,12 +58,25 @@ public class EventService {
      * @param eventId 카운트 정보를 계산할 이벤트의 ID
      * @return 요일별 카운트를 포함한 응답 객체 (월, 화, 수, 목, 금, 토, 일)
      */
+    @CircuitBreaker(name = "calculateDayCountCircuitBreaker", fallbackMethod = "fallbackDayCountResponse")
     public DayCountResponse calculateDayCount(Long eventId) {
-        return executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "calculateDayCountCircuitBreaker", // Circuit Breaker 이름
-                () -> eventServiceClient.calculateDayCount(eventId) // Feign 클라이언트를 통해 외부 API 호출
-        );
+        return eventServiceClient.calculateDayCount(eventId);
+    }
+
+    private DayCountResponse fallbackDayCountResponse(Throwable throwable) {
+        log.error("Fallback executed for. Reason: {}",throwable.getMessage());
+
+        Map<String, Long> dayCountMap = new LinkedHashMap<>();
+
+        dayCountMap.put("Monday", 0L);
+        dayCountMap.put("Tuesday", 0L);
+        dayCountMap.put("Wednesday", 0L);
+        dayCountMap.put("Thursday", 0L);
+        dayCountMap.put("Friday", 0L);
+        dayCountMap.put("Saturday", 0L);
+        dayCountMap.put("Sunday", 0L);
+
+        return new DayCountResponse(dayCountMap);
     }
 
     /**
@@ -112,13 +122,8 @@ public class EventService {
         return new GuestTokenResponse(guestToken);
     }
 
+    @CircuitBreaker(name = "deleteFaceCircuitBreaker")
     public void ticketStatusChange(Long ticketId, Long eventId, Long connectId){
-
-        executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "deleteFaceCircuitBreaker",
-                () -> ticketingServiceClient.ticketWatchedChange(ticketId, eventId, connectId) // Feign 클라이언트를 통해 외부 API 호출
-        );
-
+        ticketingServiceClient.ticketWatchedChange(ticketId, eventId, connectId);
     }
 }

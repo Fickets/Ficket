@@ -1,9 +1,11 @@
 package com.example.ficketticketing.global.result.error;
 
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
+import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.cloud.client.circuitbreaker.NoFallbackAvailableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -26,6 +28,53 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleCallNotPermittedException(CallNotPermittedException e) {
+        ErrorResponse response = ErrorResponse.of(CIRCUIT_BREAKER_OPEN);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(CIRCUIT_BREAKER_OPEN.getStatus()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleRequestNotPermittedException(RequestNotPermitted e) {
+        ErrorResponse response = ErrorResponse.of(RATE_LIMIT_EXCEEDED);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(RATE_LIMIT_EXCEEDED.getStatus()));
+    }
+
+
+    @ExceptionHandler(NoFallbackAvailableException.class)
+    public ResponseEntity<ErrorResponse> handleNoFallbackAvailableException(NoFallbackAvailableException e) {
+        // Fallback이 없는 경우 처리
+        final ErrorResponse response = ErrorResponse.of(FALLBACK_NOT_AVAILABLE);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(FALLBACK_NOT_AVAILABLE.getStatus()));
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ErrorResponse> handleFeignException(FeignException ex) {
+        ErrorResponse response = ErrorResponse.of(
+                FEIGN_CLIENT_ERROR,
+                ErrorResponse.FieldError.of("Feign Client Error", "", ex.getMessage())
+        );
+        return ResponseEntity.status(ex.status()).body(response);
+    }
+
+    @ExceptionHandler(FeignException.FeignServerException.class)
+    public ResponseEntity<ErrorResponse> handleFeignServerException(FeignException.FeignServerException ex) {
+        ErrorResponse response = ErrorResponse.of(
+                FEIGN_SERVER_ERROR,
+                ErrorResponse.FieldError.of("Feign Server Error", "", ex.getMessage())
+        );
+        return ResponseEntity.status(FEIGN_SERVER_ERROR.getStatus()).body(response);
+    }
+
+    @ExceptionHandler(FeignException.FeignClientException.class)
+    public ResponseEntity<ErrorResponse> handleFeignNotFoundException(FeignException.FeignClientException ex) {
+        ErrorResponse response = ErrorResponse.of(
+                FEIGN_CLIENT_REQUEST_ERROR,
+                ErrorResponse.FieldError.of("Feign Client Request Error", "", ex.getMessage())
+        );
+        return ResponseEntity.status(FEIGN_CLIENT_REQUEST_ERROR.getStatus()).body(response);
+    }
 
     /**
      * 요청 헤더가 누락된 경우 처리
@@ -101,18 +150,6 @@ public class GlobalExceptionHandler {
                 METHOD_NOT_ALLOWED.getMessage()));
         final ErrorResponse response = ErrorResponse.of(HTTP_HEADER_INVALID, errors);
         return new ResponseEntity<>(response, BAD_REQUEST);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handleCallNotPermittedException(CallNotPermittedException e) {
-        ErrorResponse response = ErrorResponse.of(CIRCUIT_BREAKER_OPEN);
-        return new ResponseEntity<>(response, HttpStatus.valueOf(CIRCUIT_BREAKER_OPEN.getStatus()));
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handleRequestNotPermittedException(RequestNotPermitted e) {
-        ErrorResponse response = ErrorResponse.of(RATE_LIMIT_EXCEEDED);
-        return new ResponseEntity<>(response, HttpStatus.valueOf(RATE_LIMIT_EXCEEDED.getStatus()));
     }
 
     @ExceptionHandler

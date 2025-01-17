@@ -22,9 +22,14 @@ public enum ErrorCode {
     RESOURCE_NOT_FOUND(404, "없는 요청"),
     UNKNOWN_ERROR(500, "알수없는 오류"),
 
-    // Circuit Breaker 관련 에러
+
+    // Fegin & CircuitBreaker 관련 에러
     CIRCUIT_BREAKER_OPEN(503, "Circuit Breaker가 open 상태입니다. 잠시후 다시 시도해주세요"),
     RATE_LIMIT_EXCEEDED(429, "요청이 너무 많습니다. 잠시후 다시 시도해주세요"),
+    FALLBACK_NOT_AVAILABLE(503, "OpenFeign의 Fallback이 정의되지 않았습니다."),
+    FEIGN_CLIENT_ERROR(500, "Feign Client error"),
+    FEIGN_SERVER_ERROR(500, "Feign Server error"),
+    FEIGN_CLIENT_REQUEST_ERROR(400, "Feign Client request error"),
 
     // PortOne 관련 에러
     EXTERNAL_API_ERROR(500, "외부 API 오류입니다."),
@@ -56,7 +61,6 @@ public enum ErrorCode {
     NOT_FOUND_TICKET(404, "해당 티켓을 조회할 수 없습니다"),
     ALREADY_WATCHED(409, "이미 관람한 티켓은 환불이 불가합니다."),
     ;
-
 
 
     private final int status;

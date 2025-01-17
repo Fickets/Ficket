@@ -10,6 +10,7 @@ import com.example.ficketadmin.domain.event.client.EventServiceClient;
 import com.example.ficketadmin.domain.event.client.TicketingServiceClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -64,12 +65,12 @@ public class CheckService {
                 Map<String, Object> map = objectMapper.convertValue(faceApiResponse.getData(), Map.class);
                 Long ticketId = ((Number) map.get("ticket_id")).longValue();
                 TicketSimpleInfo ticketSimpleInfo = executeWithCircuitBreaker(circuitBreakerRegistry,
-                        "getCustomerSeat",
+                        "getSimpleTicketInfo",
                         () -> eventServiceClient.getTicketSimpleInfo(ticketId));
 
                 // ticketId 로 userId 가져와야함
                 UserSimpleDto userInfo = executeWithCircuitBreaker(circuitBreakerRegistry,
-                        "getCustomerSeat",
+                        "getUserIdByTicketId",
                         () -> ticketingServiceClient.getUserIdByTicketId(ticketId));
 
                 CheckDto message = CheckDto.builder()
@@ -85,12 +86,9 @@ public class CheckService {
     }
 
 
-    @Transactional
+    @CircuitBreaker(name = "changeTicketToWatched")
     public void changeTicketWatched(Long ticketId, Long eventId, Long connectId){
-
-        executeWithCircuitBreaker(circuitBreakerRegistry,
-                "getCustomerSeat",
-                () -> ticketingServiceClient.changeTicketWatched(ticketId));
+        ticketingServiceClient.changeTicketWatched(ticketId);
 
         Map<String, String> message = new HashMap<>();
         message.put("message", "NEXT");
@@ -99,13 +97,5 @@ public class CheckService {
                 .build();
         sendMessage(eventId, connectId, sendMessage);
     }
-
-
-
-
-
-
-
-
 
 }

@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolation;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
 import org.springframework.validation.BindingResult;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class ErrorResponse {
         this.status = code.getStatus();
         this.errors = errors;
     }
+
 
     private ErrorResponse(final ErrorCode code) {
         this.message = code.getMessage();
@@ -51,12 +53,6 @@ public class ErrorResponse {
     public static ErrorResponse of(final ErrorCode code, final List<FieldError> errors) {
         return new ErrorResponse(code, errors);
     }
-
-//    public static ErrorResponse of(MethodArgumentTypeMismatchException e) {
-//        final String value = e.getValue() == null ? "" : e.getValue().toString();
-//        final List<FieldError> errors = FieldError.of(e.getName(), value, e.getErrorCode());
-//        return new ErrorResponse(ErrorCode.INPUT_TYPE_INVALID, errors);
-//    }
 
     @Getter
     @NoArgsConstructor(access = AccessLevel.PROTECTED)

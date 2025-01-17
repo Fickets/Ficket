@@ -16,10 +16,14 @@ public enum ErrorCode {
     ENTITY_NOT_FOUNT(500, "존재하지 않는 Entity입니다."),
     FORBIDDEN_ERROR(403, "작업을 수행하기 위한 권한이 없습니다."),
     IS_NOT_IMAGE(400, "이미지가 아닙니다."),
-    CIRCUIT_BREAKER_OPEN(500, "Circuit Breaker 상태가 오픈입니다. 10초후 다시 시도해 주세요."),
-    FALLBACK_NOT_AVAILABLE(500, "OpenFeign의 Fallback이 정의되지 않았습니다."),
-    FEIGN_CLIENT_ERROR(500, "Feign Client error"),
 
+    // Fegin & CircuitBreaker 관련 에러
+    CIRCUIT_BREAKER_OPEN(503, "Circuit Breaker가 open 상태입니다. 잠시후 다시 시도해주세요"),
+    RATE_LIMIT_EXCEEDED(429, "요청이 너무 많습니다. 잠시후 다시 시도해주세요"),
+    FALLBACK_NOT_AVAILABLE(503, "OpenFeign의 Fallback이 정의되지 않았습니다."),
+    FEIGN_CLIENT_ERROR(500, "Feign Client error"),
+    FEIGN_SERVER_ERROR(500, "Feign Server error"),
+    FEIGN_CLIENT_REQUEST_ERROR(400, "Feign Client request error"),
     // User
     NOT_USER_FOUND(404, "유저를 찾을 수 없습니다."),
     NOT_REDIS_TOKEN_FOUND(404, "유저의 REDIS 토큰을 찾을 수 없습니다."),

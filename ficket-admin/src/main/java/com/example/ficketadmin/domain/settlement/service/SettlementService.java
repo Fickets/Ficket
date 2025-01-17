@@ -18,6 +18,7 @@ import com.example.ficketadmin.domain.settlement.repository.SettlementRepository
 import com.example.ficketadmin.global.result.error.ErrorCode;
 import com.example.ficketadmin.global.result.error.exception.BusinessException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-import static com.example.ficketadmin.global.utils.CircuitBreakerUtils.executeWithCircuitBreaker;
 
 @Slf4j
 @Service
@@ -42,7 +42,6 @@ public class SettlementService {
     private final SettlementCustomRepository settlementCustomRepository;
 
     private final EventServiceClient eventServiceClient;
-    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     @Transactional
     public void createSettlement(OrderSimpleDto orderSimpleDto){
@@ -141,12 +140,9 @@ public class SettlementService {
     }
 
     @NotNull
+    @CircuitBreaker(name = "getEventIdByTitleCircuitBreaker")
     private List<EventTitleDto> getGetEventIdByTitleCircuitBreaker(SettlementReq settlementReq) {
-        return executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "getEventIdByTitleCircuitBreaker",
-                () -> eventServiceClient.getEventIds(settlementReq.getEventName())
-        );
+        return eventServiceClient.getEventIds(settlementReq.getEventName());
     }
 
     public List<Settlement> getSettlementList(Long eventId) {

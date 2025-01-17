@@ -1,7 +1,6 @@
 package com.example.ficketsearch.global.config.utils;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.S3Object;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,28 +33,36 @@ public class S3Utils {
     }
 
     public String downloadFile(String s3Url) {
-        try {
-            // S3에서 객체 가져오기
-            S3Object s3Object = amazonS3Client.getObject(CONTENT_BUCKET_NAME, FileUtils.extractFileKey(s3Url));
-            InputStream inputStream = s3Object.getObjectContent();
+        String rootDir = System.getProperty("user.dir"); // 현재 작업 디렉토리
+        String downloadDirPath = rootDir + File.separator + "downloads"; // 다운로드 디렉토리 경로
+        String localFilePath = downloadDirPath + File.separator + FileUtils.extractFileName(s3Url);
 
-            String rootDir = System.getProperty("user.dir"); // 현재 작업 디렉토리
-            String localFilePath = rootDir + File.separator + "downloads" + File.separator + FileUtils.extractFileName(s3Url); // 다운로드 디렉토리에 파일 저장
-            File file = new File(localFilePath);
+        // downloads 폴더 생성
+        File downloadDir = new File(downloadDirPath);
+        if (!downloadDir.exists()) {
+            boolean isCreated = downloadDir.mkdirs();
+            if (isCreated) {
+                log.info("Downloads directory created: {}", downloadDirPath);
+            } else {
+                throw new RuntimeException("Failed to create downloads directory");
+            }
+        }
 
-            try (FileOutputStream outputStream = new FileOutputStream(file)) {
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
+        // S3에서 객체 가져오기 및 파일 저장
+        try (InputStream inputStream = amazonS3Client.getObject(CONTENT_BUCKET_NAME, FileUtils.extractFileKey(s3Url)).getObjectContent();
+             FileOutputStream outputStream = new FileOutputStream(localFilePath)) {
+
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
             }
 
-            log.info("File downloaded successfully to: {}", rootDir);
+            log.info("File downloaded successfully to: {}", localFilePath);
             return localFilePath;
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to download file from S3", e);
         }
     }
-
 }

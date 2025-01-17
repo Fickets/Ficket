@@ -23,6 +23,10 @@ public enum ErrorCode {
     // Circuit Breaker 관련 에러
     CIRCUIT_BREAKER_OPEN(503, "Circuit Breaker가 open 상태입니다. 잠시후 다시 시도해주세요"),
     RATE_LIMIT_EXCEEDED(429, "요청이 너무 많습니다. 잠시후 다시 시도해주세요"),
+    FALLBACK_NOT_AVAILABLE(503, "OpenFeign의 Fallback이 정의되지 않았습니다."),
+    FEIGN_CLIENT_ERROR(500, "Feign Client error"),
+    FEIGN_SERVER_ERROR(500, "Feign Server error"),
+    FEIGN_CLIENT_REQUEST_ERROR(400, "Feign Client request error"),
 
     // COMPANY
     COMPANY_NOT_FOUND(404, "해당 회사가 존재하지 않습니다."),
@@ -33,7 +37,7 @@ public enum ErrorCode {
     EVENT_NOT_FOUND(404, "해당 공연이 존재하지 않습니다."),
     EVENT_SESSION_NOT_FOUND(404, "해당 회차 공연이 존재하지 않습니다."),
     PARTITION_NOT_FOUND(404, "해당 좌석 등급 구분이 존재하지 않습니다."),
-    EMPTY_EVENT_SCHEDULE(400,"회차 정보가 공백입니다."),
+    EMPTY_EVENT_SCHEDULE(400, "회차 정보가 공백입니다."),
     ALREADY_STARTED_TICKETING(400, "이미 티켓팅이 시작 된 행사는 행사 일정 및 좌석 수정/삭제가 불가합니다"),
 
     //SEAT

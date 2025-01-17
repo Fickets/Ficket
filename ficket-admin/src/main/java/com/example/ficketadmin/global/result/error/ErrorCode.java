@@ -17,6 +17,14 @@ public enum ErrorCode {
     FORBIDDEN_ERROR(403, "작업을 수행하기 위한 권한이 없습니다."),
     IS_NOT_IMAGE(400, "이미지가 아닙니다."),
 
+    // Fegin & CircuitBreaker
+    CIRCUIT_BREAKER_OPEN(503, "Circuit Breaker가 open 상태입니다. 잠시후 다시 시도해주세요"),
+    RATE_LIMIT_EXCEEDED(429, "요청이 너무 많습니다. 잠시후 다시 시도해주세요"),
+    FALLBACK_NOT_AVAILABLE(503, "OpenFeign의 Fallback이 정의되지 않았습니다."),
+    FEIGN_CLIENT_ERROR(500, "Feign Client error"),
+    FEIGN_SERVER_ERROR(500, "Feign Server error"),
+    FEIGN_CLIENT_REQUEST_ERROR(400, "Feign Client request error"),
+
     // Event
     COMPANY_NOT_FOUND(404, "해당 회사가 존재하지 않습니다."),
     URL_NOT_FOUNT(404, "없는 URL 입니다."),

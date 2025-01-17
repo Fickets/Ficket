@@ -35,6 +35,22 @@ resilience4j:
         base-config: default
       calculateDayCountCircuitBreaker:
         base-config: default
+      deleteFaceCircuitBreaker:
+        base-config: default
+      getCustomerSeat:
+        base-config: default
+      getEventIdByTitleCircuitBreaker:
+        base-config: default
+      getEventScheduleIdList:
+        base-config: default
+      postMatchUserFaceImgCircuitBreaker:
+        base-config: default
+      changeTicketToWatched:
+        base-config: default
+      getUserIdByTicketId:
+        base-config: default
+      getSimpleTicketInfo:
+        base-config: default
 
 logging:
   level:

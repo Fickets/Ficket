@@ -4,6 +4,7 @@ import static com.example.ficketevent.global.result.error.ErrorCode.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import com.example.ficketevent.global.result.error.exception.BusinessException;
+import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
@@ -11,6 +12,7 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.cloud.client.circuitbreaker.NoFallbackAvailableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -25,6 +27,53 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleCallNotPermittedException(CallNotPermittedException e) {
+        ErrorResponse response = ErrorResponse.of(CIRCUIT_BREAKER_OPEN);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(CIRCUIT_BREAKER_OPEN.getStatus()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleRequestNotPermittedException(RequestNotPermitted e) {
+        ErrorResponse response = ErrorResponse.of(RATE_LIMIT_EXCEEDED);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(RATE_LIMIT_EXCEEDED.getStatus()));
+    }
+
+
+    @ExceptionHandler(NoFallbackAvailableException.class)
+    public ResponseEntity<ErrorResponse> handleNoFallbackAvailableException(NoFallbackAvailableException e) {
+        // Fallback이 없는 경우 처리
+        final ErrorResponse response = ErrorResponse.of(FALLBACK_NOT_AVAILABLE);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(FALLBACK_NOT_AVAILABLE.getStatus()));
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ErrorResponse> handleFeignException(FeignException ex) {
+        ErrorResponse response = ErrorResponse.of(
+                FEIGN_CLIENT_ERROR,
+                ErrorResponse.FieldError.of("Feign Client Error", "", ex.getMessage())
+        );
+        return ResponseEntity.status(ex.status()).body(response);
+    }
+
+    @ExceptionHandler(FeignException.FeignServerException.class)
+    public ResponseEntity<ErrorResponse> handleFeignServerException(FeignException.FeignServerException ex) {
+        ErrorResponse response = ErrorResponse.of(
+                FEIGN_SERVER_ERROR,
+                ErrorResponse.FieldError.of("Feign Server Error", "", ex.getMessage())
+        );
+        return ResponseEntity.status(FEIGN_SERVER_ERROR.getStatus()).body(response);
+    }
+
+    @ExceptionHandler(FeignException.FeignClientException.class)
+    public ResponseEntity<ErrorResponse> handleFeignNotFoundException(FeignException.FeignClientException ex) {
+        ErrorResponse response = ErrorResponse.of(
+                FEIGN_CLIENT_REQUEST_ERROR,
+                ErrorResponse.FieldError.of("Feign Client Request Error", "", ex.getMessage())
+        );
+        return ResponseEntity.status(FEIGN_CLIENT_REQUEST_ERROR.getStatus()).body(response);
+    }
 
     @ExceptionHandler
     protected ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
@@ -90,18 +139,6 @@ public class GlobalExceptionHandler {
                 METHOD_NOT_ALLOWED.getMessage()));
         final ErrorResponse response = ErrorResponse.of(HTTP_HEADER_INVALID, errors);
         return new ResponseEntity<>(response, BAD_REQUEST);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handleCallNotPermittedException(CallNotPermittedException e) {
-        ErrorResponse response = ErrorResponse.of(CIRCUIT_BREAKER_OPEN);
-        return new ResponseEntity<>(response, HttpStatus.valueOf(CIRCUIT_BREAKER_OPEN.getStatus()));
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handleRequestNotPermittedException(RequestNotPermitted e) {
-        ErrorResponse response = ErrorResponse.of(RATE_LIMIT_EXCEEDED);
-        return new ResponseEntity<>(response, HttpStatus.valueOf(RATE_LIMIT_EXCEEDED.getStatus()));
     }
 
     @ExceptionHandler

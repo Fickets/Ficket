@@ -75,7 +75,10 @@ dependencies {
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     // Resilience4j
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3'
+
+    // AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
 
     // Micrometer Observation and Tracing with Brave
     implementation 'io.micrometer:micrometer-observation'

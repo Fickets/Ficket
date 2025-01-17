@@ -14,21 +14,18 @@ import com.example.ficketuser.domain.dto.resquest.UpdateUserRequest;
 import com.example.ficketuser.global.jwt.JwtUtils;
 import com.example.ficketuser.global.result.error.ErrorCode;
 import com.example.ficketuser.global.result.error.exception.BusinessException;
-import com.example.ficketuser.global.utils.CircuitBreakerUtils;
 import com.example.ficketuser.domain.mapper.TicketMapper;
 import com.example.ficketuser.domain.repository.UserCustomRepository;
 import com.example.ficketuser.domain.repository.UserRepository;
 import com.example.ficketuser.domain.dto.resquest.AdditionalInfoDto;
 import com.example.ficketuser.domain.mapper.UserMapper;
 import com.example.ficketuser.domain.repository.UserTokenRedisRepository;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.metrics.data.RepositoryMetricsAutoConfiguration;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,6 +37,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class UserService {
 
@@ -49,7 +47,6 @@ public class UserService {
     private final JwtUtils jwtUtils;
     private final TicketingServiceClient ticketingServiceClient;
     private final TicketMapper ticketMapper;
-    private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final UserCustomRepository userCustomRepository;
 
     @Value("${jwt.refresh.header}")
@@ -204,7 +201,6 @@ public class UserService {
 
     }
 
-    @Transactional
     public void deleteUser(HttpServletResponse response) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = userDetails.getUserId();
@@ -214,11 +210,7 @@ public class UserService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() ->  new BusinessException(ErrorCode.NOT_USER_FOUND));
 
-        List<TicketInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "getMyTicketCircuitBreaker2",
-                () -> ticketingServiceClient.getMyTickets(user.getUserId())
-        );
+        List<TicketInfoDto> ticketInfoDtoList = ticketingServiceClient.getMyTickets(user.getUserId());
 
         if (!ticketInfoDtoList.isEmpty()){
             throw new BusinessException(ErrorCode.EXIST_USER_EVENT);
@@ -280,12 +272,7 @@ public class UserService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
-        // CircuitBreaker를 사용하여 외부 서비스 호출
-//        List<TicketInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
-//                circuitBreakerRegistry,
-//                "getMyTicketCircuitBreaker",
-//                () -> ticketingServiceClient.getMyTickets(user.getUserId())
-//        );
+
         List<TicketInfoDto> ticketInfoDtoList = ticketingServiceClient.getMyTickets(user.getUserId());
 
 
@@ -410,10 +397,7 @@ public class UserService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
-        List<OrderInfoDto> res = CircuitBreakerUtils.executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "getCustomerTicket",
-                () -> ticketingServiceClient.getCustomerTicket(userId));
+        List<OrderInfoDto> res = ticketingServiceClient.getCustomerTicket(user.getUserId());
         return res;
     }
 
@@ -421,17 +405,12 @@ public class UserService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
-        List<OrderInfoDto> ticketInfoDtoList = CircuitBreakerUtils.executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "getCustomerOrderTicket",
-                () -> ticketingServiceClient.getCustomerTicket(user.getUserId())
-        );
+        List<OrderInfoDto> ticketInfoDtoList = ticketingServiceClient.getCustomerTicket(user.getUserId());
+
         if (!ticketInfoDtoList.isEmpty()){
             throw new BusinessException(ErrorCode.EXIST_USER_EVENT);
         }
         userRepository.customerForceDelete(user.getUserId());
     }
-
-
 
 }

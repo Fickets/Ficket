@@ -3,10 +3,9 @@ package com.example.ficketevent.domain.event.service;
 import com.example.ficketevent.domain.event.client.TicketingServiceClient;
 import com.example.ficketevent.domain.event.dto.common.DailyRevenueResponse;
 import com.example.ficketevent.domain.event.dto.common.DayCountResponse;
-import com.example.ficketevent.domain.event.entity.EventSchedule;
-import com.example.ficketevent.domain.event.repository.EventCustomRepository;
-import com.example.ficketevent.domain.event.repository.EventCustomRepositoryImpl;
 import com.example.ficketevent.domain.event.repository.EventRepository;
+import com.example.ficketevent.global.result.error.ErrorCode;
+import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.CircuitBreakerUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.AllArgsConstructor;
@@ -34,6 +33,7 @@ public class EventStatisticService {
     }
 
     public List<DailyRevenueResponse> calculateDailyRevenue(Long eventId){
+
         Set<Long> ticketIds = eventRepository.getTicketIdsByEventId(eventId);
 
         log.info("날짜별 수익 - 티켓 리스트 ticketIds: {}", ticketIds);
