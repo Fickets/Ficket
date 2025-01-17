@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -127,19 +128,42 @@ public class IndexingService {
         } catch (Exception e) {
             log.error("전체 색인 처리 중 오류 발생: {}", e.getMessage(), e);
         } finally {
-            deleteDownloadFile(downloadPath);
+            cleanUpDownloads(downloadPath);
         }
     }
 
-    // 다운로드한 파일 삭제
-    private static void deleteDownloadFile(String downloadPath) {
-        try {
-            Files.deleteIfExists(Paths.get(downloadPath));
-            log.info("다운로드한 파일 삭제 완료: {}", downloadPath);
-        } catch (IOException e) {
-            log.warn("다운로드한 파일 삭제 중 오류 발생: {}", e.getMessage(), e);
+    private void cleanUpDownloads(String filePath) {
+        File file = new File(filePath);
+
+        if (file.exists() && file.isFile()) {
+            boolean deleted = file.delete();
+            if (deleted) {
+                log.info("File deleted: {}", filePath);
+            } else {
+                log.warn("Failed to delete file: {}", filePath);
+            }
+        } else {
+            log.warn("File not found or not a regular file: {}", filePath);
+        }
+
+        // downloads 디렉토리 삭제 시도 (폴더가 비어있을 경우만 삭제)
+        String downloadDirPath = file.getParent();
+        File downloadDir = new File(downloadDirPath);
+
+        if (downloadDir.exists() && downloadDir.isDirectory()) {
+            File[] remainingFiles = downloadDir.listFiles();
+            if (remainingFiles != null && remainingFiles.length == 0) {
+                boolean dirDeleted = downloadDir.delete();
+                if (dirDeleted) {
+                    log.info("Downloads directory deleted: {}", downloadDirPath);
+                } else {
+                    log.warn("Failed to delete downloads directory: {}", downloadDirPath);
+                }
+            }
         }
     }
+
+
 
     private void createIndexIfNotExist() {
         try {
