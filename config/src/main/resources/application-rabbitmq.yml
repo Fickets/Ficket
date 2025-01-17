@@ -14,7 +14,7 @@ spring:
     activate:
       on-profile: rabbitmq-server
   rabbitmq:
-    host: ec2-43-202-56-19.ap-northeast-2.compute.amazonaws.com
-    port: 31137
-    username: rabbit
-    password: rabbit
+    host: ${rabbitmq.host}
+    port: ${rabbitmq.port}
+    username: ${rabbitmq.username}
+    password: ${rabbitmq.password}

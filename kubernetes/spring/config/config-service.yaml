@@ -7,6 +7,7 @@ spec:
     app: spring-config
   ports:
     - protocol: TCP
-      port: 8888
-      targetPort: 8888
-  type: LoadBalancer
+      port: 8888      # 내부 클러스터 포트
+      targetPort: 8888 # 컨테이너 내부 포트
+      nodePort: 31097  # 외부에서 접근할 포트 (클러스터 노드 포트)
+  type: NodePort
