@@ -109,6 +109,12 @@ dependencies {
 	// OpenCSV
 	implementation 'com.opencsv:opencsv:5.9'
 
+	// Spring-Batch
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+	// Scheduler
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+
 }
 
 dependencyManagement {

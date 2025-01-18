@@ -6,12 +6,23 @@ spring:
     name: event-service
   profiles:
     active: local
-#    active: prod
+  #    active: prod
   config:
     import: optional:configserver:http://localhost:8888
   zipkin:
     base-url: http://localhost:9411
     enabled: true
+  quartz:
+    job-store-type: memory # Quartz 스케줄러 메모리 저장소
+#  quartz:
+#    job-store-type: jdbc
+#    jdbc:
+#      initialize-schema: never
+#    properties:
+#      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+#      org.quartz.jobStore.tablePrefix: QRTZ_
+#      org.quartz.jobStore.isClustered: true
+#      org.quartz.threadPool.threadCount: 10
 
 resilience4j:
   circuitbreaker:
@@ -57,7 +68,7 @@ resilience4j:
 
 logging:
   level:
-    com.example.ficketevent.domain.event.client : DEBUG
+    com.example.ficketevent.domain.event.client: DEBUG
   pattern:
     correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 

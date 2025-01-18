@@ -1,6 +1,9 @@
 package com.example.ficketsearch.global.config.utils;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -49,10 +52,11 @@ public class S3Utils {
         }
 
         // S3에서 객체 가져오기 및 파일 저장
-        try (InputStream inputStream = amazonS3Client.getObject(CONTENT_BUCKET_NAME, FileUtils.extractFileKey(s3Url)).getObjectContent();
+        try (S3Object s3Object = amazonS3Client.getObject(CONTENT_BUCKET_NAME, EVENT_INFO_LIST_FOLDER + "/" + FileUtils.extractFileName(s3Url));
+             S3ObjectInputStream inputStream = s3Object.getObjectContent();
              FileOutputStream outputStream = new FileOutputStream(localFilePath)) {
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[4096];
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
@@ -62,7 +66,7 @@ public class S3Utils {
             return localFilePath;
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to download file from S3", e);
+            throw new RuntimeException("Failed to download file from S3. URL: " + s3Url + ", Local Path: " + localFilePath, e);
         }
     }
 }

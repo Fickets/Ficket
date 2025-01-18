@@ -109,9 +109,9 @@ public class IndexingService {
      * 전체 색인 처리를 위한 메서드
      * 주어진 S3 URL에서 CSV 파일을 다운로드하고, 이를 Elasticsearch에 삽입합니다.
      *
-     * @param s3Url - S3에서 파일을 다운로드할 URL
+     * @param payload - S3에서 파일을 다운로드할 URL List
      */
-    public void handleFullIndexing(String s3Url) {
+    public void handleFullIndexing(String payload) {
 
         deleteExistingSnapshot(); // 기존 스냅샷 삭제
 
@@ -121,14 +121,18 @@ public class IndexingService {
 
         createIndexIfNotExist(); // 인덱스 생성
 
-        String downloadPath = s3Utils.downloadFileWithRetry(s3Url); // S3에서 파일 다운로드
+        String[] s3UrlList = payload.split(",");
 
-        try (Stream<String> bulkJsonStream = csvToBulkApiConverter.convertCsvToBulkJsonStream(downloadPath, INDEX_NAME)) {
-            insertDataToElasticsearch(bulkJsonStream); // Elasticsearch에 데이터 삽입
-        } catch (Exception e) {
-            log.error("전체 색인 처리 중 오류 발생: {}", e.getMessage(), e);
-        } finally {
-            cleanUpDownloads(downloadPath);
+        for (String s3Url : s3UrlList) {
+            String downloadPath = s3Utils.downloadFileWithRetry(s3Url); // S3에서 파일 다운로드
+
+            try (Stream<String> bulkJsonStream = csvToBulkApiConverter.convertCsvToBulkJsonStream(downloadPath, INDEX_NAME)) {
+                insertDataToElasticsearch(bulkJsonStream); // Elasticsearch에 데이터 삽입
+            } catch (Exception e) {
+                log.error("전체 색인 처리 중 오류 발생: {}", e.getMessage(), e);
+            } finally {
+                cleanUpDownloads(downloadPath);
+            }
         }
     }
 

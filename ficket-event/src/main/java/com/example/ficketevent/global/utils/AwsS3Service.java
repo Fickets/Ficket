@@ -1,10 +1,7 @@
 package com.example.ficketevent.global.utils;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.example.ficketevent.global.config.awsS3.AwsConstants;
+import com.amazonaws.services.s3.model.*;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -12,14 +9,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static com.amazonaws.services.s3.model.DeleteObjectsRequest.*;
 import static com.example.ficketevent.global.config.awsS3.AwsConstants.*;
 
 @Slf4j
@@ -28,6 +26,9 @@ import static com.example.ficketevent.global.config.awsS3.AwsConstants.*;
 public class AwsS3Service {
 
     private final AmazonS3Client amazonS3Client;
+    private final ConcurrentHashMap<String, AtomicLong> sequenceMap = new ConcurrentHashMap<>();
+
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     public String uploadPosterOriginImage(MultipartFile file) {
         return upload(file, ORIGINAL_BUCKET_NAME, ORIGIN_POSTER_FOLDER);
@@ -92,25 +93,88 @@ public class AwsS3Service {
     }
 
     public String uploadEventListInfoFile(File file) {
-
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentType("text/csv");
-        objectMetadata.setContentEncoding("UTF-8"); // UTF-8 인코딩 명시
+        objectMetadata.setContentEncoding("UTF-8");
         objectMetadata.setContentLength(file.length());
 
-        String originalFileName = file.getName();
+        // 파일 확장자 추출
+        int index = file.getName().lastIndexOf(".");
+        String ext = (index > 0) ? file.getName().substring(index + 1) : "csv";
 
-        int index = originalFileName.lastIndexOf(".");
-        String ext = originalFileName.substring(index + 1);
+        // 순번 읽기 및 증가
+        long fileSequence = getNextSequence();
 
-        String key = String.format("%s/events_version_%s.%s",EVENT_INFO_LIST_FOLDER, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd")), ext);
-
+        // S3에 저장될 파일 키 생성 (날짜 + 순번 기반)
+        String key = String.format(
+                "%s/%s_%05d.%s", // 예: event_info_list/2025-01-18_00001.csv
+                EVENT_INFO_LIST_FOLDER,
+                DATE_FORMAT.format(new Date()), // 오늘 날짜
+                fileSequence,
+                ext
+        );
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             amazonS3Client.putObject(new PutObjectRequest(CONTENT_BUCKET_NAME, key, fileInputStream, objectMetadata));
         } catch (IOException e) {
-            throw new BusinessException(ErrorCode.ENTITY_NOT_FOUNT);
+            throw new RuntimeException("Failed to upload file", e);
         }
 
         return amazonS3Client.getUrl(CONTENT_BUCKET_NAME, key).toString();
+    }
+
+    private long getNextSequence() {
+        String today = DATE_FORMAT.format(new Date());
+
+        // ConcurrentHashMap을 사용해 날짜별 시퀀스를 관리
+        sequenceMap.putIfAbsent(today, new AtomicLong(0));
+        return sequenceMap.get(today).incrementAndGet();
+    }
+
+    public List<String> getFiles() {
+        List<String> fileKeys = new ArrayList<>();
+        String continuationToken = null;
+
+        // S3 폴더에 있는 모든 파일 리스트 가져오기
+        do {
+            ListObjectsV2Request request = new ListObjectsV2Request()
+                    .withBucketName(CONTENT_BUCKET_NAME)
+                    .withPrefix(EVENT_INFO_LIST_FOLDER) // 특정 폴더(prefix)만 검색
+                    .withContinuationToken(continuationToken);
+
+            ListObjectsV2Result result = amazonS3Client.listObjectsV2(request);
+            for (S3ObjectSummary objectSummary : result.getObjectSummaries()) {
+                fileKeys.add(objectSummary.getKey()); // 파일 경로 추가
+            }
+
+            continuationToken = result.getNextContinuationToken(); // 더 많은 결과가 있는 경우 처리
+        } while (continuationToken != null);
+
+        return fileKeys;
+    }
+
+    public void deleteAllFiles() {
+        ObjectListing objectListing = amazonS3Client.listObjects(CONTENT_BUCKET_NAME, EVENT_INFO_LIST_FOLDER);
+
+        // 모든 파일 삭제
+        while (true) {
+            List<KeyVersion> keysToDelete = new ArrayList<>();
+            for (S3ObjectSummary summary : objectListing.getObjectSummaries()) {
+                keysToDelete.add(new KeyVersion(summary.getKey()));
+            }
+
+            if (!keysToDelete.isEmpty()) {
+                DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(CONTENT_BUCKET_NAME)
+                        .withKeys(keysToDelete)
+                        .withQuiet(true);
+                amazonS3Client.deleteObjects(deleteObjectsRequest);
+            }
+
+            // 다음 페이지 확인
+            if (objectListing.isTruncated()) {
+                objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
+            } else {
+                break;
+            }
+        }
     }
 }

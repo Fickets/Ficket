@@ -20,6 +20,12 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction("deleted_at IS NULL")
 @SQLDelete(sql = "UPDATE event SET deleted_at = CURRENT_TIMESTAMP WHERE event_id = ?")
+@Table(
+        name = "event",
+        indexes = {
+                @Index(name = "idx_event_id", columnList = "eventId")
+        }
+)
 public class Event extends BaseEntity {
 
     @Id
