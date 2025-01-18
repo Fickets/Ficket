@@ -6,12 +6,11 @@ import com.example.ficketevent.domain.event.dto.request.*;
 import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.enums.Genre;
-import com.example.ficketevent.domain.event.enums.IndexingType;
 import com.example.ficketevent.domain.event.enums.OperationType;
 import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.domain.event.mapper.EventMapper;
 import com.example.ficketevent.domain.event.mapper.TicketMapper;
-import com.example.ficketevent.domain.event.messagequeue.IndexingProducer;
+import com.example.ficketevent.domain.event.messagequeue.PartialIndexingProducer;
 import com.example.ficketevent.domain.event.repository.*;
 import com.example.ficketevent.global.common.Pair;
 import com.example.ficketevent.global.result.error.ErrorCode;
@@ -70,7 +69,7 @@ public class EventService {
     private final RedisTemplate<String, Object> redisTemplate;
     @Qualifier("rankingRedisTemplate") // 랭킹용 RedisTemplate
     private final RedisTemplate<String, Object> rankingRedisTemplate;
-    private final IndexingProducer indexingProducer;
+    private final PartialIndexingProducer partialIndexingProducer;
 
 
     /**
@@ -116,7 +115,7 @@ public class EventService {
                 () -> adminServiceClient.createTotalSettlement(newEvent.getEventId()));
 
         // 8. 부분 색인 요청
-        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(savedEvent), OperationType.CREATE);
+        partialIndexingProducer.sendIndexingMessage(parsingToIndexing(savedEvent), OperationType.CREATE);
     }
 
 
@@ -242,7 +241,7 @@ public class EventService {
         deleteCache(eventId);
 
         // 7. 부분 색인 요청
-        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, parsingToIndexing(findEvent), OperationType.UPDATE);
+        partialIndexingProducer.sendIndexingMessage(parsingToIndexing(findEvent), OperationType.UPDATE);
     }
 
     // 회사 정보 업데이트
@@ -484,7 +483,7 @@ public class EventService {
         eventRepository.delete(findEvent);
 
         // 부분 색인 요청
-        indexingProducer.sendIndexingMessage(IndexingType.PARTIAL_INDEXING, String.valueOf(eventId), OperationType.DELETE);
+        partialIndexingProducer.sendIndexingMessage(String.valueOf(eventId), OperationType.DELETE);
     }
 
     /**

@@ -13,7 +13,10 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.quartz.QuartzJobBean;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,16 +24,25 @@ public class QuartzBatchJob extends QuartzJobBean {
 
     private final JobLauncher jobLauncher;
     private final Job exportEventsJob;
+    private final RedisTemplate<String, String> redisTemplate;
+
+    private static final long FULL_INDEX_TTL = 60 * 60 * 1000L; // 1시간
+    private static final String FULL_INDEXING_RESERVED = "FULL_INDEXING_RESERVED";
 
     @Override
     protected void executeInternal(@NotNull JobExecutionContext context) throws JobExecutionException {
         try {
-            // JobParameters를 설정합니다.
+            boolean isLocked = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(FULL_INDEXING_RESERVED, "true", FULL_INDEX_TTL, TimeUnit.MILLISECONDS));
+
+            if (!isLocked) {
+                log.warn("Job is already running. Skipping execution.");
+                return;
+            }
+
             JobParameters jobParameters = new JobParametersBuilder()
-                    .addLong("timestamp", System.currentTimeMillis()) // 고유 파라미터
+                    .addString("jobName", "exportEventsJob") // 동일 파라미터로 고정
                     .toJobParameters();
 
-            // Batch Job 실행
             jobLauncher.run(exportEventsJob, jobParameters);
 
             log.info("Batch Job 'exportEventsJob' successfully executed.");

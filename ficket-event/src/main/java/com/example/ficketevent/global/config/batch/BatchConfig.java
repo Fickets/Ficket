@@ -1,10 +1,8 @@
 package com.example.ficketevent.global.config.batch;
 
 import com.example.ficketevent.domain.event.entity.FailedItem;
-import com.example.ficketevent.domain.event.enums.IndexingType;
 import com.example.ficketevent.domain.event.enums.JobStatus;
-import com.example.ficketevent.domain.event.enums.OperationType;
-import com.example.ficketevent.domain.event.messagequeue.IndexingProducer;
+import com.example.ficketevent.domain.event.messagequeue.FullIndexingProducer;
 import com.example.ficketevent.domain.event.repository.EventRepository;
 import com.example.ficketevent.domain.event.repository.FailedItemRepository;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
@@ -56,14 +54,14 @@ public class BatchConfig {
     private final CSVGenerator csvGenerator;
     private final EventRepository eventRepository;
     private final AwsS3Service awsS3Service;
-    private final IndexingProducer indexingProducer;
-    private final S3CleanupJobListener s3CleanupJobListener;
+    private final FullIndexingProducer fullIndexingProducer;
+    private final PrepareJobListener prepareJobListener;
     private final FailedItemRepository failedItemRepository;
 
     @Bean
     public Job exportEventsJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                .listener(s3CleanupJobListener)
+                .listener(prepareJobListener)
                 .start(managerStep(jobRepository, taskExecutor(), transactionManager))
                 .next(retryFailedItemsStep(jobRepository, transactionManager))
                 .next(sendKafkaMessageStep(jobRepository, transactionManager))
@@ -174,7 +172,7 @@ public class BatchConfig {
         return (contribution, chunkContext) -> {
             List<String> filePaths = awsS3Service.getFiles();
             String message = String.join(",", filePaths);
-            indexingProducer.sendIndexingMessage(IndexingType.FULL_INDEXING, message, OperationType.CREATE);
+            fullIndexingProducer.sendIndexingMessage(message);
             log.info("Kafka 메시지 전송 완료: {}", message);
             return RepeatStatus.FINISHED;
         };

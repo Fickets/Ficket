@@ -22,7 +22,7 @@ public class QuartzSchedulerConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(jobDetail())
                 .withIdentity(JOB_NAME + "Trigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 2 * * ?")) // 매일 새벽 2시 실행
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 13 22 * * ?")) // 매일 새벽 2시 실행
                 .build();
     }
 }

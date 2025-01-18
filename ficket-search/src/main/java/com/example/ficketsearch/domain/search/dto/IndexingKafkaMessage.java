@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IndexingKafkaMessage {
-    private String indexingType;
     private Object payload;
     private String operationType; // "CREATE", "UPDATE", "DELETE"
 }
