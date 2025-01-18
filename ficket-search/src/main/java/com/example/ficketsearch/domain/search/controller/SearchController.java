@@ -74,17 +74,17 @@ public class SearchController {
         indexingService.restoreSnapshot();
     }
 
-    /**
-     * 스냅샷 저장소(S3) 초기 초기화 API
-     * <p>
-     * 작업자: 오형상
-     * 작업 날짜: 2025-01-05
-     * 변경 이력:
-     * 2025-01-05 오형상: 초기 작성
-     */
-    @PutMapping("/connect-s3-elasticsearch")
-    public CreateRepositoryResponse connectS3ToElasticsearch() {
-        return indexingService.registerS3Repository();
-    }
+//    /**
+//     * 스냅샷 저장소(S3) 초기 초기화 API
+//     * <p>
+//     * 작업자: 오형상
+//     * 작업 날짜: 2025-01-05
+//     * 변경 이력:
+//     * 2025-01-05 오형상: 초기 작성
+//     */
+//    @PutMapping("/connect-s3-elasticsearch")
+//    public CreateRepositoryResponse connectS3ToElasticsearch() {
+//        return indexingService.registerS3Repository();
+//    }
 
 }

@@ -1,7 +1,6 @@
 package com.example.ficketevent.domain.event.controller;
 
 import com.example.ficketevent.domain.event.dto.common.EventTitleDto;
-import com.example.ficketevent.domain.event.dto.common.TicketInfo;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoCreateDtoList;
 import com.example.ficketevent.domain.event.dto.common.TicketInfoDto;
 import com.example.ficketevent.domain.event.dto.request.EventCreateReq;
@@ -12,15 +11,10 @@ import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.enums.Genre;
 import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.domain.event.service.EventService;
-import com.example.ficketevent.global.config.scheduler.EventToCSVScheduler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Pageable;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,7 +31,6 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
-    private final EventToCSVScheduler schedulerService; // 삭제 에쩡
 
     /**
      * 행사 등록 API
@@ -350,13 +342,6 @@ public class EventController {
     ) {
         return ResponseEntity.ok(eventService.getGenreList(genre,area, period, pageable));
     }
-
-    @PostMapping("/detail/test")
-    public ResponseEntity<Void> testCsv() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
-        schedulerService.test();
-        return ResponseEntity.noContent().build();
-    }
-
 
     @GetMapping("/events/getScheduleId")
     List<Long> getScheduledId(@RequestParam Long eventId){

@@ -17,12 +17,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +37,7 @@ public class IndexingService {
     private final ElasticsearchClient elasticsearchClient;
     private final ObjectMapper objectMapper;
     private final IndexingRepository indexingRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private static final int BULK_SIZE = 2000;
     private static final String INDEX_NAME = "event-data";
@@ -45,6 +45,7 @@ public class IndexingService {
     private static final String SNAPSHOT_STORAGE_NAME = "snapshot_storage";
     private static final String SNAPSHOT_S3_BUCKET = "ficket-event-content";
     private static final String SNAPSHOT_NAME = "snapshot_latest";
+    private static final String INITIALIZATION_KEY = "elasticsearch_initialization_date";
 
     /**
      * 인덱스를 생성하는 메서드로, Edge Ngram 설정을 포함한 인덱스를 생성합니다.
@@ -112,14 +113,48 @@ public class IndexingService {
      * @param payload - S3에서 파일을 다운로드할 URL List
      */
     public void handleFullIndexing(String payload) {
+        initializeIndexing(); // 하루에 한 번만 실행되는 초기화 작업
 
-        deleteExistingSnapshot(); // 기존 스냅샷 삭제
+        // 요청마다 실행되는 로직
+        processPayload(payload);
+    }
 
-        backupCurrentData(); // 현재 상태를 스냅샷으로 S3에 저장
+    private void initializeIndexing() {
+        String today = LocalDate.now().toString();
+        String lastDate = redisTemplate.opsForValue().get(INITIALIZATION_KEY);
 
-        deleteExistingData(); // 기존 데이터 삭제
+        if (lastDate == null || !lastDate.equals(today)) {
+            synchronized (this) { // 동시성 제어
+                lastDate = redisTemplate.opsForValue().get(INITIALIZATION_KEY);
+                if (lastDate == null || !lastDate.equals(today)) {
+                    try {
+                        registerS3Repository(); // S3 저장소 설정
+                        deleteExistingSnapshot(); // 기존 스냅샷 삭제
+                        backupCurrentData(); // 현재 상태를 스냅샷으로 S3에 저장
+                        deleteExistingData(); // 기존 데이터 삭제
+                        createIndexIfNotExist(); // 인덱스 생성
 
-        createIndexIfNotExist(); // 인덱스 생성
+                        redisTemplate.opsForValue().set(INITIALIZATION_KEY, today);
+                        log.info("Redis 기반 인덱싱 초기화 작업이 완료되었습니다.");
+                    } catch (Exception e) {
+                        log.error("초기화 작업 중 오류 발생: {}", e.getMessage(), e);
+                        throw new IllegalStateException("인덱싱 초기화에 실패했습니다.", e);
+                    }
+                } else {
+                    log.info("오늘은 이미 초기화 작업이 Redis에 의해 처리되었습니다.");
+                }
+            }
+        } else {
+            log.info("오늘은 이미 초기화 작업이 Redis에 의해 처리되었습니다.");
+        }
+    }
+
+    /**
+     * 주어진 S3 URL에서 CSV 파일을 다운로드하고, 이를 Elasticsearch에 삽입합니다.
+     *
+     * @param payload - S3에서 파일을 다운로드할 URL List
+     */
+    public void processPayload(String payload) {
 
         String[] s3UrlList = payload.split(",");
 
@@ -166,7 +201,6 @@ public class IndexingService {
             }
         }
     }
-
 
 
     private void createIndexIfNotExist() {
@@ -575,7 +609,7 @@ public class IndexingService {
     }
 
 
-    public CreateRepositoryResponse registerS3Repository() {
+    private CreateRepositoryResponse registerS3Repository() {
         try {
 
             Repository repository = new Repository.Builder()

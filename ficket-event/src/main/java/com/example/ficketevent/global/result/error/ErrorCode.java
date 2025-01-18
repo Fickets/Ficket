@@ -49,6 +49,8 @@ public enum ErrorCode {
     SEAT_RESERVED_BY_ANOTHER_USER(409, "해당 좌석은 다른 고객에 의해 선점됐습니다."),
     SEAT_NOT_RESERVED(409, "해당 좌석은 선점 상태가 아닙니다."),
 
+
+    FAILED_ITEM_NOT_FOUND(404, "실패한 JOB를 찾을 수 없습니다."),
     ;
 
     private final int status;
