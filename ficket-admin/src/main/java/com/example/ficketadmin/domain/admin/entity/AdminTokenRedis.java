@@ -13,7 +13,7 @@ import org.springframework.data.redis.core.TimeToLive;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@RedisHash(value = "memberToken")
+@RedisHash(value = "adminToken")
 public class AdminTokenRedis {
 
     @Id
