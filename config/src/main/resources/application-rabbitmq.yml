@@ -12,7 +12,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: rabbitmq-server
+      on-profile: rabbitmq-prod
   rabbitmq:
     host: ${rabbitmq.host}
     port: ${rabbitmq.port}

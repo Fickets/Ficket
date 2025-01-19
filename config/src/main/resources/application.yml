@@ -5,17 +5,17 @@ spring:
   config:
     import: "optional:configserver:"
   profiles:
-    active: local
+    active: prod
     group:
       local:
         - rabbitmq-local
       server:
-        - rabbitmq-server
+        - rabbitmq-prod
     include:
       - rabbitmq
       - key
   application:
-    name: config-service
+    name: config-prod
   cloud:
     config:
       server:
