@@ -171,12 +171,24 @@ public class BatchConfig {
     public Tasklet sendKafkaMessageTasklet() {
         return (contribution, chunkContext) -> {
             List<String> filePaths = awsS3Service.getFiles();
-            String message = String.join(",", filePaths);
-            fullIndexingProducer.sendIndexingMessage(message);
-            log.info("Kafka 메시지 전송 완료: {}", message);
+            int batchSize = 2000;
+
+            // 2000개 단위로 나누기
+            for (int i = 0; i < filePaths.size(); i += batchSize) {
+                List<String> batch = filePaths.subList(i, Math.min(i + batchSize, filePaths.size()));
+                String message = String.join(",", batch);
+
+                // 마지막 메시지인지 확인
+                boolean isLastMessage = (i + batchSize >= filePaths.size());
+
+                // Kafka 메시지 전송
+                fullIndexingProducer.sendIndexingMessage(message, isLastMessage);
+            }
+
             return RepeatStatus.FINISHED;
         };
     }
+
 
     @Bean
     public SkipListener<Long, Long> skipListener() {
@@ -268,4 +280,7 @@ public class BatchConfig {
         executor.initialize();
         return executor;
     }
+
+
+
 }

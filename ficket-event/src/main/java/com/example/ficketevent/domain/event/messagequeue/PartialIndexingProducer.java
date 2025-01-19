@@ -28,7 +28,7 @@ public class PartialIndexingProducer {
     public void sendIndexingMessage(Object payload, OperationType operationType) {
         try {
             String message = objectMapper.writeValueAsString(
-                    new IndexingMessage(payload, operationType)
+                    new PartialIndexingMessage(payload, operationType)
             );
 
             kafkaTemplate.send(TOPIC_NAME, message);
@@ -41,11 +41,11 @@ public class PartialIndexingProducer {
     }
 
     @Getter
-    private static class IndexingMessage {
+    private static class PartialIndexingMessage {
         private final Object payload;
         private final String operationType; // "CREATE", "UPDATE", "DELETE"
 
-        public IndexingMessage(Object payload, OperationType operationType) {
+        public PartialIndexingMessage(Object payload, OperationType operationType) {
             this.payload = payload;
             this.operationType = operationType.name();
         }

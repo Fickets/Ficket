@@ -1,6 +1,7 @@
 package com.example.ficketsearch.domain.search.messageQueue;
 
-import com.example.ficketsearch.domain.search.dto.IndexingKafkaMessage;
+import com.example.ficketsearch.domain.search.dto.FullIndexingMessage;
+import com.example.ficketsearch.domain.search.dto.PartialIndexingMessage;
 import com.example.ficketsearch.domain.search.service.IndexingService;
 import com.example.ficketsearch.domain.search.service.LockingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,10 +24,8 @@ public class IndexingConsumer {
     private final LockingService lockingService;
     private final IndexingService indexingService;
 
-    private static final String INDEXING_LOCK = "Full_Indexing_Lock";
-    private static final long FULL_INDEX_TTL = 60 * 60 * 1000L; // 1시간
-    private static final String FULL_INDEXING_RESERVED = "FULL_INDEXING_RESERVED";
-    private static final BlockingQueue<IndexingKafkaMessage> queue = new LinkedBlockingQueue<>();
+    private static final String INDEXING_LOCK = "FULL_INDEXING_LOCK";
+    private static final BlockingQueue<PartialIndexingMessage> queue = new LinkedBlockingQueue<>();
 
     @KafkaListener(
             topics = "full-indexing",
@@ -34,33 +33,33 @@ public class IndexingConsumer {
             concurrency = "1"                // 단일 컨슈머 실행
     )
     public void handleFullIndexing(String message) {
-
-        log.info("Kafka 메시지 수신: {}", message);
-        processFullIndexing(message);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            FullIndexingMessage fullIndexingMessage = mapper.readValue(message, FullIndexingMessage.class);
+            processFullIndexing(fullIndexingMessage);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
-    private void processFullIndexing(String message) {
-        try {
-            log.info("전체 색인 작업을 시작합니다. Message: {}", message);
-            lockingService.executeWithLock(INDEXING_LOCK, FULL_INDEX_TTL, () -> {
-                indexingService.handleFullIndexing(message);
-                log.info("전체 색인 작업이 완료되었습니다. Message: {}", message);
-            });
+    private void processFullIndexing(FullIndexingMessage message) {
+        log.info("전체 색인 작업을 시작합니다. Message: {}", message);
+        indexingService.handleFullIndexing(message.getS3UrlList());
 
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("전체 색인 작업 중단: {}", e.getMessage(), e);
-        } finally {
-            lockingService.release(FULL_INDEXING_RESERVED);
-            processQueuedMessages(); // 대기 메시지 처리 호출
+        if (message.isLastMessage()) {
+            log.info("마지막 메세지 잆니다. Message: {}", message);
+            lockingService.releaseLock(INDEXING_LOCK);
+            processQueuedMessages();
         }
+
+        log.info("전체 색인 작업이 완료되었습니다. Message: {}", message);
     }
 
     private void processQueuedMessages() {
         log.info("대기 중인 메시지 처리 시작...");
         while (!queue.isEmpty()) {
-            IndexingKafkaMessage message = queue.poll();
+            PartialIndexingMessage message = queue.poll();
             if (message != null) {
                 processPartialIndexing(message);
             }
@@ -76,23 +75,23 @@ public class IndexingConsumer {
     public void handlePartialIndexing(String message) {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            IndexingKafkaMessage indexingKafkaMessage = mapper.readValue(message, IndexingKafkaMessage.class);
-            log.info("부분 색인 Kafka 메시지 수신: {}", indexingKafkaMessage);
+            PartialIndexingMessage partialIndexingMessage = mapper.readValue(message, PartialIndexingMessage.class);
+            log.info("부분 색인 Kafka 메시지 수신: {}", partialIndexingMessage);
 
             if (isFullIndexingInProgress()) {
-                log.info("전체 색인 작업 진행 중. 부분 색인 메시지를 대기 큐로 추가: {}", indexingKafkaMessage);
-                queue.add(indexingKafkaMessage); // 대기 큐에 추가
+                log.info("전체 색인 작업 진행 중. 부분 색인 메시지를 대기 큐로 추가: {}", partialIndexingMessage);
+                queue.add(partialIndexingMessage); // 대기 큐에 추가
                 return;
             }
 
-            processPartialIndexing(indexingKafkaMessage); // 즉시 처리
+            processPartialIndexing(partialIndexingMessage); // 즉시 처리
         } catch (JsonProcessingException e) {
             log.error("Kafka 메시지 처리 중 오류 발생: {}", message, e);
             throw new RuntimeException("Kafka 메시지 처리 실패", e);
         }
     }
 
-    private void processPartialIndexing(IndexingKafkaMessage message) {
+    private void processPartialIndexing(PartialIndexingMessage message) {
         log.info("부분 색인 작업을 시작합니다. 작업 유형: {}", message.getOperationType());
         String operationType = message.getOperationType();
         switch (operationType) {
@@ -118,18 +117,24 @@ public class IndexingConsumer {
         log.info("부분 색인 작업이 완료되었습니다. 작업 유형: {}", message.getOperationType());
     }
 
+    // 전체 색인 실행 상태 확인
     private boolean isFullIndexingInProgress() {
-        // 전체 색인 예약 상태 확인
-        if (lockingService.isExist(FULL_INDEXING_RESERVED)) {
-            return true;
+        return (lockingService.isLockAcquired(INDEXING_LOCK));
+    }
+
+    @KafkaListener(
+            topics = "full-indexing-dlq",
+            groupId = "full-indexing-dlq-group", // 컨슈머 그룹 고정
+            concurrency = "1"                // 단일 컨슈머 실행
+    )
+    public void handleFailFullIndexing(String message) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            FullIndexingMessage fullIndexingMessage = mapper.readValue(message, FullIndexingMessage.class);
+            log.warn("DLQ 메세지 : {}", fullIndexingMessage);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
-
-        // 전체 색인 실행 상태 확인 (선택 사항)
-//        if (lockingService.isLock(INDEXING_LOCK)) {
-//            return true;
-//        }
-
-        return false;
     }
 
 }

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IndexingKafkaMessage {
-    private Object payload;
-    private String operationType; // "CREATE", "UPDATE", "DELETE"
+public class FullIndexingMessage {
+    private String s3UrlList;
+    private boolean isLastMessage;
 }
