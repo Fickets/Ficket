@@ -70,7 +70,7 @@ public class QueueController {
      */
     @PostMapping("/{eventId}/occupy-slot")
     public Mono<Boolean> occupySlot(@RequestHeader("X-User-Id") String userId, @PathVariable String eventId) {
-        return Mono.just(queueService.occupySlot(userId, eventId));
+        return queueService.occupySlot(userId, eventId);
     }
 
 
@@ -98,9 +98,7 @@ public class QueueController {
      */
     @PostMapping("/{eventId}/initialize-slots")
     public Mono<Void> initializeSlots(@PathVariable String eventId, @RequestParam int maxSlots) {
-        queueService.setMaxSlots(eventId, maxSlots);
-        log.info("이벤트 ID={}에 대해 슬롯 초기화 완료. 최대 슬롯 수={}", eventId, maxSlots);
-        return Mono.empty();
+        return queueService.setMaxSlots(eventId, maxSlots);
     }
 
 
@@ -114,9 +112,7 @@ public class QueueController {
      */
     @DeleteMapping("/{eventId}/release-slot")
     public Mono<Void> releaseSlot(@PathVariable String eventId) {
-        queueService.releaseSlot(eventId);
-        log.info("이벤트 ID={}에 대해 슬롯 해제 완료.", eventId);
-        return Mono.empty();
+        return queueService.releaseSlot(eventId);
     }
 
     /**
@@ -130,9 +126,9 @@ public class QueueController {
     @PostMapping("/{userId}/send-order-status")
     public Mono<Void> sendOrderStatus(@PathVariable Long userId, @RequestParam("orderStatus") String orderStatus) {
         if (orderStatus.equals("Paid")) {
-            clientNotificationService.notifyUser(String.valueOf(userId), WorkStatus.ORDER_PAID);
+            return clientNotificationService.notifyUser(String.valueOf(userId), WorkStatus.ORDER_PAID);
         } else if (orderStatus.equals("Failed")) {
-            clientNotificationService.notifyUser(String.valueOf(userId), WorkStatus.ORDER_FAILED);
+            return clientNotificationService.notifyUser(String.valueOf(userId), WorkStatus.ORDER_FAILED);
         }
         return Mono.empty();
     }

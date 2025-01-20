@@ -42,8 +42,9 @@ dependencies {
 	// Reactor Test (WebFlux 비동기 테스트용)
 	testImplementation 'io.projectreactor:reactor-test'
 
+	// websocket 구성에 있어서 webflux랑 사용하려면 websocket 의존성을 추가할 필요는 없었다.
 	// WebSocket
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+//	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 	// lombok
 	compileOnly 'org.projectlombok:lombok'

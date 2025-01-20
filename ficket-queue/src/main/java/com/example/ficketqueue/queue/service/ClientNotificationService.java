@@ -4,10 +4,10 @@ import com.example.ficketqueue.queue.enums.WorkStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.reactive.socket.WebSocketMessage;
+import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -35,18 +35,16 @@ public class ClientNotificationService {
     /**
      * 사용자에게 WebSocket 메시지 전송
      */
-    public void notifyUser(String userId, WorkStatus workStatus) {
+    public Mono<Void> notifyUser(String userId, WorkStatus workStatus) {
         WebSocketSession session = activeSessions.get(userId);
 
         if (session != null && session.isOpen()) {
-            try {
-                session.sendMessage(new TextMessage(workStatus.toString()));
-                log.info("사용자 {}에게 메시지 전송: {}", userId, workStatus);
-            } catch (IOException e) {
-                log.error("사용자 {}에게 메시지 전송 중 오류 발생", userId, e);
-            }
+            WebSocketMessage message = session.textMessage(workStatus.toString());
+            log.info("사용자 {}에게 메시지 전송: {}", userId, workStatus);
+            return session.send(Mono.just(message)).then();
         } else {
             log.warn("사용자 {}의 WebSocket 세션이 유효하지 않습니다.", userId);
+            return Mono.empty();
         }
     }
 
@@ -57,12 +55,7 @@ public class ClientNotificationService {
     public void removeAndCreateNewSession(String userId, WebSocketSession session) {
         WebSocketSession existingSession = activeSessions.get(userId);
         if (existingSession != null) {
-            try {
-                // 기존 세션이 있다면 닫음
-                existingSession.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            existingSession.close().subscribe(); // 기존 세션 닫기 (Reactive 방식)
         }
 
         // 새로운 세션으로 대체

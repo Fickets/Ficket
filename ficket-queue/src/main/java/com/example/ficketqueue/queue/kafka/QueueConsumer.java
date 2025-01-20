@@ -1,9 +1,11 @@
 package com.example.ficketqueue.queue.kafka;
 
 import com.example.ficketqueue.global.utils.KeyHelper;
+import com.example.ficketqueue.queue.service.QueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,9 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class QueueConsumer {
 
-    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
+    @Qualifier("queueReactiveRedisTemplate")
+    private final ReactiveRedisTemplate<String, String> queueReactiveRedisTemplate;
+    private final QueueService queueService;
 
     @KafkaListener(topicPattern = "ficket-queue-.*", groupId = "ticketing-group", concurrency = "3")
     public void consume(ConsumerRecord<String, String> record) {
@@ -33,7 +37,7 @@ public class QueueConsumer {
 
     private void addToRedisZSetWithRetry(String redisKey, String userId, String eventId) {
         double score = System.currentTimeMillis(); // 현재 시간을 점수로 사용
-        reactiveRedisTemplate.opsForZSet()
+        queueReactiveRedisTemplate.opsForZSet()
                 .add(redisKey, userId, score)
                 .doOnSuccess(added -> {
                     if (Boolean.TRUE.equals(added)) {

@@ -21,4 +21,12 @@ public class KeyHelper {
         return KeyType.FICKET_WORK_SPACE_REDIS_KEY.format(eventId, userId);
     }
 
+    public static String getActiveSlotKey(String eventId) {
+        return KeyType.SLOT_ACTIVE_KEY.format(eventId);
+    }
+
+    public static String getMaxSlotKey(String eventId) {
+        return KeyType.SLOT_MAX_KEY.format(eventId);
+    }
+
 }

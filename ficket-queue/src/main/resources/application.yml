@@ -12,6 +12,7 @@ spring:
     base-url: http://localhost:9411
     enabled: true
 
+
 resilience4j:
   circuitbreaker:
     configs:
@@ -34,7 +35,7 @@ resilience4j:
 logging:
   level:
     com.example.ficketevent.domain.event.client: DEBUG
-    org.springframework.websocket: DEBUG
+    org.springframework.web.reactive.socket: DEBUG
   pattern:
     correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 

@@ -22,7 +22,6 @@ import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 대기열 관리 서비스 클래스.
@@ -34,27 +33,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class QueueService {
     private static final Long WORKSPACE_TTL_SECONDS = 20 * 60L;
+    private static final int INIT_SLOT_COUNT = 100;
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final QueueProducer queueProducer;
     private final QueueMapper queueMapper;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final EventServiceClient eventServiceClient;
-    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
+    @Qualifier("queueReactiveRedisTemplate")
+    private final ReactiveRedisTemplate<String, String> queueReactiveRedisTemplate;
     @Qualifier("redisTemplate")
-    private final RedisTemplate<String, String> redisTemplate;
-
-    /**
-     * 현재 활성 슬롯 수.
-     * 이벤트별로 작업 중인 슬롯 수를 관리합니다.
-     */
-    private final ConcurrentHashMap<String, Integer> activeSlots = new ConcurrentHashMap<>();
-
-    /**
-     * 최대 작업 가능한 슬롯 수.
-     * 이벤트별로 최대 작업 가능한 슬롯 수를 저장합니다.
-     */
-    private final ConcurrentHashMap<String, Integer> maxSlots = new ConcurrentHashMap<>();
+    private final RedisTemplate<String, String> workRedisTemplate;
+    @Qualifier("slotReactiveRedisTemplate")
+    private final ReactiveRedisTemplate<String, String> slotReactiveRedisTemplate;
 
     /**
      * 최대 작업 가능한 슬롯 수 설정.
@@ -62,9 +53,11 @@ public class QueueService {
      * @param eventId 이벤트 ID
      * @param max     최대 작업 가능한 슬롯 수
      */
-    public void setMaxSlots(String eventId, int max) {
-        maxSlots.put(eventId, max);
-        activeSlots.putIfAbsent(eventId, 0);
+    public Mono<Void> setMaxSlots(String eventId, int max) {
+        String maxSlotKey = KeyHelper.getMaxSlotKey(eventId);
+        return slotReactiveRedisTemplate.opsForValue()
+                .set(maxSlotKey, String.valueOf(max))
+                .then();
     }
 
     /**
@@ -73,54 +66,81 @@ public class QueueService {
      * @param eventId 이벤트 ID
      * @return 작업 가능한 슬롯이 있으면 true, 없으면 false 반환
      */
-    public boolean canEnterQueue(String eventId) {
-        int max = maxSlots.getOrDefault(eventId, 0);
-        int active = activeSlots.getOrDefault(eventId, 0);
-        return active < max;
+    public Mono<Boolean> canEnterQueue(String eventId) {
+        String activeKey = KeyHelper.getActiveSlotKey(eventId);
+        String maxKey = KeyHelper.getMaxSlotKey(eventId);
+
+        return Mono.zip(
+                        slotReactiveRedisTemplate.opsForValue().get(activeKey).defaultIfEmpty("0").map(Integer::parseInt),
+                        slotReactiveRedisTemplate.opsForValue().get(maxKey).defaultIfEmpty("0").map(Integer::parseInt)
+                ).map(tuple -> tuple.getT1() < tuple.getT2()) // active < max
+                .doOnNext(canEnter -> log.info("슬롯 확인: eventId={}, canEnter={}", eventId, canEnter));
     }
 
     /**
      * 슬롯 점유.
-     * 작업을 시작할 때 슬롯을 점유합니다.
      *
      * @param eventId 이벤트 ID
-     * @return 슬롯 점유 성공 시 true, 실패 시 false 반환
+     * @param userId  사용자 ID
+     * @return 점유 성공 시 true 반환
      */
-    public synchronized boolean occupySlot(String userId, String eventId) {
-        if (canEnterQueue(eventId)) {
-            activeSlots.put(eventId, activeSlots.getOrDefault(eventId, 0) + 1);
-            enterWorkSpace(userId, eventId);
-            return true;
-        }
-        return false;
+    public Mono<Boolean> occupySlot(String userId, String eventId) {
+        String activeKey = KeyHelper.getActiveSlotKey(eventId);
+        String maxKey = KeyHelper.getMaxSlotKey(eventId);
+
+        return slotReactiveRedisTemplate.opsForValue()
+                .increment(activeKey) // 현재 슬롯 증가
+                .flatMap(active -> slotReactiveRedisTemplate.opsForValue().get(maxKey).map(Integer::parseInt)
+                        .flatMap(max -> {
+                            if (active > max) {
+                                // 슬롯 초과 시 롤백
+                                return slotReactiveRedisTemplate.opsForValue()
+                                        .decrement(activeKey)
+                                        .thenReturn(false);
+                            }
+                            // 작업 공간 생성
+                            enterWorkSpace(userId, eventId);
+                            return Mono.just(true);
+                        }))
+                .doOnNext(success -> log.info("슬롯 점유 결과: eventId={}, userId={}, success={}", eventId, userId, success));
     }
 
     /**
      * 슬롯 해제.
-     * 작업이 끝난 후 슬롯을 해제합니다.
      *
      * @param eventId 이벤트 ID
      */
-    public synchronized void releaseSlot(String eventId) {
-        activeSlots.put(eventId, Math.max(0, activeSlots.getOrDefault(eventId, 0) - 1));
+    public Mono<Void> releaseSlot(String eventId) {
+        String activeKey = KeyHelper.getActiveSlotKey(eventId);
+
+        return slotReactiveRedisTemplate.opsForValue()
+                .decrement(activeKey)
+                .then();
     }
 
-    public synchronized void releaseSlotByUserId(String userId) {
+    /**
+     * 슬롯 해제 (사용자 기반).
+     *
+     * @param userId 사용자 ID
+     */
+    public Mono<Void> releaseSlotByUserId(String userId) {
         String eventId = findEventIdByUserId(userId);
 
         if (eventId == null) {
-            // 로그 기록
-            log.warn("사용자 {}의 eventId를 찾을 수 없습니다. 작업 슬롯 해제를 건너뜁니다.", userId);
-            return; // 아무 작업도 하지 않음
+            log.warn("사용자 {}의 eventId를 찾을 수 없습니다. 슬롯 해제를 건너뜁니다.", userId);
+            return Mono.empty();
         }
 
-        // eventId가 있는 경우 작업 슬롯 업데이트
-        activeSlots.put(eventId, Math.max(0, activeSlots.getOrDefault(eventId, 0) - 1));
-        log.info("사용자 {}의 작업 슬롯이 성공적으로 해제되었습니다. eventId: {}", userId, eventId);
+        String activeKey = KeyHelper.getActiveSlotKey(eventId);
 
-        String ficketWorkSpace = KeyHelper.getFicketWorkSpace(eventId, userId);
-        redisTemplate.delete(ficketWorkSpace);
+        return slotReactiveRedisTemplate.opsForValue()
+                .decrement(activeKey)
+                .then(Mono.fromRunnable(() -> {
+                    String workspaceKey = KeyHelper.getFicketWorkSpace(eventId, userId);
+                    workRedisTemplate.delete(workspaceKey);
+                }));
     }
+
 
     /**
      * 대기열에 사용자 추가.
@@ -144,9 +164,9 @@ public class QueueService {
     public Mono<MyQueueStatusResponse> getMyQueueStatus(String userId, String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
 
-        return reactiveRedisTemplate.opsForZSet()
+        return queueReactiveRedisTemplate.opsForZSet()
                 .size(redisKey)
-                .flatMap(totalQueue -> reactiveRedisTemplate.opsForZSet()
+                .flatMap(totalQueue -> queueReactiveRedisTemplate.opsForZSet()
                         .rank(redisKey, userId)
                         .map(rank -> {
                             long position = rank + 1; // 0-based index → 1-based index
@@ -170,7 +190,7 @@ public class QueueService {
      */
     public Mono<Void> leaveQueue(String userId, String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        return reactiveRedisTemplate.opsForZSet()
+        return queueReactiveRedisTemplate.opsForZSet()
                 .remove(redisKey, userId)
                 .flatMap(count -> {
                     if (count > 0) {
@@ -192,7 +212,7 @@ public class QueueService {
      */
     public Mono<Long> getUserPosition(String userId, String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        return reactiveRedisTemplate.opsForZSet()
+        return queueReactiveRedisTemplate.opsForZSet()
                 .rank(redisKey, userId)
                 .defaultIfEmpty(-1L)
                 .map(rank -> rank >= 0 ? rank + 1 : -1L); // 0-based index → 1-based index
@@ -206,7 +226,7 @@ public class QueueService {
      */
     public Mono<Long> getQueueSize(String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        return reactiveRedisTemplate.opsForZSet().size(redisKey);
+        return queueReactiveRedisTemplate.opsForZSet().size(redisKey);
     }
 
     /**
@@ -217,10 +237,38 @@ public class QueueService {
      */
     public Mono<Boolean> checkCanEnter(String eventId) {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
-        return reactiveRedisTemplate.opsForZSet()
+        return queueReactiveRedisTemplate.opsForZSet()
                 .size(redisKey)
                 .publishOn(Schedulers.boundedElastic())
-                .map(queueSize -> queueSize == 0 && canEnterQueue(eventId));
+                .flatMap(queueSize -> {
+                    if (queueSize == 0) {
+                        return canEnterQueue(eventId); // canEnterQueue 호출
+                    }
+                    return Mono.just(false); // 대기열 크기가 0이 아니면 즉시 false 반환
+                });
+    }
+
+    public Mono<Void> deleteSlot(String eventId) {
+        String activeKey = KeyHelper.getActiveSlotKey(eventId);
+        String maxKey = KeyHelper.getMaxSlotKey(eventId);
+
+        return slotReactiveRedisTemplate.opsForValue().get(activeKey)
+                .defaultIfEmpty("0")
+                .zipWith(slotReactiveRedisTemplate.opsForValue().get(maxKey).defaultIfEmpty("0"))
+                .flatMap(tuple -> {
+                    long activeCount = Long.parseLong(tuple.getT1());
+                    long maxCount = Long.parseLong(tuple.getT2());
+
+                    if (activeCount == 0 && maxCount == INIT_SLOT_COUNT) {
+                        return slotReactiveRedisTemplate.delete(activeKey)
+                                .then(slotReactiveRedisTemplate.delete(maxKey)) // Mono<Long> -> Mono<Void>
+                                .then(); // 최종적으로 Mono<Void> 반환
+                    } else {
+                        log.info("슬롯 삭제 조건 불일치: activeKey={}, activeCount={}, maxKey={}, maxCount={}",
+                                activeKey, activeCount, maxKey, maxCount);
+                        return Mono.empty(); // Mono<Void> 반환
+                    }
+                });
     }
 
     /**
@@ -234,9 +282,14 @@ public class QueueService {
         );
 
         for (Long yesterdayOpenEventId : yesterdayOpenEvents) {
-            String kafkaTopic = KeyHelper.getFicketKafkaQueue(String.valueOf(yesterdayOpenEventId));
-            kafkaTemplate.send(kafkaTopic, null);
-            log.info("카프카 토픽 삭제: {}", kafkaTopic);
+            deleteSlot(String.valueOf(yesterdayOpenEventId))
+                    .doOnSuccess(unused -> {
+                        log.info("슬롯 삭제 eventId: {}", yesterdayOpenEventId);
+                        String kafkaTopic = KeyHelper.getFicketKafkaQueue(String.valueOf(yesterdayOpenEventId));
+                        log.info("카프카 토픽 삭제: {}", kafkaTopic);
+                    })
+                    .doOnError(error -> log.error("슬롯 삭제 실패: 이벤트 ID={}, 에러={}", yesterdayOpenEventId, error.getMessage()))
+                    .subscribe();
         }
 
         List<Long> todayOpenEvents = CircuitBreakerUtils.executeWithCircuitBreaker(
@@ -250,22 +303,24 @@ public class QueueService {
             kafkaTemplate.send(kafkaTopic, null);
             log.info("카프카 토픽 생성: {}", kafkaTopic);
 
-            setMaxSlots(String.valueOf(todayOpenEventId), 100); // 예시로 최대 100 슬롯 설정
-            log.info("슬롯 초기화 완료: 이벤트 ID={}, 최대 슬롯=100", todayOpenEventId);
+            setMaxSlots(String.valueOf(todayOpenEventId), INIT_SLOT_COUNT) // 최대 슬롯 100 설정
+                    .doOnSuccess(unused -> log.info("슬롯 초기화 완료: 이벤트 ID={}, 최대 슬롯={}", todayOpenEventId, INIT_SLOT_COUNT))
+                    .doOnError(error -> log.error("슬롯 초기화 실패: 이벤트 ID={}, 에러={}", todayOpenEventId, error.getMessage()))
+                    .subscribe();
         }
     }
 
 
     private void enterWorkSpace(String userId, String eventId) {
         String redisKey = KeyHelper.getFicketWorkSpace(eventId, userId);
-        redisTemplate.opsForValue().set(redisKey, "active", Duration.ofSeconds(WORKSPACE_TTL_SECONDS));
+        workRedisTemplate.opsForValue().set(redisKey, "active", Duration.ofSeconds(WORKSPACE_TTL_SECONDS));
         log.info("사용자가 작업 공간에 진입했습니다: 사용자 ID={}, 이벤트 ID={}, TTL={}초",
                 userId, eventId, WORKSPACE_TTL_SECONDS);
     }
 
     private String findEventIdByUserId(String userId) {
         // Redis SCAN 명령 실행
-        Set<String> keys = redisTemplate.keys("ficket:workspace:*:" + userId);
+        Set<String> keys = workRedisTemplate.keys("ficket:workspace:*:" + userId);
 
         if (keys == null || keys.isEmpty()) {
             return null; // 키가 없으면 null 반환

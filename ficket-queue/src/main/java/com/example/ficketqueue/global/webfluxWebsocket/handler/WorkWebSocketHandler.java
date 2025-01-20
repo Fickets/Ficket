@@ -1,16 +1,16 @@
-package com.example.ficketqueue.global.websocket;
+package com.example.ficketqueue.global.webfluxWebsocket.handler;
 
+import com.example.ficketqueue.global.utils.WebSocketUrlParser;
 import com.example.ficketqueue.queue.service.ClientNotificationService;
 import com.example.ficketqueue.queue.service.QueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Mono;
 
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -18,20 +18,20 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MyWorkWebSocketHandler extends TextWebSocketHandler {
+public class WorkWebSocketHandler implements WebSocketHandler {
 
     private final ClientNotificationService clientNotificationService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
     private final QueueService queueService;
 
+    @NotNull
     @Override
-    public void afterConnectionEstablished(@NotNull WebSocketSession session) throws Exception {
-        String userId = session.getHandshakeHeaders().getFirst("X-User-Id");
+    public Mono<Void> handle(WebSocketSession session) {
+        String userId = session.getHandshakeInfo().getHeaders().getFirst("X-User-Id");
 
         if (userId == null || userId.isEmpty()) {
             log.warn("X-User-Id 헤더가 존재하지 않습니다. 세션 ID: {}", session.getId());
-            session.close();
-            return;
+            return session.close();
         }
 
         // 기존 세션 정보 확인 및 복구
@@ -42,28 +42,25 @@ public class MyWorkWebSocketHandler extends TextWebSocketHandler {
             clientNotificationService.registerSession(userId, session);
             log.info("사용자 {}의 새 WebSocket 연결이 설정되었습니다.", userId);
         }
+
+        return session.receive()
+                .doFinally(signalType -> handleConnectionClosed(session))
+                .then();
     }
 
-
-    @Override
-    public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) {
-        String userId = parsingUserId(session);
+    private void handleConnectionClosed(WebSocketSession session) {
+        String userId = WebSocketUrlParser.getInfoFromUri(session);
         // 세션을 즉시 제거
         clientNotificationService.removeSession(userId);
 
-        // 지연 삭제 처리
+        // 5초 지연 후 슬롯 해제 처리
         scheduler.schedule(() -> {
             if (!clientNotificationService.isUserSessionExists(userId)) {
-                queueService.releaseSlotByUserId(userId);
-                log.info("5초 동안 재연결이 없어 사용자 {}의 WebSocket 세션이 최종적으로 제거되었습니다.", userId);
+                queueService.releaseSlotByUserId(userId)
+                        .doOnSuccess(unused -> log.info("사용자 {}의 슬롯이 해제되었습니다.", userId))
+                        .doOnError(e -> log.error("슬롯 해제 중 오류 발생: 사용자 {}, 오류 {}", userId, e.getMessage()))
+                        .subscribe(); // 비동기 실행
             }
-        }, 5, TimeUnit.SECONDS); // 10초 대기
+        }, 5, TimeUnit.SECONDS); // 5초 지연
     }
-
-    private String parsingUserId(WebSocketSession session) {
-        String uri = Objects.requireNonNull(session.getUri()).toString();
-        String[] parts = uri.split("/");
-        return parts[parts.length - 1];
-    }
-
 }

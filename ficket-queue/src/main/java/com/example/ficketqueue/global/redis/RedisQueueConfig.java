@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -21,16 +20,14 @@ public class RedisQueueConfig {
     private int port;
 
     // Redis Connection 설정
-    @Bean(name = "defaultReactiveRedisConnectionFactory")
-    @Primary
-    public ReactiveRedisConnectionFactory reactiveRedisConnectionFactory() {
+    @Bean(name = "queueReactiveRedisConnectionFactory")
+    public ReactiveRedisConnectionFactory queueReactiveRedisConnectionFactory() {
         return new LettuceConnectionFactory(host, port); // Redis 서버 주소와 포트 설정
     }
 
     // ReactiveRedisTemplate 설정
-    @Bean(name = "reactiveRedisTemplate")
-    @Primary
-    public ReactiveRedisTemplate<String, String> reactiveRedisTemplate(@Qualifier("defaultReactiveRedisConnectionFactory") ReactiveRedisConnectionFactory factory) {
+    @Bean(name = "queueReactiveRedisTemplate")
+    public ReactiveRedisTemplate<String, String> queueReactiveRedisTemplate(@Qualifier("queueReactiveRedisConnectionFactory") ReactiveRedisConnectionFactory factory) {
         RedisSerializationContext<String, String> serializationContext =
                 RedisSerializationContext.<String, String>newSerializationContext(new StringRedisSerializer())
                         .key(new StringRedisSerializer())    // 키 직렬화

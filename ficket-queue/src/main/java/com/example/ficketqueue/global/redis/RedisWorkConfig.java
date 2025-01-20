@@ -22,12 +22,12 @@ public class RedisWorkConfig {
     private int port;
 
     @Bean(name = "workRedisConnectionFactory")
-    public RedisConnectionFactory redisConnectionFactory() {
+    public RedisConnectionFactory workRedisConnectionFactory() {
         return new LettuceConnectionFactory(host, port);
     }
 
     @Bean(name = "redisTemplate")
-    public RedisTemplate<String, String> redisTemplate(@Qualifier("workRedisConnectionFactory") RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<String, String> workRedisTemplate(@Qualifier("workRedisConnectionFactory") RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
