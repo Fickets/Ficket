@@ -34,12 +34,8 @@ public class LockingService {
      */
     public void releaseLock(String lockName) {
         RLock lock = redisson.getLock(lockName);
-        if (lock.isHeldByCurrentThread()) {
-            lock.unlock();
-            log.info("락이 해제되었습니다 - 락 이름: {}", lockName);
-        } else {
-            log.warn("현재 스레드에서 소유하지 않은 락은 해제할 수 없습니다 - 락 이름: {}", lockName);
-        }
+        lock.forceUnlock(); // Redisson은 현재 스레드가 소유하지 않는 락을 해제 할 수 없음 따라서 강제 해제 처리
+        log.info("락이 해제되었습니다 - 락 이름: {}", lockName);
     }
 
 }

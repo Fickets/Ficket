@@ -8,6 +8,7 @@ import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.*;
 import co.elastic.clients.elasticsearch.snapshot.*;
 import co.elastic.clients.util.ApiTypeHelper;
+import com.example.ficketsearch.domain.search.dto.ElasticsearchDTO;
 import com.example.ficketsearch.global.config.utils.CsvToBulkApiConverter;
 import com.example.ficketsearch.global.config.utils.S3Utils;
 import com.example.ficketsearch.domain.search.entity.PartialIndexing;
@@ -412,32 +413,64 @@ public class IndexingService {
             // PartialIndexing 객체 생성 및 operationType 설정
             PartialIndexing partialIndexing = objectMapper.convertValue(map, PartialIndexing.class);
             partialIndexing.setOperationType(operationType); // 동작 타입 설정
-            partialIndexing.setIndexed(true);
+            partialIndexing.setIndexed(true); // 초기 상태는 true로 설정
 
             indexingRepository.save(partialIndexing)
                     .doOnSuccess(saved -> {
                         try {
-                            // Elasticsearch 색인 작업
-                            IndexRequest<Map<String, Object>> request = IndexRequest.of(builder -> builder.index(INDEX_NAME).document(map));
+                            // MongoDB 저장된 객체를 Elasticsearch 색인 작업에 사용
+                            ElasticsearchDTO elasticsearchDTO = objectMapper.convertValue(partialIndexing, ElasticsearchDTO.class);
+                            IndexRequest<ElasticsearchDTO> request = IndexRequest.of(builder ->
+                                    builder.index(INDEX_NAME).document(elasticsearchDTO));
                             IndexResponse response = elasticsearchClient.index(request);
                             log.info("Elasticsearch에 문서가 생성되었습니다: {}, 결과: {}", eventId, response.result());
                         } catch (Exception e) {
                             log.error("Elasticsearch 색인 실패: {}", e.getMessage());
-
                             // 색인 실패 시 상태를 false로 변경
                             saved.setIndexed(false);
                             indexingRepository.save(saved).subscribe();
                         }
                     })
-                    .doOnError(e -> {
-                        log.error("MongoDB 저장 실패: {}", e.getMessage());
-                    })
+                    .doOnError(e -> log.error("MongoDB 저장 실패: {}", e.getMessage()))
                     .subscribe();
         } catch (Exception e) {
-            log.error("Elasticsearch에 문서 생성 실패: {}", e.getMessage(), e);
+            log.error("문서 생성 실패: {}", e.getMessage(), e);
             throw new RuntimeException("문서 생성 실패", e);
         }
     }
+//    public void handlePartialIndexingCreate(Map<String, Object> map, String operationType) {
+//        try {
+//            String eventId = (String) map.get("EventId");
+//
+//            // PartialIndexing 객체 생성 및 operationType 설정
+//            PartialIndexing partialIndexing = objectMapper.convertValue(map, PartialIndexing.class);
+//            partialIndexing.setOperationType(operationType); // 동작 타입 설정
+//            partialIndexing.setIndexed(true);
+//
+//            indexingRepository.save(partialIndexing)
+//                    .doOnSuccess(saved -> {
+//                        try {
+//                            // Elasticsearch 색인 작업
+//                            IndexRequest<Map<String, Object>> request = IndexRequest.of(builder -> builder.index(INDEX_NAME).document(map));
+//                            IndexResponse response = elasticsearchClient.index(request);
+//                            log.info("Elasticsearch에 문서가 생성되었습니다: {}, 결과: {}", eventId, response.result());
+//                        } catch (Exception e) {
+//                            log.error("Elasticsearch 색인 실패: {}", e.getMessage());
+//
+//                            // 색인 실패 시 상태를 false로 변경
+//                            saved.setIndexed(false);
+//                            indexingRepository.save(saved).subscribe();
+//                        }
+//                    })
+//                    .doOnError(e -> {
+//                        log.error("MongoDB 저장 실패: {}", e.getMessage());
+//                    })
+//                    .subscribe();
+//        } catch (Exception e) {
+//            log.error("Elasticsearch에 문서 생성 실패: {}", e.getMessage(), e);
+//            throw new RuntimeException("문서 생성 실패", e);
+//        }
+//    }
 
     /**
      * Elasticsearch에서 문서를 업데이트하는 메서드
@@ -453,16 +486,17 @@ public class IndexingService {
             // PartialIndexing 객체 생성 및 operationType 설정
             PartialIndexing partialIndexing = objectMapper.convertValue(map, PartialIndexing.class);
             partialIndexing.setOperationType(operationType); // 동작 타입 설정
-            partialIndexing.setIndexed(true);
+            partialIndexing.setIndexed(true); // 초기 상태는 true로 설정
 
-            // MongoDB 저장 후 Elasticsearch 업데이트 실행
             indexingRepository.save(partialIndexing)
                     .doOnSuccess(saved -> {
-                        // Elasticsearch 검색 요청
-                        SearchRequest searchRequest = SearchRequest.of(builder -> builder
-                                .index(INDEX_NAME)
-                                .query(q -> q.term(t -> t.field("EventId").value(eventId))));
                         try {
+                            ElasticsearchDTO elasticsearchDTO = objectMapper.convertValue(saved, ElasticsearchDTO.class);
+
+                            // Elasticsearch 검색 요청
+                            SearchRequest searchRequest = SearchRequest.of(builder -> builder
+                                    .index(INDEX_NAME)
+                                    .query(q -> q.term(t -> t.field("EventId").value(elasticsearchDTO.getEventId()))));
                             SearchResponse<Map> searchResponse = elasticsearchClient.search(searchRequest, Map.class);
 
                             if (searchResponse.hits().hits().isEmpty()) {
@@ -471,31 +505,75 @@ public class IndexingService {
 
                             // 문서 ID를 가져와 업데이트 실행
                             String documentId = searchResponse.hits().hits().get(0).id();
-                            IndexRequest<Map<String, Object>> indexRequest = IndexRequest.of(builder -> builder
-                                    .index(INDEX_NAME)
-                                    .id(documentId)
-                                    .document(map));
+                            IndexRequest<ElasticsearchDTO> indexRequest = IndexRequest.of(builder ->
+                                    builder.index(INDEX_NAME).id(documentId).document(elasticsearchDTO));
                             IndexResponse response = elasticsearchClient.index(indexRequest);
                             log.info("Elasticsearch에 문서가 업데이트되었습니다: EventId: {}, 응답: {}", eventId, response.result());
                         } catch (Exception e) {
                             log.error("Elasticsearch에서 문서 업데이트 실패: {}", e.getMessage(), e);
-                            // 상태를 false로 업데이트
-                            partialIndexing.setIndexed(false);
-                            indexingRepository.save(partialIndexing).subscribe();
+                            // 색인 실패 시 상태를 false로 설정
+                            saved.setIndexed(false);
+                            indexingRepository.save(saved).subscribe();
                         }
                     })
-                    .doOnError(e -> {
-                        log.error("MongoDB 저장 실패: {}", e.getMessage());
-                        // 상태를 false로 업데이트
-                        partialIndexing.setIndexed(false);
-                        indexingRepository.save(partialIndexing).subscribe();
-                    })
+                    .doOnError(e -> log.error("MongoDB 저장 실패: {}", e.getMessage()))
                     .subscribe();
         } catch (Exception e) {
-            log.error("Elasticsearch에서 문서 업데이트 실패: {}", e.getMessage(), e);
+            log.error("문서 업데이트 실패: {}", e.getMessage(), e);
             throw new RuntimeException("문서 업데이트 실패", e);
         }
     }
+//    public void handlePartialIndexingUpdate(Map<String, Object> map, String operationType) {
+//        try {
+//            String eventId = (String) map.get("EventId");
+//            if (eventId == null) throw new IllegalArgumentException("EventId가 없습니다");
+//
+//            // PartialIndexing 객체 생성 및 operationType 설정
+//            PartialIndexing partialIndexing = objectMapper.convertValue(map, PartialIndexing.class);
+//            partialIndexing.setOperationType(operationType); // 동작 타입 설정
+//            partialIndexing.setIndexed(true);
+//
+//            // MongoDB 저장 후 Elasticsearch 업데이트 실행
+//            indexingRepository.save(partialIndexing)
+//                    .doOnSuccess(saved -> {
+//                        // Elasticsearch 검색 요청
+//                        SearchRequest searchRequest = SearchRequest.of(builder -> builder
+//                                .index(INDEX_NAME)
+//                                .query(q -> q.term(t -> t.field("EventId").value(eventId))));
+//                        try {
+//                            SearchResponse<Map> searchResponse = elasticsearchClient.search(searchRequest, Map.class);
+//
+//                            if (searchResponse.hits().hits().isEmpty()) {
+//                                throw new RuntimeException("EventId로 문서를 찾을 수 없습니다: " + eventId);
+//                            }
+//
+//                            // 문서 ID를 가져와 업데이트 실행
+//                            String documentId = searchResponse.hits().hits().get(0).id();
+//                            IndexRequest<Map<String, Object>> indexRequest = IndexRequest.of(builder -> builder
+//                                    .index(INDEX_NAME)
+//                                    .id(documentId)
+//                                    .document(map));
+//                            IndexResponse response = elasticsearchClient.index(indexRequest);
+//                            log.info("Elasticsearch에 문서가 업데이트되었습니다: EventId: {}, 응답: {}", eventId, response.result());
+//                        } catch (Exception e) {
+//                            log.error("Elasticsearch에서 문서 업데이트 실패: {}", e.getMessage(), e);
+//                            // 상태를 false로 업데이트
+//                            partialIndexing.setIndexed(false);
+//                            indexingRepository.save(partialIndexing).subscribe();
+//                        }
+//                    })
+//                    .doOnError(e -> {
+//                        log.error("MongoDB 저장 실패: {}", e.getMessage());
+//                        // 상태를 false로 업데이트
+//                        partialIndexing.setIndexed(false);
+//                        indexingRepository.save(partialIndexing).subscribe();
+//                    })
+//                    .subscribe();
+//        } catch (Exception e) {
+//            log.error("Elasticsearch에서 문서 업데이트 실패: {}", e.getMessage(), e);
+//            throw new RuntimeException("문서 업데이트 실패", e);
+//        }
+//    }
 
     /**
      * Elasticsearch에서 문서를 삭제하는 메서드
@@ -508,43 +586,77 @@ public class IndexingService {
             PartialIndexing partialIndexing = new PartialIndexing();
             partialIndexing.setEventId(eventId);
             partialIndexing.setOperationType(operationType);
-            partialIndexing.setIndexed(true); // 기본 값 true
+            partialIndexing.setIndexed(true); // 초기 상태는 true로 설정
 
-            // MongoDB 저장 후 Elasticsearch 삭제 실행
+            // MongoDB에 PartialIndexing 저장
             indexingRepository.save(partialIndexing)
                     .doOnSuccess(saved -> {
                         try {
-                            // Elasticsearch 삭제 요청
+                            // 저장된 PartialIndexing의 데이터를 기반으로 Elasticsearch 삭제 요청
+                            String savedEventId = saved.getEventId();
                             DeleteByQueryRequest request = DeleteByQueryRequest.of(builder -> builder
                                     .index(INDEX_NAME)
-                                    .query(q -> q.term(t -> t.field("EventId").value(eventId))));
+                                    .query(q -> q.term(t -> t.field("EventId").value(savedEventId)))); // MongoDB에서 저장된 EventId 사용
                             long deletedCount = elasticsearchClient.deleteByQuery(request).deleted();
-                            log.info("EventId: {}에 해당하는 문서가 삭제되었습니다. 삭제된 문서 수: {}", eventId, deletedCount);
+
+                            log.info("EventId: {}에 해당하는 문서가 삭제되었습니다. 삭제된 문서 수: {}", savedEventId, deletedCount);
                         } catch (Exception e) {
                             log.error("Elasticsearch에서 문서 삭제 실패: {}", e.getMessage(), e);
-                            // 상태를 false로 설정
-                            partialIndexing.setIndexed(false);
-                            indexingRepository.save(partialIndexing).subscribe();
+
+                            // 삭제 실패 시 MongoDB의 상태를 false로 설정
+                            saved.setIndexed(false);
+                            indexingRepository.save(saved).subscribe();
                         }
                     })
-                    .doOnError(e -> {
-                        log.error("MongoDB 저장 실패: {}", e.getMessage());
-                        // 상태를 false로 설정
-                        partialIndexing.setIndexed(false);
-                        indexingRepository.save(partialIndexing).subscribe();
-                    })
+                    .doOnError(e -> log.error("MongoDB 저장 실패: {}", e.getMessage()))
                     .subscribe();
         } catch (Exception e) {
-            log.error("EventId: {}에 해당하는 문서 삭제 실패: {}", eventId, e.getMessage(), e);
-            // 상태를 false로 설정
-            PartialIndexing partialIndexing = new PartialIndexing();
-            partialIndexing.setEventId(eventId);
-            partialIndexing.setOperationType(operationType);
-            partialIndexing.setIndexed(false);
-            indexingRepository.save(partialIndexing).subscribe();
+            log.error("문서 삭제 실패: {}", e.getMessage(), e);
             throw new RuntimeException("문서 삭제 실패", e);
         }
     }
+//    public void handlePartialIndexingDelete(String eventId, String operationType) {
+//        try {
+//            PartialIndexing partialIndexing = new PartialIndexing();
+//            partialIndexing.setEventId(eventId);
+//            partialIndexing.setOperationType(operationType);
+//            partialIndexing.setIndexed(true); // 기본 값 true
+//
+//            // MongoDB 저장 후 Elasticsearch 삭제 실행
+//            indexingRepository.save(partialIndexing)
+//                    .doOnSuccess(saved -> {
+//                        try {
+//                            // Elasticsearch 삭제 요청
+//                            DeleteByQueryRequest request = DeleteByQueryRequest.of(builder -> builder
+//                                    .index(INDEX_NAME)
+//                                    .query(q -> q.term(t -> t.field("EventId").value(eventId))));
+//                            long deletedCount = elasticsearchClient.deleteByQuery(request).deleted();
+//                            log.info("EventId: {}에 해당하는 문서가 삭제되었습니다. 삭제된 문서 수: {}", eventId, deletedCount);
+//                        } catch (Exception e) {
+//                            log.error("Elasticsearch에서 문서 삭제 실패: {}", e.getMessage(), e);
+//                            // 상태를 false로 설정
+//                            partialIndexing.setIndexed(false);
+//                            indexingRepository.save(partialIndexing).subscribe();
+//                        }
+//                    })
+//                    .doOnError(e -> {
+//                        log.error("MongoDB 저장 실패: {}", e.getMessage());
+//                        // 상태를 false로 설정
+//                        partialIndexing.setIndexed(false);
+//                        indexingRepository.save(partialIndexing).subscribe();
+//                    })
+//                    .subscribe();
+//        } catch (Exception e) {
+//            log.error("EventId: {}에 해당하는 문서 삭제 실패: {}", eventId, e.getMessage(), e);
+//            // 상태를 false로 설정
+//            PartialIndexing partialIndexing = new PartialIndexing();
+//            partialIndexing.setEventId(eventId);
+//            partialIndexing.setOperationType(operationType);
+//            partialIndexing.setIndexed(false);
+//            indexingRepository.save(partialIndexing).subscribe();
+//            throw new RuntimeException("문서 삭제 실패", e);
+//        }
+//    }
 
 
     public void restoreSnapshot() {

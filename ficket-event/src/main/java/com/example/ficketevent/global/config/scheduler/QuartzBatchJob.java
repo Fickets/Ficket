@@ -18,7 +18,6 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.time.LocalDate;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -47,7 +46,7 @@ public class QuartzBatchJob extends QuartzJobBean {
                 jobLauncher.run(exportEventsJob, jobParameters);
 
                 log.info("Batch Job 'exportEventsJob' successfully executed.");
-            }else {
+            } else {
                 log.warn("Job is already running. Skipping execution.");
             }
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
