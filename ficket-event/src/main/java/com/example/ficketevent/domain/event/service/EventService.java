@@ -230,7 +230,7 @@ public class EventService {
         findEvent.updatedEvent(req);
 
         // 4. 스케줄 및 좌석 매핑, 좌석 구분 업데이트 (티케팅 시작 후에는 수정 불가)
-        if (findEvent.getTicketingTime().isBefore(LocalDateTime.now())) {
+        if (findEvent.getTicketingTime().isAfter(LocalDateTime.now())) {
             updateEventScheduleAndSeatMappingAndPartition(req, findEvent);
         }
 

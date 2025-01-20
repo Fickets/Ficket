@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TicketingOpenScheduler {
 
-    private QueueService queueService;
+    private final QueueService queueService;
 
     @Scheduled(cron = "0 0 3 * * ?")
     public void ticketOpen() {
