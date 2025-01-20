@@ -217,6 +217,10 @@ const PcEventOpenList = () => {
 
   const renderPageControls = () => {
     const { pageIndex } = table.getState().pagination;
+    const totalPages = response?.totalPages || 0;
+    const maxPagesToShow = 5;
+    const startPage = Math.max(0, pageIndex - Math.floor(maxPagesToShow / 2));
+    const endPage = Math.min(startPage + maxPagesToShow, totalPages);
 
     return (
       <div className="flex justify-center items-center space-x-2 mt-4 text-sm text-gray-700">
@@ -234,27 +238,30 @@ const PcEventOpenList = () => {
         >
           <FaAngleLeft />
         </button>
-        {Array.from({ length: response?.totalPages || 0 }, (_, i) => (
+        {Array.from(
+          { length: endPage - startPage },
+          (_, i) => i + startPage,
+        ).map((page) => (
           <button
-            key={i}
-            onClick={() => onPageChange(i)}
+            key={page}
+            onClick={() => onPageChange(page)}
             className={`px-2 py-1 rounded ${
-              pageIndex === i ? "bg-gray-300 font-bold" : "hover:bg-gray-200"
+              pageIndex === page ? "bg-gray-300 font-bold" : "hover:bg-gray-200"
             }`}
           >
-            {i + 1}
+            {page + 1}
           </button>
         ))}
         <button
           onClick={() => onPageChange(pageIndex + 1)}
-          disabled={pageIndex === (response?.totalPages || 0) - 1}
+          disabled={pageIndex === totalPages - 1}
           className="px-2 py-1 rounded disabled:opacity-50"
         >
           <FaAngleRight />
         </button>
         <button
-          onClick={() => onPageChange((response?.totalPages || 0) - 1)}
-          disabled={pageIndex === (response?.totalPages || 0) - 1}
+          onClick={() => onPageChange(totalPages - 1)}
+          disabled={pageIndex === totalPages - 1}
           className="px-2 py-1 rounded disabled:opacity-50"
         >
           <FaAngleDoubleRight />
@@ -268,7 +275,7 @@ const PcEventOpenList = () => {
   }, [searchParams]);
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto -mt-[30px]">
       <div className="flex justify-between items-center bg-[#2E5072] text-white px-4 h-14">
         <h2 className="font-bold text-lg">오픈 티켓</h2>
         <div className="flex space-x-20">
@@ -369,7 +376,7 @@ const PcEventOpenList = () => {
           </tbody>
         </table>
 
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center justify-between mt-2">
           <div className="flex justify-center flex-grow">
             {renderPageControls()}
           </div>

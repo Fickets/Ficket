@@ -4,48 +4,48 @@ import {
   FaAngleLeft,
   FaAngleRight,
   FaAngleDoubleRight,
-} from 'react-icons/fa';
-import { useMemo } from 'react';
+} from "react-icons/fa";
+import { useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
   flexRender,
   ColumnDef,
-} from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
-import { Event, EventListProps } from '../../types/eventList';
+} from "@tanstack/react-table";
+import { useNavigate } from "react-router-dom";
+import { Event, EventListProps } from "../../types/eventList";
 
-const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
+const EventList = ({ data, onPageChange }: EventListProps) => {
   const navigate = useNavigate();
 
   const columns: ColumnDef<Event>[] = useMemo(
     () => [
       {
-        header: 'NO',
+        header: "NO",
         cell: ({ row }) => row.index + 1 + data.page * data.size,
       },
       {
-        header: '공연 제목',
-        accessorKey: 'eventTitle',
+        header: "공연 제목",
+        accessorKey: "eventTitle",
       },
       {
-        header: '공연장',
-        accessorKey: 'stageName',
+        header: "공연장",
+        accessorKey: "stageName",
       },
       {
-        header: '회사',
-        accessorKey: 'companyName',
+        header: "회사",
+        accessorKey: "companyName",
       },
       {
-        header: '관리자',
-        accessorKey: 'adminName',
+        header: "관리자",
+        accessorKey: "adminName",
       },
       {
-        header: '공연 날짜',
-        accessorKey: 'eventDates',
+        header: "공연 날짜",
+        accessorKey: "eventDates",
         cell: ({ getValue }) => {
-          const value = getValue() as string[]; // 반환값을 string[]로 타입 단언
+          const value = getValue() as string[];
           if (!Array.isArray(value) || value.length === 0) return null;
 
           const uniqueDates = Array.from(
@@ -55,10 +55,10 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
                 return new Date(
                   localDate.getFullYear(),
                   localDate.getMonth(),
-                  localDate.getDate()
+                  localDate.getDate(),
                 ).toISOString();
-              })
-            )
+              }),
+            ),
           )
             .sort()
             .map((dateString) => new Date(dateString));
@@ -74,12 +74,12 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
                 new Date(end.getTime() + 24 * 60 * 60 * 1000).getTime()
             ) {
               if (start.getTime() === end.getTime()) {
-                formattedDates.push(start.toLocaleDateString('ko-KR'));
+                formattedDates.push(start.toLocaleDateString("ko-KR"));
               } else {
                 formattedDates.push(
                   `${start.toLocaleDateString(
-                    'ko-KR'
-                  )} ~ ${end.toLocaleDateString('ko-KR')}`
+                    "ko-KR",
+                  )} ~ ${end.toLocaleDateString("ko-KR")}`,
                 );
               }
               start = uniqueDates[i];
@@ -97,7 +97,7 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
         },
       },
     ],
-    [data.page, data.size]
+    [data.page, data.size],
   );
 
   const table = useReactTable({
@@ -109,18 +109,20 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
         pageSize: data.size || 10,
       },
     },
-    pageCount: data.totalPages, // 전체 페이지 수를 전달
-    manualPagination: true, // 페이지네이션을 수동으로 처리
+    pageCount: data.totalPages,
+    manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
 
   const renderPageControls = () => {
     const { pageIndex } = table.getState().pagination;
+    const maxPagesToShow = 5;
+    const startPage = Math.max(0, pageIndex - Math.floor(maxPagesToShow / 2));
+    const endPage = Math.min(startPage + maxPagesToShow, data.totalPages);
 
     return (
       <div className="flex justify-center items-center space-x-2 mt-4">
-        {/* 처음 페이지로 */}
         <button
           onClick={() => onPageChange(0)}
           disabled={pageIndex === 0}
@@ -129,7 +131,6 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
           <FaAngleDoubleLeft />
         </button>
 
-        {/* 이전 페이지로 */}
         <button
           onClick={() => onPageChange(pageIndex - 1)}
           disabled={pageIndex === 0}
@@ -138,22 +139,23 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
           <FaAngleLeft />
         </button>
 
-        {/* 페이지 번호 */}
-        {Array.from({ length: data.totalPages }, (_, i) => (
+        {Array.from(
+          { length: endPage - startPage },
+          (_, i) => i + startPage,
+        ).map((page) => (
           <button
-            key={i}
-            onClick={() => onPageChange(i)}
+            key={page}
+            onClick={() => onPageChange(page)}
             className={`px-3 py-2 rounded-md text-sm ${
-              pageIndex === i
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              pageIndex === page
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            {i + 1}
+            {page + 1}
           </button>
         ))}
 
-        {/* 다음 페이지로 */}
         <button
           onClick={() => onPageChange(pageIndex + 1)}
           disabled={pageIndex === data.totalPages - 1}
@@ -162,7 +164,6 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
           <FaAngleRight />
         </button>
 
-        {/* 마지막 페이지로 */}
         <button
           onClick={() => onPageChange(data.totalPages - 1)}
           disabled={pageIndex === data.totalPages - 1}
@@ -184,7 +185,7 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
         <button
           type="button"
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
-          onClick={() => navigate('/admin/register-event')}
+          onClick={() => navigate("/admin/register-event")}
         >
           신규
         </button>
@@ -202,7 +203,7 @@ const EventList: React.FC<EventListProps> = ({ data, onPageChange }) => {
                 >
                   {flexRender(
                     header.column.columnDef.header,
-                    header.getContext()
+                    header.getContext(),
                   )}
                 </th>
               ))}
