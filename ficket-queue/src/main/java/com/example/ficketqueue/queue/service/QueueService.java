@@ -11,8 +11,10 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -34,6 +37,32 @@ import java.util.Set;
 public class QueueService {
     private static final Long WORKSPACE_TTL_SECONDS = 20 * 60L;
     private static final int INIT_SLOT_COUNT = 100;
+    private static final String OCCUPY_SLOT_SCRIPT =
+            "local active = redis.call('get', KEYS[1]) or '0'; " +
+                    "local max = redis.call('get', KEYS[2]) or '0'; " +
+                    "if tonumber(active) < tonumber(max) then " +
+                    "    redis.call('incr', KEYS[1]); " +
+                    "    return 1; " +
+                    "else " +
+                    "    return 0; " +
+                    "end;";
+    private static final String RELEASE_SLOT_SCRIPT =
+            "local active = redis.call('get', KEYS[1]) or '0'; " +
+                    "if tonumber(active) > 0 then " +
+                    "    redis.call('decr', KEYS[1]); " +
+                    "    return 1; " +
+                    "else " +
+                    "    return 0; " +
+                    "end;";
+    private static final String DELETE_WORKSPACE_SCRIPT =
+            "local workspaceKey = KEYS[1]; " +
+                    "local result = redis.call('del', workspaceKey); " +
+                    "if result == 1 then " +
+                    "    return 1; " + // 삭제 성공
+                    "else " +
+                    "    return 0; " + // 삭제 실패
+                    "end;";
+
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final QueueProducer queueProducer;
@@ -54,10 +83,12 @@ public class QueueService {
      * @param max     최대 작업 가능한 슬롯 수
      */
     public Mono<Void> setMaxSlots(String eventId, int max) {
+        String activeKey = KeyHelper.getActiveSlotKey(eventId);
         String maxSlotKey = KeyHelper.getMaxSlotKey(eventId);
         return slotReactiveRedisTemplate.opsForValue()
-                .set(maxSlotKey, String.valueOf(max))
-                .then();
+                .set(activeKey, "0") // 활성 슬롯 초기화
+                .then(slotReactiveRedisTemplate.opsForValue()
+                        .set(maxSlotKey, String.valueOf(max))).then(); // 최대 슬롯 설정
     }
 
     /**
@@ -66,7 +97,7 @@ public class QueueService {
      * @param eventId 이벤트 ID
      * @return 작업 가능한 슬롯이 있으면 true, 없으면 false 반환
      */
-    public Mono<Boolean> canEnterQueue(String eventId) {
+    public Mono<Boolean> canEnterSlot(String eventId) {
         String activeKey = KeyHelper.getActiveSlotKey(eventId);
         String maxKey = KeyHelper.getMaxSlotKey(eventId);
 
@@ -88,21 +119,18 @@ public class QueueService {
         String activeKey = KeyHelper.getActiveSlotKey(eventId);
         String maxKey = KeyHelper.getMaxSlotKey(eventId);
 
-        return slotReactiveRedisTemplate.opsForValue()
-                .increment(activeKey) // 현재 슬롯 증가
-                .flatMap(active -> slotReactiveRedisTemplate.opsForValue().get(maxKey).map(Integer::parseInt)
-                        .flatMap(max -> {
-                            if (active > max) {
-                                // 슬롯 초과 시 롤백
-                                return slotReactiveRedisTemplate.opsForValue()
-                                        .decrement(activeKey)
-                                        .thenReturn(false);
-                            }
-                            // 작업 공간 생성
-                            enterWorkSpace(userId, eventId);
-                            return Mono.just(true);
-                        }))
-                .doOnNext(success -> log.info("슬롯 점유 결과: eventId={}, userId={}, success={}", eventId, userId, success));
+        return slotReactiveRedisTemplate.execute(
+                new DefaultRedisScript<>(OCCUPY_SLOT_SCRIPT, Boolean.class),
+                List.of(activeKey, maxKey)
+        ).flatMap(success -> {
+            if (success) {
+                enterWorkSpace(userId, eventId);
+                return Mono.just(true);
+            } else {
+                return Mono.just(false);
+            }
+
+        }).hasElements();
     }
 
     /**
@@ -113,9 +141,16 @@ public class QueueService {
     public Mono<Void> releaseSlot(String eventId) {
         String activeKey = KeyHelper.getActiveSlotKey(eventId);
 
-        return slotReactiveRedisTemplate.opsForValue()
-                .decrement(activeKey)
-                .then();
+        return slotReactiveRedisTemplate.execute(
+                new DefaultRedisScript<>(RELEASE_SLOT_SCRIPT, Boolean.class),
+                List.of(activeKey)
+        ).doOnNext(success -> {
+            if (success) {
+                log.info("슬롯 해제 성공: eventId={}", eventId);
+            } else {
+                log.warn("슬롯 해제 실패 (슬롯이 이미 0): eventId={}", eventId);
+            }
+        }).then();
     }
 
     /**
@@ -131,14 +166,22 @@ public class QueueService {
             return Mono.empty();
         }
 
-        String activeKey = KeyHelper.getActiveSlotKey(eventId);
+        String workspaceKey = KeyHelper.getFicketWorkSpace(eventId, userId);
 
-        return slotReactiveRedisTemplate.opsForValue()
-                .decrement(activeKey)
-                .then(Mono.fromRunnable(() -> {
-                    String workspaceKey = KeyHelper.getFicketWorkSpace(eventId, userId);
-                    workRedisTemplate.delete(workspaceKey);
-                }));
+        return releaseSlot(eventId)
+                .then(deleteWorkSpace(workspaceKey)) // Lua 스크립트를 사용해 워크스페이스 삭제
+                .doOnSuccess(unused -> log.info("releaseSlotByUserId 완료: userId={}, eventId={}", userId, eventId))
+                .doOnError(error -> log.error("releaseSlotByUserId 실패: userId={}, eventId={}, error={}", userId, eventId, error.getMessage()));
+    }
+
+    public Mono<Void> deleteWorkSpace(String workspaceKey) {
+        return Mono.fromRunnable(() ->
+                        workRedisTemplate.execute(
+                                new DefaultRedisScript<>(DELETE_WORKSPACE_SCRIPT, Boolean.class),
+                                List.of(workspaceKey)
+                        )
+                ).doOnSuccess(unused -> log.info("워크스페이스 삭제 완료: workspaceKey={}", workspaceKey))
+                .doOnError(error -> log.warn("워크스페이스 삭제 실패: workspaceKey={}, error={}", workspaceKey, error.getMessage())).then();
     }
 
 
@@ -170,7 +213,7 @@ public class QueueService {
                         .rank(redisKey, userId)
                         .map(rank -> {
                             long position = rank + 1; // 0-based index → 1-based index
-                            QueueStatus status = position <= 1000 ? QueueStatus.ALMOST_DONE : QueueStatus.WAITING;
+                            QueueStatus status = position <= 100 ? QueueStatus.ALMOST_DONE : QueueStatus.WAITING;
 
                             return queueMapper.toMyQueueStatusResponse(
                                     userId, eventId, position, totalQueue, status
@@ -195,11 +238,10 @@ public class QueueService {
                 .flatMap(count -> {
                     if (count > 0) {
                         log.info("사용자가 대기열에서 제거되었습니다: userId={}, eventId={}", userId, eventId);
-                        return Mono.empty();
                     } else {
                         log.warn("대기열에서 사용자를 찾을 수 없습니다: userId={}, eventId={}", userId, eventId);
-                        return Mono.error(new IllegalStateException("사용자를 찾을 수 없습니다."));
                     }
+                    return Mono.empty();
                 });
     }
 
@@ -242,7 +284,7 @@ public class QueueService {
                 .publishOn(Schedulers.boundedElastic())
                 .flatMap(queueSize -> {
                     if (queueSize == 0) {
-                        return canEnterQueue(eventId); // canEnterQueue 호출
+                        return canEnterSlot(eventId); // canEnterQueue 호출
                     }
                     return Mono.just(false); // 대기열 크기가 0이 아니면 즉시 false 반환
                 });
@@ -332,5 +374,62 @@ public class QueueService {
                 .map(key -> key.split(":")[2]) // 세 번째 부분이 eventId
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * 현재 이벤트의 사용 가능한 슬롯 수를 가져옵니다.
+     *
+     * @param eventId 이벤트 ID
+     * @return 사용 가능한 슬롯 수
+     */
+    public Mono<Long> getAvailableSlots(String eventId) {
+        String maxSlotKey = KeyHelper.getMaxSlotKey(eventId);
+        String activeSlotKey = KeyHelper.getActiveSlotKey(eventId);
+        String queueKey = KeyHelper.getFicketRedisQueue(eventId);
+
+        Mono<Long> maxSlotsMono = slotReactiveRedisTemplate.opsForValue().get(maxSlotKey)
+                .map(Long::parseLong)
+                .defaultIfEmpty(0L);
+
+        Mono<Long> activeSlotsMono = slotReactiveRedisTemplate.opsForValue().get(activeSlotKey)
+                .map(Long::parseLong)
+                .defaultIfEmpty(0L);
+
+        Mono<Long> queueSizeMono = queueReactiveRedisTemplate.opsForZSet()
+                .size(queueKey) // zset의 크기를 반환
+                .defaultIfEmpty(0L);
+
+        return Mono.zip(maxSlotsMono, activeSlotsMono, queueSizeMono)
+                .map(tuple -> {
+                    long maxSlots = tuple.getT1();
+                    long activeSlots = tuple.getT2();
+                    long queueSize = tuple.getT3();
+                    long availableSlots = maxSlots - activeSlots;
+                    return Math.min(availableSlots, queueSize); // 최소값 반환
+                });
+    }
+
+
+    /**
+     * 이벤트 대기열에서 다음 사용자를 가져옵니다.
+     *
+     * @param eventId 이벤트 ID
+     * @return 대기열의 다음 사용자 ID
+     */
+    public Mono<String> getNextUserInQueue(String eventId) {
+        String queueKey = KeyHelper.getFicketRedisQueue(eventId);
+
+        return queueReactiveRedisTemplate.opsForZSet()
+                .popMin(queueKey) // ZSet에서 가장 낮은 score의 요소를 가져오고 삭제
+                .flatMap(tuple -> {
+                    if (tuple == null || tuple.getValue() == null) {
+                        log.warn("ZSet이 비어 있음: queueKey={}, eventId={}", queueKey, eventId);
+                        return Mono.empty();
+                    }
+                    String userId = tuple.getValue(); // 가져온 사용자 ID
+                    log.info("ZSet에서 사용자 가져오기 성공: userId={}, eventId={}", userId, eventId);
+                    return Mono.just(userId); // 사용자 ID 반환
+                })
+                .doOnError(error -> log.error("ZSet 처리 중 오류 발생: queueKey={}, eventId={}, error={}", queueKey, eventId, error.getMessage()));
     }
 }

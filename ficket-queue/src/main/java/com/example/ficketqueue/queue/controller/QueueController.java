@@ -110,9 +110,9 @@ public class QueueController {
      * 변경 이력:
      * - 2024-12-19 오형상: 초기 작성
      */
-    @DeleteMapping("/{eventId}/release-slot")
-    public Mono<Void> releaseSlot(@PathVariable String eventId) {
-        return queueService.releaseSlot(eventId);
+    @DeleteMapping("/release-slot")
+    public Mono<Void> releaseSlot(@RequestHeader("X-User-Id") String userId) {
+        return queueService.releaseSlotByUserId(userId);
     }
 
     /**
