@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-config
+  namespace: default
+data:
+  app-config.yaml: |
+    spring:
+      datasource:
+        url: ${USER_MYSQL_URL}
+        username: root
+        password: "{cipher}AQBzuG1fOvuKxvTC1TXksA9FVwIHjHkduMGtKFzru6DkuWMyegUWEmEabfgvjIf3wkE3iepKtjWsaCfh+5tGJnmlJtqwL5zqYRSHufLxs84MoqjBE9yV9lbnrpvr7/PboqdQ/Jn4792QpjESos6h6bcUqGVMksP5PclqfYFPWf9/dZBfOdeVmWMm8n+hyhBnSJO0+XetpEyrO2/znrZoer/10iwCZ5WtBfoTuAnRhxcY94Ujb5LZ0xEE0CwBl2jMbs/uhwhqDJhXDd3RVZ3UHFprt7SqdZCKZRZkr6DlVsLRppoe+1YBFbHleKjGlkT6YDECXYNnCSAfhfu5d5spMkm/iVqbY1ScKVQ/8vu59V8cAzuwO9ensILhA/H3nvg0urk="
+        driver-class-name: com.mysql.cj.jdbc.Driver
+      redis:
+        cache:
+          host: ${WORKER1_REDIS_HOST}
+          port: ${WORKER1_REDIS_PORT}
+      jpa:
+        show-sql: true
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            format_sql: true
+            dialect: org.hibernate.dialect.MySQLDialect
+    eureka:
+      instance:
+        instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
+      client:
+        service-url:
+          defaultZone: http://localhost:8761/eureka/  # Eureka 서버의 URL을 지정합니다.
+          register-with-eureka: true  # 이 서비스가 Eureka 서버에 등록되도록 설정합니다.
+          fetch-registry: true  # Eureka 서버로부터 다른 서비스 정보를 받아오도록 설정합니다.

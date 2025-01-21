@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY build/libs/config-0.0.1-SNAPSHOT.jar config-0.0.1-SNAPSHOT.jar
 
-EXPOSE 8888
+EXPOSE 8089
 
-ENV SPRING_PROFILES_ACTIVE=prod
+# ENV SPRING_PROFILES_ACTIVE=prod
 
 CMD ["java", "-Duser.timezone=Asia/Seoul", "-jar", "config-0.0.1-SNAPSHOT.jar"]

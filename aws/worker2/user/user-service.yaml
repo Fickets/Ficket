@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-user-service
+spec:
+  selector:
+    app: spring-user
+  ports:
+    - protocol: TCP
+      port: 8089      # 내부 클러스터 포트
+      targetPort: 8089 # 컨테이너 내부 포트
+      nodePort: 31099  # 외부에서 접근할 포트 (클러스터 노드 포트)
+  type: NodePort

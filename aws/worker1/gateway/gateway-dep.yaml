@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-gateway
+  template:
+    metadata:
+      labels:
+        app: spring-gateway
+    spec:
+      nodeSelector:
+        role: worker1  # role=worker1 라벨이 있는 노드에서 실행
+      containers:
+        - name: spring-gateway
+          image: choissu/ficket:springgateway-latest
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - mountPath: /springdocker/Ficket/gateway  # 컨테이너 내에서 마운트될 위치
+              name: config-volume
+      volumes:
+        - name: config-volume
+          hostPath:
+            path: /springdocker  # 실제 xvda1이 마운트된 경로
+            type: Directory

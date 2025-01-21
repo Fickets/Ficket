@@ -9,7 +9,7 @@ spring:
     group:
       local:
         - rabbitmq-local
-      server:
+      prod:
         - rabbitmq-prod
     include:
       - rabbitmq
