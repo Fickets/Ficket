@@ -2,6 +2,7 @@ package com.example.ficketevent.domain.event.service;
 
 import com.example.ficketevent.domain.event.dto.request.SelectSeat;
 import com.example.ficketevent.domain.event.dto.request.SelectSeatInfo;
+import com.example.ficketevent.global.result.error.exception.BusinessException;
 import org.junit.jupiter.api.*;
 import org.junit.runner.RunWith;
 import org.redisson.api.RBucket;
@@ -31,7 +32,7 @@ class PreoccupyServiceTest {
     private RedissonClient redissonClient;
 
     private static final Long EVENT_SCHEDULE_ID = 1L; // 이벤트 스케줄 ID
-    private static final List<SelectSeatInfo> SEAT_MAPPING_IDS = List.of(new SelectSeatInfo(1L, BigDecimal.valueOf(150000), "VIP")); // 좌석 매핑 ID
+    private static final List<SelectSeatInfo> SEAT_MAPPING_IDS = List.of(new SelectSeatInfo(1L, BigDecimal.valueOf(150_000), "VIP")); // 좌석 매핑 ID
 
 
     @BeforeEach
@@ -57,14 +58,14 @@ class PreoccupyServiceTest {
     }
 
     @Test
-    @DisplayName("500명의 사용자가 동일한 하나의 좌석 예약 - 동시성 테스트")
+    @DisplayName("1000명의 사용자가 동일한 하나의 좌석 예약 - 동시성 테스트")
     void testMultiReserve() throws InterruptedException {
-        int threadNum = 500; // 동시 요청 스레드 수
+        int threadNum = 1000; // 동시 요청 스레드 수
         CountDownLatch latch = new CountDownLatch(threadNum); // 동시성 테스트 완료 대기
         AtomicInteger successCounter = new AtomicInteger(0); // 성공 카운터
         AtomicInteger failureCounter = new AtomicInteger(0); // 실패 카운터
 
-        ExecutorService executorService = Executors.newFixedThreadPool(threadNum); // 스레드 풀 생성
+        ExecutorService executorService = Executors.newCachedThreadPool(); // 스레드 풀 생성
 
         for (long i = 1L; i <= threadNum; i++) {
             Long userId = i; // 각 사용자 고유 ID
@@ -74,10 +75,10 @@ class PreoccupyServiceTest {
                     SelectSeat request = new SelectSeat(EVENT_SCHEDULE_ID, SEAT_MAPPING_IDS);
 
                     // 좌석 예약 시도
-                    preoccupyService.preoccupySeat(request, userId);
+                    preoccupyService.preoccupySeat(request, userId); // 성공하면 예외 발생 없음
                     successCounter.incrementAndGet(); // 성공 시 카운터 증가
                 } catch (Exception e) {
-                    failureCounter.incrementAndGet(); // 실패 시 카운터 증가
+                    failureCounter.incrementAndGet(); // 예외 발생 시 실패 카운터 증가
                 } finally {
                     latch.countDown(); // 작업 완료
                 }
@@ -90,6 +91,7 @@ class PreoccupyServiceTest {
         log.info("예약에 성공한 사용자 수 = {}", successCounter.get());
         log.info("예약에 실패한 사용자 수 = {}", failureCounter.get());
 
+        // 단 하나의 요청만 성공해야 함
         assertEquals(1, successCounter.get(), "하나의 사용자만 좌석 예약에 성공해야 합니다.");
         assertEquals(threadNum - 1, failureCounter.get(), "한 명을 제외한 사용자는 좌석 예약에 실패해야 합니다.");
     }
@@ -125,7 +127,7 @@ class PreoccupyServiceTest {
 
         // 두 번째 사용자가 동일한 좌석 예약 시도
         Long anotherUserId = 2L;
-        Exception exception = Assertions.assertThrows(Exception.class, () -> {
+        BusinessException exception = Assertions.assertThrows(BusinessException.class, () -> {
             preoccupyService.preoccupySeat(request, anotherUserId);
         });
 
@@ -161,14 +163,13 @@ class PreoccupyServiceTest {
         AtomicInteger successCounter = new AtomicInteger(0); // 성공 카운터
         AtomicInteger failureCounter = new AtomicInteger(0); // 실패 카운터
 
-        // 사용 가능한 좌석 목록 (BlockingQueue로 변경)
-        BlockingQueue<SelectSeatInfo> allSeats = new LinkedBlockingQueue<>();
+        List<SelectSeatInfo> allSeats = new ArrayList<>();
         for (long i = 1L; i <= totalSeats; i++) {
             allSeats.add(new SelectSeatInfo(i, BigDecimal.valueOf(150000), "VIP"));
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
-        java.util.Random random = new java.util.Random();
+        Random random = new java.util.Random();
 
         while (successCounter.get() < totalSeats) {
             CountDownLatch latch = new CountDownLatch(threadNum); // 각 반복에서 새로운 CountDownLatch 생성
@@ -183,9 +184,8 @@ class PreoccupyServiceTest {
 
                         // 좌석 선택
                         for (int j = 0; j < seatsToSelect; j++) {
-                            SelectSeatInfo seat = allSeats.poll(); // 큐에서 좌석 하나 가져오기
-                            if (seat != null) {
-                                selectedSeats.add(seat);
+                            if (!allSeats.isEmpty()) {
+                                selectedSeats.add(allSeats.remove(0));
                             } else {
                                 break; // 좌석이 다 팔린 경우
                             }
@@ -199,13 +199,12 @@ class PreoccupyServiceTest {
                         SelectSeat request = new SelectSeat(EVENT_SCHEDULE_ID, selectedSeats);
 
                         // 좌석 예약 시도
-                        preoccupyService.preoccupySeat(request, userId);
+                        preoccupyService.lockSeat(request, userId);
                         successCounter.addAndGet(selectedSeats.size());
 
                     } catch (Exception e) {
                         failureCounter.incrementAndGet(); // 실패 시 카운터 증가
-                        // 실패한 좌석 다시 복구
-                        allSeats.addAll(selectedSeats);
+                        allSeats.addAll(selectedSeats); // 실패한 좌석 복구
                     } finally {
                         latch.countDown(); // latch 감소
                     }
@@ -222,5 +221,4 @@ class PreoccupyServiceTest {
 
         assertEquals(totalSeats, successCounter.get(), "총 성공 예약된 좌석 수는 시스템 좌석 수와 같아야 합니다.");
     }
-
 }
