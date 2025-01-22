@@ -9,7 +9,7 @@ spring:
 #  config:
 #    import: optional:configserver:http://localhost:8888
   zipkin:
-    base-url: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com
+    base-url: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411
     enabled: true
   security:
     oauth2:
