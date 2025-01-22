@@ -33,28 +33,29 @@ public class DistributedLockAop {
         DistributedLock distributedLock = method.getAnnotation(DistributedLock.class);
 
         String lockKey = (String) CustomSpringELParser
-            .getDynamicValue(signature.getParameterNames(), joinPoint.getArgs(), distributedLock.key());
+                .getDynamicValue(signature.getParameterNames(), joinPoint.getArgs(), distributedLock.key());
 
         RLock rLock = redissonClient.getLock(lockKey);
 
-        if (rLock.isLocked()) {
-            throw new BusinessException(ErrorCode.SEAT_ALREADY_RESERVED);
-        }
 
         try {
-            boolean available = rLock.tryLock( RedisTTLConstants.SEAT_LOCK_LEASE_TIME,
-                    RedisTTLConstants.SEAT_LOCK_LEASE_TIME,
-                    RedisTTLConstants.SEAT_LOCK_TIME_UNIT);
-            if (!available) {
+            boolean acquired = rLock.tryLock(
+                    distributedLock.waitTime(),
+                    distributedLock.leaseTime(),
+                    distributedLock.timeUnit()
+            );
+
+            if (!acquired) {
                 throw new BusinessException(ErrorCode.FAILED_TRY_ROCK);
             }
 
+            log.info("락 키 {} 획득 성공", lockKey);
             return aopForTransaction.proceed(joinPoint);
+
         } catch (BusinessException e) {
-            if (rLock.isHeldByCurrentThread()) {
-                rLock.unlock();
-            }
+            if (rLock.isHeldByCurrentThread()) rLock.unlock();
             throw new BusinessException(ErrorCode.FAILED_DURING_TRANSACTION);
         }
-     }
+
+    }
 }

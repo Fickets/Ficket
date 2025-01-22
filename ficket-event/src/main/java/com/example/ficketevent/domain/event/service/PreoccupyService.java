@@ -5,22 +5,14 @@ import com.example.ficketevent.domain.event.client.UserServiceClient;
 import com.example.ficketevent.domain.event.dto.common.UserSimpleDto;
 import com.example.ficketevent.domain.event.dto.request.SelectSeat;
 import com.example.ficketevent.domain.event.dto.request.SelectSeatInfo;
-import com.example.ficketevent.domain.event.dto.response.ReservedSeatInfo;
-import com.example.ficketevent.domain.event.repository.EventScheduleRepository;
-import com.example.ficketevent.domain.event.repository.SeatMappingRepository;
 import com.example.ficketevent.global.result.error.ErrorCode;
 import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.CircuitBreakerUtils;
-import com.example.ficketevent.global.utils.RateLimiterUtils;
 import com.example.ficketevent.global.utils.RedisKeyHelper;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RBucket;
-import org.redisson.api.RKeys;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -47,11 +39,10 @@ public class PreoccupyService {
 
     @Transactional
     public void lockSeat(SelectSeat request, Long userId) {
-        String limiterName = "preoccupySeatLimiter";
 
         executeWithRateLimiter(
                 rateLimiterRegistry,
-                limiterName,
+                "preoccupySeatLimiter",
                 () -> {
                     preoccupySeat(request, userId);
                     return null; // Supplier<T>이므로 Void를 처리하기 위해 null 반환
@@ -78,10 +69,10 @@ public class PreoccupyService {
 
         // 요청된 좌석 수와 예약 제한을 검증
         Integer reservationLimit = CircuitBreakerUtils.executeWithCircuitBreaker(
-                        circuitBreakerRegistry,
-                        "enterTicketingCircuitBreaker",
-                        () -> ticketingServiceClient.enterTicketing(String.valueOf(user.getUserId()), eventScheduleId)
-                );
+                circuitBreakerRegistry,
+                "enterTicketingCircuitBreaker",
+                () -> ticketingServiceClient.enterTicketing(String.valueOf(user.getUserId()), eventScheduleId)
+        );
 
         validateSeatCount(seatMappingIds, reservationLimit);
 
