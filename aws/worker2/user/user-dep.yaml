@@ -30,10 +30,20 @@ spec:
             - name: WORKER1_REDIS_PORT
               value: "6379"
           volumeMounts:
-            - mountPath: /springdocker/Ficket/user  # 컨테이너 내에서 마운트될 위치
-              name: user-volume
+            - name: config-volume
+              mountPath: /config/application-common.yaml  # 컨테이너 내에서의 경로
+              subPath: app-config.yaml
+            - name: user-volume
+              mountPath: /config/user-config.yaml
+              subPath: user-config.yaml
       volumes:
-        - name: user-volume
+        - name: user-spring-volume
           hostPath:
             path: /springdocker  # 실제 xvda1이 마운트된 경로
             type: Directory
+        - name: config-volume
+          configMap:
+            name: common-config
+        - name: user-volume
+          configMap:
+            name: user-config
