@@ -21,9 +21,9 @@ spec:
             - containerPort: 9000
           env:
             - name: USER_MYSQL_URL
-              value: "jdbc:mysql://ec2-13-209-11-36.ap-northeast-2.compute.amazonaws.com/ficket"
+              value: "jdbc:mysql://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com/ficket"
             - name: WORKER1_REDIS_HOST
-              value: "ec2-13-209-11-36.ap-northeast-2.compute.amazonaws.com"
+              value: "ec2-52-79-207-181.ap-northeast-2.compute.amazonaws.com"
             - name: WORKER1_REDIS_PORT
               value: "6379"
           volumeMounts:
