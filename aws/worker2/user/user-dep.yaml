@@ -19,6 +19,9 @@ spec:
           image: choissu/ficket:springuser-latest
           ports:
             - containerPort: 9000
+          envFrom: # ConfigMap에서 환경 변수 가져오기
+            - configMapRef:
+                name: user-config
           env:
             - name: USER_MYSQL_URL
               value: "jdbc:mysql://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com/ficket"
