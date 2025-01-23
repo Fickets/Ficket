@@ -5,13 +5,17 @@ spring:
   application:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
   profiles:
-    active: common, user
-  config:
-    import:
-      - "file:/config/application-common.yml"  # 컨테이너 내의 application-common.yaml
-      - "file:/config/application-user.yml"    # 컨테이너 내의 application-user.yaml
+    active: prod
+    group:
+      local:
+        - user-local
+      prod:
+        - user-prod
+    include:
+      - user
+
   zipkin:
-    base-url: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411
+    base-url: ${ZIPKIN_BASE_URL}
     enabled: true
   security:
     oauth2:
@@ -20,7 +24,7 @@ spring:
           kakao:
             client-id: a9f59c7ed287df6830de6012385df82d
             client-secret: rGRRKr9tdoOxHNOQEUvT2QmdgFUDAWiq
-            redirect-uri: http://localhost:8777/login/oauth2/code/kakao
+            redirect-uri: ${REDIRECT_URI} # 프론트 url
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             client-name: Kakao
@@ -32,20 +36,6 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
-  cloud:
-    openfeign:
-      circuitbreaker:
-        enabled: true
-      client:
-        config:
-          default:
-            connectTimeout: 5000
-            readTimeout: 5000
-    config:
-      enabled: false
-      import-check:
-        enabled: false
-
 
 management:
   tracing:
@@ -56,7 +46,7 @@ management:
       produce: B3
   zipkin:
     tracing:
-      endpoint: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411/api/v2/spans
+      endpoint: ${ZIPKIN_ENDPOINT}
 
 resilience4j:
   circuitbreaker:

@@ -4,30 +4,9 @@ metadata:
   name: user-config
   namespace: default
 data:
-  application-user.yml: |
-    spring:
-      datasource:
-        url: ${USER_MYSQL_URL}
-        username: root
-        password: rootpassword
-        driver-class-name: com.mysql.cj.jdbc.Driver
-      redis:
-        cache:
-          host: ${WORKER1_REDIS_HOST}
-          port: ${WORKER1_REDIS_PORT}
-      jpa:
-        show-sql: true
-        hibernate:
-          ddl-auto: update
-        properties:
-          hibernate:
-            format_sql: true
-            dialect: org.hibernate.dialect.MySQLDialect
-#    eureka:
-#      instance:
-#        instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-#      client:
-#        service-url:
-#          defaultZone: http://localhost:8761/eureka/  # Eureka 서버의 URL을 지정합니다.
-#          register-with-eureka: true  # 이 서비스가 Eureka 서버에 등록되도록 설정합니다.
-#          fetch-registry: true  # Eureka 서버로부터 다른 서비스 정보를 받아오도록 설정합니다.
+  USER_MYSQL_URL: "jdbc:mysql://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com/ficket"
+  WORKER1_REDIS_HOST: "ec2-52-79-207-181.ap-northeast-2.compute.amazonaws.com"
+  WORKER1_REDIS_PORT: "6379"
+  ZIPKIN_BASE_URL: "ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411"
+  ZIPKIN_ENDPOINT: "ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411/api/v2/spans"
+  REDIRECT_URI: http://localhost:8777/login/oauth2/code/kakao
