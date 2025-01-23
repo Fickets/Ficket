@@ -20,8 +20,7 @@ spec:
           ports:
             - containerPort: 8089
           command: ["java",
-                    "-Dspring.config.location=file:/config/application-user.yml",
-                    "-Dspring.config.location=file:/config/application-common.yml",
+                    "-Dspring.config.location=file:/config/application-user.yml,file:/config/application-common.yml",
                     "-Dspring.config.import=optional:configserver:",
                     "-Dspring.cloud.config.enabled=false",
                     "-Dspring.cloud.config.import-check.enabled=false",
@@ -41,11 +40,7 @@ spec:
               value: "6379"
           volumeMounts:
             - name: config-volume
-              mountPath: /config/application-common.yml  # 컨테이너 내에서의 경로
-              subPath: application-common.yml
-            - name: user-volume
-              mountPath: /config/application-user.yml
-              subPath: application-user.yml
+              mountPath: /config  # /config 디렉토리 전체를 마운트
       volumes:
         - name: config-volume
           configMap:
