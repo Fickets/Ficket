@@ -9,7 +9,7 @@ data:
       datasource:
         url: ${USER_MYSQL_URL}
         username: root
-        password: "{cipher}AQBzuG1fOvuKxvTC1TXksA9FVwIHjHkduMGtKFzru6DkuWMyegUWEmEabfgvjIf3wkE3iepKtjWsaCfh+5tGJnmlJtqwL5zqYRSHufLxs84MoqjBE9yV9lbnrpvr7/PboqdQ/Jn4792QpjESos6h6bcUqGVMksP5PclqfYFPWf9/dZBfOdeVmWMm8n+hyhBnSJO0+XetpEyrO2/znrZoer/10iwCZ5WtBfoTuAnRhxcY94Ujb5LZ0xEE0CwBl2jMbs/uhwhqDJhXDd3RVZ3UHFprt7SqdZCKZRZkr6DlVsLRppoe+1YBFbHleKjGlkT6YDECXYNnCSAfhfu5d5spMkm/iVqbY1ScKVQ/8vu59V8cAzuwO9ensILhA/H3nvg0urk="
+        password: rootpassword
         driver-class-name: com.mysql.cj.jdbc.Driver
       redis:
         cache:
