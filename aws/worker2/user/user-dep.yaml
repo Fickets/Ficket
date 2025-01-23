@@ -19,10 +19,7 @@ spec:
           image: choissu/ficket:springuser-latest
           ports:
             - containerPort: 8089
-          command: ["java", "-Duser.timezone=Asia/Seoul", "-jar", "ficket-user-0.0.1-SNAPSHOT.jar"]
-          envFrom: # ConfigMap에서 환경 변수 가져오기
-            - configMapRef:
-                name: user-config
+          command: ["java", "-Dspring.config.import=optional:configserver:", "-Dspring.cloud.config.enabled=false", "-Dspring.cloud.config.import-check.enabled=false", "-jar", "ficket-user-0.0.1-SNAPSHOT.jar"]
           env:
             - name: USER_MYSQL_URL
               value: "jdbc:mysql://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com/ficket"
@@ -35,13 +32,9 @@ spec:
               mountPath: /config/application-common.yaml  # 컨테이너 내에서의 경로
               subPath: app-config.yaml
             - name: user-volume
-              mountPath: /config/user-config.yaml
+              mountPath: /config/application-user.yaml
               subPath: user-config.yaml
       volumes:
-        - name: user-spring-volume
-          hostPath:
-            path: /springdocker  # 실제 xvda1이 마운트된 경로
-            type: Directory
         - name: config-volume
           configMap:
             name: common-config

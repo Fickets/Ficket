@@ -6,8 +6,10 @@ spring:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
 #  profiles:
 #    active: local
-#  config:
-#    import: optional:configserver:http://localhost:8888
+  config:
+    import:
+      - "file:/config/application-common.yaml"  # 컨테이너 내의 application-common.yaml
+      - "file:/config/application-user.yaml"    # 컨테이너 내의 application-user.yaml
   zipkin:
     base-url: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411
     enabled: true
@@ -39,6 +41,10 @@ spring:
           default:
             connectTimeout: 5000
             readTimeout: 5000
+    config:
+      enabled: false
+      import-check:
+        enabled: false
 
 
 management:
@@ -76,6 +82,7 @@ logging:
     com.example.ficketuser: DEBUG
     org.springframework.cloud.openfeign: DEBUG
     io.github.resilience4j: DEBUG
+    root: DEBUG
   pattern:
     correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
