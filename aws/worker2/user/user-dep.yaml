@@ -18,7 +18,8 @@ spec:
         - name: spring-user
           image: choissu/ficket:springuser-latest
           ports:
-            - containerPort: 9000
+            - containerPort: 8089
+          command: ["java", "-Duser.timezone=Asia/Seoul", "-jar", "ficket-user-0.0.1-SNAPSHOT.jar"]
           envFrom: # ConfigMap에서 환경 변수 가져오기
             - configMapRef:
                 name: user-config
