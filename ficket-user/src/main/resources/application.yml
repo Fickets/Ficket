@@ -4,8 +4,8 @@ server:
 spring:
   application:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
-#  profiles:
-#    active: local
+  profiles:
+    active: common, user
   config:
     import:
       - "file:/config/application-common.yml"  # 컨테이너 내의 application-common.yaml
