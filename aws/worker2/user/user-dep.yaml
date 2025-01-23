@@ -39,12 +39,16 @@ spec:
             - name: WORKER1_REDIS_PORT
               value: "6379"
           volumeMounts:
-            - name: config-volume
-              mountPath: /config  # /config 디렉토리 전체를 마운트
+            - name: common-config-volume
+              mountPath: /config/application-common.yml
+              subPath: application-common.yml
+            - name: user-config-volume
+              mountPath: /config/application-user.yml
+              subPath: application-user.yml
       volumes:
-        - name: config-volume
+        - name: common-config-volume
           configMap:
             name: common-config
-        - name: user-volume
+        - name: user-config-volume
           configMap:
             name: user-config
