@@ -29,11 +29,11 @@ spec:
               value: "6379"
           volumeMounts:
             - name: config-volume
-              mountPath: /config/application-common.yaml  # 컨테이너 내에서의 경로
-              subPath: app-config.yaml
+              mountPath: /config/application-common.yml  # 컨테이너 내에서의 경로
+              subPath: application-common.yml
             - name: user-volume
-              mountPath: /config/application-user.yaml
-              subPath: user-config.yaml
+              mountPath: /config/application-user.yml
+              subPath: application-user.yml
       volumes:
         - name: config-volume
           configMap:

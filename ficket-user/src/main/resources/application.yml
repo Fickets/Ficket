@@ -8,8 +8,8 @@ spring:
 #    active: local
   config:
     import:
-      - "file:/config/application-common.yaml"  # 컨테이너 내의 application-common.yaml
-      - "file:/config/application-user.yaml"    # 컨테이너 내의 application-user.yaml
+      - "file:/config/application-common.yml"  # 컨테이너 내의 application-common.yaml
+      - "file:/config/application-user.yml"    # 컨테이너 내의 application-user.yaml
   zipkin:
     base-url: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411
     enabled: true
