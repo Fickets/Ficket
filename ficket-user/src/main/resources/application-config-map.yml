@@ -1,26 +1,7 @@
----
 spring:
-  config:
-    activate:
-      on-profile: user-local
-  cloud:
-    openfeign:
-      circuitbreaker:
-        enabled: true
-      client:
-        config:
-          default:
-            connectTimeout: 5000
-            readTimeout: 5000
-
-ZIPKIN_BASE_URL: http://127.0.0.1:9411
-ZIPKIN_ENDPOINT: http://localhost:9411/api/v2/spans
-REDIRECT_URI: http://localhost:8777/login/oauth2/code/kakao
----
-spring:
-  config:
-    activate:
-      on-profile: user-prod
+  profiles:
+    group:
+      config-server: config-map # Config Server 프로파일
 
   datasource:
     url: ${USER_MYSQL_URL}
@@ -73,4 +54,3 @@ management:
     web:
       exposure:
         include: "*"
-

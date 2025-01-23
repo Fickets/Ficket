@@ -5,15 +5,7 @@ spring:
   application:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
   profiles:
-    active: prod
-    group:
-      local:
-        - user-local
-      prod:
-        - user-prod
-    include:
-      - user
-
+    active: config-server
   zipkin:
     base-url: ${ZIPKIN_BASE_URL}
     enabled: true
@@ -72,7 +64,6 @@ logging:
     com.example.ficketuser: DEBUG
     org.springframework.cloud.openfeign: DEBUG
     io.github.resilience4j: DEBUG
-    root: DEBUG
   pattern:
     correlation: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
