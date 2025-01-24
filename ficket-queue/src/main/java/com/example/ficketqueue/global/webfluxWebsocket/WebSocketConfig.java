@@ -20,7 +20,7 @@ import java.util.Map;
 public class WebSocketConfig {
 
     private final WorkWebSocketHandler workWebSocketHandler;
-        private final QueueStatusWebSocketHandler queueStatusWebSocketHandler;
+    private final QueueStatusWebSocketHandler queueStatusWebSocketHandler;
 
     @Bean
     public HandlerMapping webSocketHandlerMapping() {

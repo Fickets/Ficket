@@ -3,6 +3,7 @@ package com.example.ficketqueue.global.webfluxWebsocket.handler;
 import com.example.ficketqueue.global.utils.WebSocketUrlParser;
 import com.example.ficketqueue.queue.enums.QueueStatus;
 import com.example.ficketqueue.queue.service.QueueService;
+import com.example.ficketqueue.queue.service.SlotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class QueueStatusWebSocketHandler implements WebSocketHandler {
 
     private final QueueService queueService;
+    private final SlotService slotService;
     private final ConcurrentHashMap<String, CopyOnWriteArraySet<WebSocketSession>> eventSessions = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> sessionUserMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Boolean> monitoringStatus = new ConcurrentHashMap<>();
@@ -114,14 +116,14 @@ public class QueueStatusWebSocketHandler implements WebSocketHandler {
     }
 
     private Flux<Void> processQueue(String eventId) {
-        return queueService.getAvailableSlots(eventId) // 현재 남은 슬롯 수 확인
+        return slotService.getAvailableSlots(eventId) // 현재 남은 슬롯 수 확인
                 .flatMapMany(availableSlots -> {
                     if (availableSlots > 0) {
                         return Flux.range(1, Math.toIntExact(availableSlots)) // 남은 슬롯 수만큼 반복
                                 .flatMap(slot -> queueService.getNextUserInQueue(eventId) // 대기열에서 사용자 가져오기
                                         .flatMap(userId -> {
                                             if (userId != null) {
-                                                return queueService.occupySlot(userId, eventId)
+                                                return slotService.occupySlot(userId, eventId)
                                                         .publishOn(Schedulers.boundedElastic())
                                                         .doOnNext(occupied -> {
                                                             if (occupied) {

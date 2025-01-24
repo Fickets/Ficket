@@ -3,6 +3,7 @@ package com.example.ficketqueue.global.webfluxWebsocket.handler;
 import com.example.ficketqueue.global.utils.WebSocketUrlParser;
 import com.example.ficketqueue.queue.service.ClientNotificationService;
 import com.example.ficketqueue.queue.service.QueueService;
+import com.example.ficketqueue.queue.service.SlotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -20,9 +21,10 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class WorkWebSocketHandler implements WebSocketHandler {
 
+    private final QueueService queueService;
+    private final SlotService slotService;
     private final ClientNotificationService clientNotificationService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
-    private final QueueService queueService;
 
     @NotNull
     @Override
@@ -56,7 +58,7 @@ public class WorkWebSocketHandler implements WebSocketHandler {
         // 5초 지연 후 슬롯 해제 처리
         scheduler.schedule(() -> {
             if (!clientNotificationService.isUserSessionExists(userId)) {
-                queueService.releaseSlotByUserId(userId)
+                slotService.releaseSlotByUserId(userId)
                         .doOnSuccess(unused -> log.info("사용자 {}의 슬롯이 해제되었습니다.", userId))
                         .doOnError(e -> log.error("슬롯 해제 중 오류 발생: 사용자 {}, 오류 {}", userId, e.getMessage()))
                         .subscribe(); // 비동기 실행

@@ -9,9 +9,8 @@ import com.example.ficketadmin.domain.event.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.math.BigDecimal;
+
 import java.util.List;
 
 @RestController
@@ -62,13 +61,44 @@ public class EventController {
     }
 
     @GetMapping("/check-url/{eventId}")
-    public GuestTokenResponse checkUrl(@PathVariable(name = "eventId")Long eventId, @RequestParam(name = "uuid") String uuid){
+    public GuestTokenResponse checkUrl(@PathVariable(name = "eventId") Long eventId, @RequestParam(name = "uuid") String uuid) {
         return eventService.checkUrl(eventId, uuid);
     }
+
     @GetMapping("/ticket-watch/{ticketId}")
-    public void ticketWatchedChange(@PathVariable(name = "ticketId")Long ticketId,
-                                    @RequestParam(name = "eventId")Long eventId,
-                                    @RequestParam(name = "connectId")Long connectId){
+    public void ticketWatchedChange(@PathVariable(name = "ticketId") Long ticketId,
+                                    @RequestParam(name = "eventId") Long eventId,
+                                    @RequestParam(name = "connectId") Long connectId) {
         eventService.ticketStatusChange(ticketId, eventId, connectId);
     }
+
+    /**
+     * 해당 이벤트의 슬롯 초기화 API (ADMIN -> QUEUE)
+     *
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2025-01-24
+     * 변경 이력:
+     * - 2025-01-24 오형상: 초기 작성
+     */
+    @PostMapping("/{eventId}/initialize-slot")
+    public ResponseEntity<String> initializeSlot(@PathVariable String eventId, @RequestParam int maxSlot) {
+        eventService.initializeSlot(eventId, maxSlot);
+        return ResponseEntity.ok("슬롯 초기화 성공!");
+    }
+
+    /**
+     * 해당 이벤트의 슬롯 제거 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2025-01-24
+     * 변경 이력:
+     * - 2025-01-24 오형상: 초기 작성
+     */
+    @DeleteMapping("/{eventId}/delete-slot")
+    public ResponseEntity<Void> removeSlot(@PathVariable String eventId) {
+        eventService.deleteSlot(eventId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

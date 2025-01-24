@@ -3,6 +3,7 @@ package com.example.ficketadmin.domain.event.service;
 import com.example.ficketadmin.domain.admin.dto.common.AdminInfoDto;
 import com.example.ficketadmin.domain.admin.entity.Role;
 import com.example.ficketadmin.domain.event.client.EventServiceClient;
+import com.example.ficketadmin.domain.event.client.SlotServiceClient;
 import com.example.ficketadmin.domain.event.client.TicketingServiceClient;
 import com.example.ficketadmin.domain.event.dto.response.DailyRevenueResponse;
 import com.example.ficketadmin.domain.event.dto.response.DayCountResponse;
@@ -37,6 +38,7 @@ public class EventService {
     private final StringRedisTemplate redisTemplate; // Redis와의 연동을 위한 템플릿
     private final EventServiceClient eventServiceClient; // 이벤트 서비스 클라이언트 (FeignClient)
     private final TicketingServiceClient ticketingServiceClient;
+    private final SlotServiceClient slotServiceClient;
     private final JwtUtils jwtUtils;
 
     private static final long EXPIRATION_TIME = 24 * 60 * 60; // 하루 동안(초 단위) 만료 시간
@@ -64,7 +66,7 @@ public class EventService {
     }
 
     private DayCountResponse fallbackDayCountResponse(Throwable throwable) {
-        log.error("Fallback executed for. Reason: {}",throwable.getMessage());
+        log.error("Fallback executed for. Reason: {}", throwable.getMessage());
 
         Map<String, Long> dayCountMap = new LinkedHashMap<>();
 
@@ -102,13 +104,13 @@ public class EventService {
         return new TemporaryUrlResponse(url); // URL 응답 객체 반환
     }
 
-    public GuestTokenResponse checkUrl(Long eventId, String url){
+    public GuestTokenResponse checkUrl(Long eventId, String url) {
         String redisKey = "url:" + eventId;
         String redisUrl = redisTemplate.opsForValue().get(redisKey);
-        if (redisUrl == null){
+        if (redisUrl == null) {
             throw new BusinessException(ErrorCode.URL_NOT_FOUNT);
         }
-        if(!redisUrl.equals(url)){
+        if (!redisUrl.equals(url)) {
             throw new BusinessException(ErrorCode.URL_NOT_FOUNT);
         }
         // admin 토큰 발급
@@ -123,7 +125,16 @@ public class EventService {
     }
 
     @CircuitBreaker(name = "deleteFaceCircuitBreaker")
-    public void ticketStatusChange(Long ticketId, Long eventId, Long connectId){
+    public void ticketStatusChange(Long ticketId, Long eventId, Long connectId) {
         ticketingServiceClient.ticketWatchedChange(ticketId, eventId, connectId);
+    }
+
+
+    public void initializeSlot(String eventId, int maxSlot) {
+        slotServiceClient.setMaxSlot(eventId, maxSlot);
+    }
+
+    public void deleteSlot(String eventId) {
+        slotServiceClient.deleteSlot(eventId);
     }
 }

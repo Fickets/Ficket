@@ -2,7 +2,7 @@ package com.example.ficketqueue.global.redis;
 
 import com.example.ficketqueue.queue.enums.WorkStatus;
 import com.example.ficketqueue.queue.service.ClientNotificationService;
-import com.example.ficketqueue.queue.service.QueueService;
+import com.example.ficketqueue.queue.service.SlotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KeyExpirationListener implements MessageListener {
 
-    private final QueueService queueService;
+    private final SlotService slotService;
     private final ClientNotificationService clientNotificationService;
 
     @Override
@@ -29,7 +29,7 @@ public class KeyExpirationListener implements MessageListener {
             log.info("작업 공간 TTL 만료: 이벤트 ID={}, 사용자 ID={}", eventId, userId);
 
             clientNotificationService.notifyUser(userId, WorkStatus.ORDER_RIGHT_LOST)
-                    .then(queueService.releaseSlot(eventId))
+                    .then(slotService.releaseSlot(eventId))
                     .doOnSuccess(unused -> log.info("작업 공간 처리 완료: 이벤트 ID={}, 사용자 ID={}", eventId, userId))
                     .doOnError(error -> log.error("작업 공간 처리 실패: 이벤트 ID={}, 사용자 ID={}, 에러={}", eventId, userId, error.getMessage()))
                     .subscribe();

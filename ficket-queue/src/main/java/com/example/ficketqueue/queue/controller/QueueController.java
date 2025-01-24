@@ -4,6 +4,7 @@ import com.example.ficketqueue.queue.dto.response.MyQueueStatusResponse;
 import com.example.ficketqueue.queue.enums.WorkStatus;
 import com.example.ficketqueue.queue.service.ClientNotificationService;
 import com.example.ficketqueue.queue.service.QueueService;
+import com.example.ficketqueue.queue.service.SlotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 public class QueueController {
 
     private final QueueService queueService;
+    private final SlotService slotService;
     private final ClientNotificationService clientNotificationService;
 
     /**
@@ -57,22 +59,11 @@ public class QueueController {
      */
     @GetMapping("/{eventId}/can-enter")
     public Mono<Boolean> canEnterImmediately(@PathVariable String eventId) {
-        return queueService.checkCanEnter(eventId);
+        return Mono.zip(
+                queueService.isQueueEmpty(eventId),
+                slotService.hasAvailableSlot(eventId)
+        ).map(tuple -> tuple.getT1() && tuple.getT2()); // 두 조건을 결합
     }
-
-    /**
-     * 대기열 없이 즉시 입장 가능하면 슬롯 사용  API
-     * <p>
-     * 작업자: 오형상
-     * 작업 날짜: 2024-12-19
-     * 변경 이력:
-     * - 2024-12-19 오형상: 초기 작성
-     */
-    @PostMapping("/{eventId}/occupy-slot")
-    public Mono<Boolean> occupySlot(@RequestHeader("X-User-Id") String userId, @PathVariable String eventId) {
-        return queueService.occupySlot(userId, eventId);
-    }
-
 
     /**
      * 대기열 나가기 (백업용) API
@@ -89,18 +80,43 @@ public class QueueController {
     }
 
     /**
-     * 해당 이벤트의 슬롯 초기화 API (테스트용)
+     * 해당 이벤트의 슬롯 초기화 API
      * <p>
      * 작업자: 오형상
      * 작업 날짜: 2024-12-19
      * 변경 이력:
      * - 2024-12-19 오형상: 초기 작성
      */
-    @PostMapping("/{eventId}/initialize-slots")
-    public Mono<Void> initializeSlots(@PathVariable String eventId, @RequestParam int maxSlots) {
-        return queueService.setMaxSlots(eventId, maxSlots);
+    @PostMapping("/{eventId}/initialize-slot")
+    public Mono<Void> initializeSlot(@PathVariable String eventId, @RequestParam int maxSlot) {
+        return slotService.setMaxSlot(eventId, maxSlot);
     }
 
+    /**
+     * 해당 이벤트의 슬롯 제거 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2025-01-24
+     * 변경 이력:
+     * - 2025-01-24 오형상: 초기 작성
+     */
+    @DeleteMapping("/{eventId}/delete-slot")
+    public Mono<Void> removeSlot(@PathVariable String eventId) {
+        return slotService.deleteSlot(eventId);
+    }
+
+    /**
+     * 대기열 없이 즉시 입장 가능하면 슬롯 사용  API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2024-12-19
+     * 변경 이력:
+     * - 2024-12-19 오형상: 초기 작성
+     */
+    @PostMapping("/{eventId}/occupy-slot")
+    public Mono<Boolean> occupySlot(@RequestHeader("X-User-Id") String userId, @PathVariable String eventId) {
+        return slotService.occupySlot(userId, eventId);
+    }
 
     /**
      * 해당 이벤트의 슬롯 해체 API (테스트용)
@@ -112,7 +128,7 @@ public class QueueController {
      */
     @DeleteMapping("/release-slot")
     public Mono<Void> releaseSlot(@RequestHeader("X-User-Id") String userId) {
-        return queueService.releaseSlotByUserId(userId);
+        return slotService.releaseSlotByUserId(userId);
     }
 
     /**
