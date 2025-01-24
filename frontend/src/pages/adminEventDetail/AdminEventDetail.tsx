@@ -5,13 +5,16 @@ import TemporaryUrlModal from "../../components/adminEventDetail/TemporaryUrlMod
 import Sidebar from "../../components/@common/Sidebar.tsx";
 import { useParams, useSearchParams } from "react-router-dom";
 import NotFound from "../errorpage/NotFound.tsx";
-import { deleteEvent } from "../../service/admineventlist/api.ts";
+import { deleteSlot, deleteEvent } from "../../service/admineventlist/api.ts";
 import AdminEventInfo from "../../components/adminEventDetail/AdminEventInfo.tsx";
 import { Helmet } from "react-helmet-async";
+import SlotSizeSettingModal from "../../components/adminEventDetail/SlotSizeSettingModal.tsx";
 
 const AdminEventDetail = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isSlotModalOpen, setSlotModalOpen] = useState(false);
+  const [isDeleteSlotModalOpen, setDeleteSlotModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "info"; // 기본값 'info'
 
@@ -31,6 +34,20 @@ const AdminEventDetail = () => {
 
   const openDeleteModal = () => setDeleteModalOpen(true);
   const closeDeleteModal = () => setDeleteModalOpen(false);
+
+  const openSlotModal = () => setSlotModalOpen(true);
+  const closeSlotModal = () => setSlotModalOpen(false);
+
+  const openDeleteSlotModal = () => setDeleteSlotModalOpen(true);
+  const closeDeleteSlotModal = () => setDeleteSlotModalOpen(false);
+
+  const handleDeleteSlot = async (eventId: string) => {
+    try {
+      await deleteSlot(eventId);
+    } catch (error) {
+      alert(error);
+    }
+  };
 
   const handleDeleteEvent = async (eventId: string) => {
     try {
@@ -59,6 +76,18 @@ const AdminEventDetail = () => {
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             임시 URL 발급
+          </button>
+          <button
+            onClick={openSlotModal}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            슬롯 설정
+          </button>
+          <button
+            onClick={openDeleteSlotModal}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            슬롯 삭제
           </button>
           <button
             onClick={() => handleTabChange("info")}
@@ -126,7 +155,43 @@ const AdminEventDetail = () => {
         eventId={eventId!}
       />
 
-      {/* 삭제 모달 */}
+      {/* 슬롯 설정 모달 */}
+      <SlotSizeSettingModal
+        isOpen={isSlotModalOpen}
+        onClose={closeSlotModal}
+        eventId={eventId!}
+      />
+
+      {/* 슬롯 삭제 모달 */}
+      {isDeleteSlotModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded shadow">
+            <h2 className="text-lg font-bold mb-4">삭제 확인</h2>
+            <p>정말 이 공연 Slot를 삭제하시겠습니까?</p>
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={() => {
+                  handleDeleteSlot(eventId).then(() => {
+                    alert("삭제되었습니다!");
+                    closeDeleteSlotModal();
+                  });
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                삭제
+              </button>
+              <button
+                onClick={closeDeleteSlotModal}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 행사 삭제 모달 */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded shadow">
