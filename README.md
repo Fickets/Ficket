@@ -113,7 +113,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 - 대기열
     - [대기열 설계](https://velog.io/@zvyg1023/%ED%8B%B0%EC%BC%93%ED%8C%85-%EC%84%9C%EB%B9%84%EC%8A%A4-%EC%84%A4%EA%B3%84)
     - [Kafka, Redis, WebSocket, WebFlux를 활용한 대기열 구현](https://velog.io/@zvyg1023/%EB%8C%80%EA%B8%B0%EC%97%B4-%EA%B5%AC%ED%98%84-2-Kafka-Redis-WebSocket-WebFlux%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EB%8C%80%EA%B8%B0%EC%97%B4-%EA%B4%80%EB%A6%AC)
-    - [Locust를 활용한 부하 테스트](https://velog.io/@zvyg1023/%EB%8C%80%EA%B8%B0%EC%97%B4-%EA%B5%AC%ED%98%84-3-Locust%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EB%B6%80%ED%95%98-%ED%85%8C%EC%8A%A4%ED%8A%B8)
+    - [Locust를 활용한 부하 테스트](https://github.com/ohy1023/ficket-ticketing-locust)
 - 얼굴 인식
     - [Flask, Eureka, Spring Config, RabbitMQ 통합](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-8-Flask-Eureka-Spring-Config-RabbitMQ-%ED%86%B5%ED%95%A9)
     - [이미지 암호화를 위한 S3 SSE-KMS 적용](https://velog.io/@zvyg1023/S3-SSE-KMS-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0)
