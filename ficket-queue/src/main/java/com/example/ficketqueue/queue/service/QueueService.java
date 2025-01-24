@@ -30,25 +30,7 @@ public class QueueService {
     private final QueueMapper queueMapper;
     @Qualifier("queueReactiveRedisTemplate")
     private final ReactiveRedisTemplate<String, String> queueReactiveRedisTemplate;
-    @Qualifier("slotReactiveRedisTemplate")
-    private final ReactiveRedisTemplate<String, String> slotReactiveRedisTemplate;
 
-    /**
-     * 현재 작업 가능한 슬롯이 있는지 확인.
-     *
-     * @param eventId 이벤트 ID
-     * @return 작업 가능한 슬롯이 있으면 true, 없으면 false 반환
-     */
-    public Mono<Boolean> canEnterSlot(String eventId) {
-        String activeKey = KeyHelper.getActiveSlotKey(eventId);
-        String maxKey = KeyHelper.getMaxSlotKey(eventId);
-
-        return Mono.zip(
-                        slotReactiveRedisTemplate.opsForValue().get(activeKey).defaultIfEmpty("0").map(Integer::parseInt),
-                        slotReactiveRedisTemplate.opsForValue().get(maxKey).defaultIfEmpty("0").map(Integer::parseInt)
-                ).map(tuple -> tuple.getT1() < tuple.getT2()) // active < max
-                .doOnNext(canEnter -> log.info("슬롯 확인: eventId={}, canEnter={}", eventId, canEnter));
-    }
 
     /**
      * 대기열에 사용자 추가.

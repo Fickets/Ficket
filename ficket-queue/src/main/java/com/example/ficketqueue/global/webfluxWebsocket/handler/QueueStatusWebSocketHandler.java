@@ -103,7 +103,7 @@ public class QueueStatusWebSocketHandler implements WebSocketHandler {
     private Mono<Void> monitorAndHandleQueue(String eventId) {
         return Flux.interval(Duration.ofSeconds(5)) // 5초 주기로 슬롯 상태 확인
                 .takeWhile(tick -> eventSessions.containsKey(eventId) && !eventSessions.get(eventId).isEmpty())
-                .flatMap(tick -> queueService.canEnterSlot(eventId)
+                .flatMap(tick -> slotService.hasAvailableSlot(eventId)
                         .flatMapMany(canEnter -> {
                             if (canEnter) {
                                 return processQueue(eventId);
