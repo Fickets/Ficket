@@ -4,10 +4,11 @@ server:
 spring:
   application:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
-  profiles:
-    active: config-server
+#  profiles:
+#    active: config-server
   zipkin:
-    base-url: ${ZIPKIN_BASE_URL}
+#    base-url: ${ZIPKIN_BASE_URL}
+    base-url: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411
     enabled: true
   security:
     oauth2:
@@ -16,7 +17,8 @@ spring:
           kakao:
             client-id: a9f59c7ed287df6830de6012385df82d
             client-secret: rGRRKr9tdoOxHNOQEUvT2QmdgFUDAWiq
-            redirect-uri: ${REDIRECT_URI} # 프론트 url
+#            redirect-uri: ${REDIRECT_URI} # 프론트 url
+            redirect-uri: http://localhost:8777/login/oauth2/code/kakao
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             client-name: Kakao
@@ -28,6 +30,49 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+  datasource:
+    url: jdbc:mysql://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com/ficket
+    username: root
+    password: rootpassword
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    redis:
+      cache:
+        host: ec2-52-79-207-181.ap-northeast-2.compute.amazonaws.com
+        port: 6379
+    jpa:
+      show-sql: true
+      hibernate:
+        ddl-auto: update
+      properties:
+        hibernate:
+          format_sql: true
+          dialect: org.hibernate.dialect.MySQLDialect
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 5000
+    config:
+      enabled: false
+      import-check:
+        enabled: false
+
+jwt:
+  secret: "{cipher}AQASSmZNXVzGEAWGw6cy9/ne5rTKRHHeoYQctW9AESFONne0Y+JXPNjsQLWae21zLvpS7XpdYSUIBN9YJaNUnJMC4A2C9bBllrMkOUa4dx6FxuBth4K0k6XUf9Q8/Qip9HHAj6ddaqXBcSUdGoV79zTwdeTag1DVrj4yOzl/GYe58Qj0nUDEsu5mI8i/U8mZQ1eLdV3JFJjox+Jfx0mP5643SYsPslWKK0cNpk4gcXxPdSrKEzMNhP6KOqxbWhpPBIvpJb6+LFcrPzHlWNHF+SdUb48axkgstPi/ZcSE/4SEB9HSGzjR+Orww2vSJKMr1+Kjvwv1Em8bElDKIHFFhiTSnIQ+K3FbXPaKy0OVkwBw1HJ82bgjBG+X3qXmY3a+J7SIYxj3F8ZiyDm4DW3DECNuG9iODxIpJtVUA2/+kjhxs6HpJ+/NfPEZ86A+77ZpYxA="
+  access:
+    expiration: 10800000 # 3시간 (ms)
+    header: Authorization
+  refresh:
+    expiration: 1209600000 # 2주 (ms)
+    header: Authorization-refresh
+
+# For Cookie, Redis
+access-token-maxage: 10800 # 3시간 (sec)
+refresh-token-maxage: 1209600 # 2주 (sec)
 
 management:
   tracing:
@@ -38,8 +83,11 @@ management:
       produce: B3
   zipkin:
     tracing:
-      endpoint: ${ZIPKIN_ENDPOINT}
-
+      endpoint: http://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 resilience4j:
   circuitbreaker:
     configs:
