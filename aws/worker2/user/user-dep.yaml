@@ -20,12 +20,23 @@ spec:
           ports:
             - containerPort: 8089
           command: ["java",
-                    "-Dspring.config.location=file:/config/application-user.yml,file:/config/application-common.yml",
                     "-Dspring.config.import=optional:configserver:",
                     "-Dspring.cloud.config.enabled=false",
                     "-Dspring.cloud.config.import-check.enabled=false",
                     "-jar",
                     "ficket-user-0.0.1-SNAPSHOT.jar"]
-          envFrom:
-            - configMapRef:
-                name: user-config  # user-config ConfigMap에서 환경 변수 로드
+          env:
+            - name: USER_MYSQL_URL
+              value: "jdbc:mysql://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:3306/ficket"
+            - name: WORKER1_REDIS_HOST
+              value: "ec2-52-79-207-181.ap-northeast-2.compute.amazonaws.com"
+            - name: WORKER1_REDIS_PORT
+              value: "6379"
+            - name: ZIPKIN_BASE_URL
+              value: "ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411"
+            - name: ZIPKIN_ENDPOINT
+              value: "ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411/api/v2/spans"
+            - name: REDIRECT_URI
+              value: "http://localhost:8777/login/oauth2/code/kakao"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "config-server"  # 활성화할 프로
