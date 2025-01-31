@@ -4,12 +4,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.PatternTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
@@ -21,34 +19,40 @@ public class RedisWorkConfig {
     @Value("${spring.data.work.port}")
     private int port;
 
-    @Bean(name = "workRedisConnectionFactory")
-    public RedisConnectionFactory workRedisConnectionFactory() {
+
+    @Bean(name = "workReactiveRedisConnectionFactory")
+    public ReactiveRedisConnectionFactory workReactiveRedisConnectionFactory() {
         return new LettuceConnectionFactory(host, port);
     }
 
-    @Bean(name = "redisTemplate")
-    public RedisTemplate<String, String> workRedisTemplate(@Qualifier("workRedisConnectionFactory") RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory);
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
-        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
-        return redisTemplate;
+    @Bean(name = "workReactiveRedisTemplate")
+    public ReactiveRedisTemplate<String, String> workReactiveRedisTemplate(
+            @Qualifier("workReactiveRedisConnectionFactory") ReactiveRedisConnectionFactory reactiveRedisConnectionFactory) {
+
+        RedisSerializationContext<String, String> serializationContext =
+                RedisSerializationContext.<String, String>newSerializationContext(new StringRedisSerializer())
+                        .key(new StringRedisSerializer())
+                        .value(new StringRedisSerializer())
+                        .hashKey(new StringRedisSerializer())
+                        .hashValue(new StringRedisSerializer())
+                        .build();
+
+        return new ReactiveRedisTemplate<>(reactiveRedisConnectionFactory, serializationContext);
     }
 
-    @Bean(name = "workRedisMessageListenerContainer")
-    public RedisMessageListenerContainer redisMessageListenerContainer(
-            @Qualifier("workRedisConnectionFactory") RedisConnectionFactory connectionFactory,
-            KeyExpirationListener keyExpirationListener) {
-        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory);
 
-        // Keyspace Notifications에서 TTL 만료 이벤트 감지
-        container.addMessageListener(
-                keyExpirationListener,
-                new PatternTopic("__keyevent@*__:expired")
-        );
-        return container;
-    }
+//    @Bean(name = "workRedisMessageListenerContainer")
+//    public RedisMessageListenerContainer redisMessageListenerContainer(
+//            @Qualifier("workRedisConnectionFactory") RedisConnectionFactory connectionFactory,
+//            KeyExpirationListener keyExpirationListener) {
+//        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+//        container.setConnectionFactory(connectionFactory);
+//
+//        // Keyspace Notifications에서 TTL 만료 이벤트 감지
+//        container.addMessageListener(
+//                keyExpirationListener,
+//                new PatternTopic("__keyevent@*__:expired")
+//        );
+//        return container;
+//    }
 }

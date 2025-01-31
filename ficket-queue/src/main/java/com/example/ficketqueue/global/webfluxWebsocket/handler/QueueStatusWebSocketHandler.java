@@ -124,7 +124,6 @@ public class QueueStatusWebSocketHandler implements WebSocketHandler {
                                         .flatMap(userId -> {
                                             if (userId != null) {
                                                 return slotService.occupySlot(userId, eventId)
-                                                        .publishOn(Schedulers.boundedElastic())
                                                         .doOnNext(occupied -> {
                                                             if (occupied) {
                                                                 // 상태 메시지 생성

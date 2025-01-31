@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class WorkWebSocketHandler implements WebSocketHandler {
 
-    private final QueueService queueService;
     private final SlotService slotService;
     private final ClientNotificationService clientNotificationService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);

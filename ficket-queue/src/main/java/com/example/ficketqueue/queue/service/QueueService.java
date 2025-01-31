@@ -13,7 +13,6 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 
 /**
@@ -66,7 +65,6 @@ public class QueueService {
                                     userId, eventId, position, totalQueue, status
                             );
                         })
-                        .defaultIfEmpty(new MyQueueStatusResponse(userId, eventId, -1L, totalQueue, QueueStatus.CANCELLED))
                 );
     }
 
@@ -129,7 +127,7 @@ public class QueueService {
         String redisKey = KeyHelper.getFicketRedisQueue(eventId);
         return queueReactiveRedisTemplate.opsForZSet()
                 .size(redisKey)
-                .publishOn(Schedulers.boundedElastic())
+//                .publishOn(Schedulers.boundedElastic())
                 .map(queueSize -> queueSize == 0); // 대기열 크기가 0이면 true, 아니면 false 반환
     }
 

@@ -10,10 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
-
-import java.time.Duration;
 
 @Slf4j
 @Service
@@ -40,28 +36,24 @@ public class QueueConsumer {
             String redisKey = KeyHelper.getFicketRedisQueue(eventId);
 
             // Redis ZSet에 currentTime을 score로 추가
-            addToRedisZSetWithRetry(redisKey, queueMessage.getUserId(), eventId, queueMessage.getCurrentTime());
+            addToRedisZSet(redisKey, queueMessage.getUserId(), eventId, queueMessage.getCurrentTime());
 
         } catch (Exception e) {
             log.error("Kafka 메시지 처리 실패 [Topic: {}, Message: {}, Error: {}]", topic, messageValue, e.getMessage());
         }
     }
 
-    private void addToRedisZSetWithRetry(String redisKey, String userId, String eventId, double score) {
-        Mono<Boolean> redisOperation = queueReactiveRedisTemplate.opsForZSet()
-                .add(redisKey, userId, score)
+    private void addToRedisZSet(String redisKey, String userId, String eventId, double score) {
+        queueReactiveRedisTemplate.opsForZSet()
+                .add(redisKey, userId, score) // 중복된 userId는 자동으로 무시됨
                 .doOnSuccess(added -> {
                     if (Boolean.TRUE.equals(added)) {
-                        log.info("Redis ZSet에 대기열 추가 성공 [Event: {}, User: {}, Score: {}]", eventId, userId, score);
+                        log.info("Redis ZSet에 추가됨 [Event: {}, User: {}, Score: {}]", eventId, userId, score);
                     } else {
-                        log.warn("Redis ZSet에 이미 존재하는 사용자 [Event: {}, User: {}]", eventId, userId);
+                        log.warn("이미 존재하는 사용자 [Event: {}, User: {}]", eventId, userId);
                     }
                 })
-                .doOnError(ex -> log.error("Redis ZSet에 대기열 추가 실패 [Event: {}, User: {}, Error: {}]", eventId, userId, ex.getMessage()));
-
-        // 재시도 로직
-        redisOperation.retryWhen(Retry.backoff(3, Duration.ofSeconds(1)).maxBackoff(Duration.ofSeconds(10)))
-                .doOnError(ex -> log.error("Redis ZSet 재시도 실패: 대기열 추가 불가 [Event: {}, User: {}, Error: {}]", eventId, userId, ex.getMessage()))
+                .doOnError(ex -> log.error("Redis ZSet 추가 실패 [Event: {}, User: {}, Error: {}]", eventId, userId, ex.getMessage()))
                 .subscribe();
     }
 }

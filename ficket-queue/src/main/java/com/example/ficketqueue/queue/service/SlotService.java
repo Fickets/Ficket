@@ -1,19 +1,18 @@
 package com.example.ficketqueue.queue.service;
 
 import com.example.ficketqueue.global.utils.KeyHelper;
+import com.example.ficketqueue.global.utils.LuaScriptLoader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 작업 공간 관리 서비스 클래스.
@@ -24,40 +23,18 @@ import java.util.Set;
 @Transactional
 @RequiredArgsConstructor
 public class SlotService {
-    private static final Long WORKSPACE_TTL_SECONDS = 20 * 60L;
-    private static final String OCCUPY_SLOT_SCRIPT =
-            "local active = redis.call('get', KEYS[1]) or '0'; " +
-                    "local max = redis.call('get', KEYS[2]) or '0'; " +
-                    "if tonumber(active) < tonumber(max) then " +
-                    "    redis.call('incr', KEYS[1]); " +
-                    "    return 1; " +
-                    "else " +
-                    "    return 0; " +
-                    "end;";
-    private static final String RELEASE_SLOT_SCRIPT =
-            "local active = redis.call('get', KEYS[1]) or '0'; " +
-                    "if tonumber(active) > 0 then " +
-                    "    redis.call('decr', KEYS[1]); " +
-                    "    return 1; " +
-                    "else " +
-                    "    return 0; " +
-                    "end;";
-    private static final String DELETE_WORKSPACE_SCRIPT =
-            "local workspaceKey = KEYS[1]; " +
-                    "local result = redis.call('del', workspaceKey); " +
-                    "if result == 1 then " +
-                    "    return 1; " + // 삭제 성공
-                    "else " +
-                    "    return 0; " + // 삭제 실패
-                    "end;";
-
 
     @Qualifier("queueReactiveRedisTemplate")
     private final ReactiveRedisTemplate<String, String> queueReactiveRedisTemplate;
-    @Qualifier("redisTemplate")
-    private final RedisTemplate<String, String> workRedisTemplate;
+    @Qualifier("workReactiveRedisTemplate")
+    private final ReactiveRedisTemplate<String, String> workReactiveRedisTemplate;
     @Qualifier("slotReactiveRedisTemplate")
     private final ReactiveRedisTemplate<String, String> slotReactiveRedisTemplate;
+
+    private static final String OCCUPY_SLOT_SCRIPT = LuaScriptLoader.loadScript("lua/occupy_slot.lua");
+    private static final String RELEASE_SLOT_SCRIPT = LuaScriptLoader.loadScript("lua/release_slot.lua");
+    private static final String ENTER_WORKSPACE_SCRIPT = LuaScriptLoader.loadScript("lua/enter_workspace.lua");
+    private static final String DELETE_WORKSPACE_SCRIPT = LuaScriptLoader.loadScript("lua/delete_workspace.lua");
 
     /**
      * 최대 작업 가능한 슬롯 수 설정.
@@ -110,11 +87,9 @@ public class SlotService {
                 List.of(activeKey, maxKey)
         ).flatMap(success -> {
             if (success) {
-                enterWorkSpace(userId, eventId);
-                return Mono.just(true);
-            } else {
-                return Mono.just(false);
+                return enterWorkSpace(userId, eventId);
             }
+            return Mono.just(false);
 
         }).hasElements();
     }
@@ -145,24 +120,23 @@ public class SlotService {
      * @param userId 사용자 ID
      */
     public Mono<Void> releaseSlotByUserId(String userId) {
-        String eventId = findEventIdByUserId(userId);
+        return findEventIdByUserId(userId)
+                .flatMap(eventId -> {
+                    if (eventId == null) {
+                        log.warn("releaseSlotByUserId: userId={}에 대한 eventId를 찾을 수 없음", userId);
+                        return Mono.empty(); // eventId가 없으면 아무 작업도 수행하지 않음
+                    }
 
-        if (eventId == null) {
-            log.warn("사용자 {}의 eventId를 찾을 수 없습니다. 슬롯 해제를 건너뜁니다.", userId);
-            return Mono.empty();
-        }
+                    String workspaceKey = KeyHelper.getFicketWorkSpace(eventId, userId);
 
-        String workspaceKey = KeyHelper.getFicketWorkSpace(eventId, userId);
-
-        return releaseSlot(eventId)
-                .then(deleteWorkSpace(workspaceKey)) // Lua 스크립트를 사용해 워크스페이스 삭제
-                .doOnSuccess(unused -> log.info("releaseSlotByUserId 완료: userId={}, eventId={}", userId, eventId))
-                .doOnError(error -> log.error("releaseSlotByUserId 실패: userId={}, eventId={}, error={}", userId, eventId, error.getMessage()));
+                    return releaseSlot(eventId)
+                            .then(deleteWorkSpace(workspaceKey)); // Lua 스크립트를 사용해 워크스페이스 삭제
+                });
     }
 
     public Mono<Void> deleteWorkSpace(String workspaceKey) {
         return Mono.fromRunnable(() ->
-                        workRedisTemplate.execute(
+                        workReactiveRedisTemplate.execute(
                                 new DefaultRedisScript<>(DELETE_WORKSPACE_SCRIPT, Boolean.class),
                                 List.of(workspaceKey)
                         )
@@ -188,27 +162,23 @@ public class SlotService {
     }
 
 
-    private void enterWorkSpace(String userId, String eventId) {
+    private Mono<Boolean> enterWorkSpace(String userId, String eventId) {
         String redisKey = KeyHelper.getFicketWorkSpace(eventId, userId);
-        workRedisTemplate.opsForValue().set(redisKey, "active", Duration.ofSeconds(WORKSPACE_TTL_SECONDS));
-        log.info("사용자가 작업 공간에 진입했습니다: 사용자 ID={}, 이벤트 ID={}, TTL={}초",
-                userId, eventId, WORKSPACE_TTL_SECONDS);
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(ENTER_WORKSPACE_SCRIPT, Long.class);
+
+
+        return workReactiveRedisTemplate.execute(script, Collections.singletonList(redisKey))
+                .singleOrEmpty() // Flux<Long> -> Mono<Long>
+                .map(result -> result != null && result == 1) // 결과 값이 1이면 true 반환
+                .defaultIfEmpty(false); // 결과 값이 없으면 false 반환
     }
 
-    private String findEventIdByUserId(String userId) {
-        // Redis SCAN 명령 실행
-        Set<String> keys = workRedisTemplate.keys("ficket:workspace:*:" + userId);
-
-        if (keys == null || keys.isEmpty()) {
-            return null; // 키가 없으면 null 반환
-        }
-
-        // 단일 키에서 eventId 추출
-        // 예: "ficket:workspace:eventId:userId" -> eventId 추출
-        return keys.stream()
-                .map(key -> key.split(":")[2]) // 세 번째 부분이 eventId
-                .findFirst()
-                .orElse(null);
+    private Mono<String> findEventIdByUserId(String userId) {
+        return workReactiveRedisTemplate.keys("ficket:workspace:*:" + userId)
+                .collectList() // Flux<String> -> Mono<List<String>>
+                .filter(keys -> !keys.isEmpty()) // 빈 리스트는 필터링
+                .map(keys -> keys.get(0).split(":")[2]) // 첫 번째 키에서 eventId 추출
+                .defaultIfEmpty(null); // 키가 없을 경우 null 반환
     }
 
     /**
