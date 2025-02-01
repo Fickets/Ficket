@@ -77,7 +77,7 @@ function RegisterFace() {
 
   const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `ws://localhost:9000/work-status/${user.userId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `ws://localhost:9000/work-status/${eventId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {
