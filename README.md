@@ -47,7 +47,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 3. 제작기간 && 팀원소개 🏃‍🏃‍♀️💨
 
-### 2024-11-16 ~ 2024-01-20🔥
+### 2024-11-21 ~ 2024-01-20🔥
 
 | 이름                                 | 담당 기능                                                                             |
 |------------------------------------|-----------------------------------------------------------------------------------|
@@ -96,8 +96,6 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 8. 주요 기술 ✨
 - 쿠버네티스 
-    - [??]()
-- CI/CD
     - [??]()
 - MSA
     - [Eureka Server & Eureka Client & Gateway 설정](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-1-Eureka-Server-Eureka-Client-Gateway-%EC%84%A4%EC%A0%95)
