@@ -2,7 +2,6 @@ package com.example.ficketqueue.global.webfluxWebsocket.handler;
 
 import com.example.ficketqueue.global.utils.WebSocketUrlParser;
 import com.example.ficketqueue.queue.service.ClientNotificationService;
-import com.example.ficketqueue.queue.service.QueueService;
 import com.example.ficketqueue.queue.service.SlotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,19 +44,19 @@ public class WorkWebSocketHandler implements WebSocketHandler {
         }
 
         return session.receive()
-                .doFinally(signalType -> handleConnectionClosed(session))
+                .doFinally(signalType -> handleConnectionClosed(session, userId))
                 .then();
     }
 
-    private void handleConnectionClosed(WebSocketSession session) {
-        String userId = WebSocketUrlParser.getInfoFromUri(session);
+    private void handleConnectionClosed(WebSocketSession session, String userId) {
+        String eventId = WebSocketUrlParser.getInfoFromUri(session);
         // 세션을 즉시 제거
         clientNotificationService.removeSession(userId);
 
         // 5초 지연 후 슬롯 해제 처리
         scheduler.schedule(() -> {
             if (!clientNotificationService.isUserSessionExists(userId)) {
-                slotService.releaseSlotByUserId(userId)
+                slotService.releaseSlotByEventIdAndUserId(eventId, userId)
                         .doOnSuccess(unused -> log.info("사용자 {}의 슬롯이 해제되었습니다.", userId))
                         .doOnError(e -> log.error("슬롯 해제 중 오류 발생: 사용자 {}, 오류 {}", userId, e.getMessage()))
                         .subscribe(); // 비동기 실행

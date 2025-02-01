@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
@@ -134,14 +135,21 @@ public class SlotService {
                 });
     }
 
+    public Mono<Void> releaseSlotByEventIdAndUserId(String eventId, String userId) {
+        String workSpaceKey = KeyHelper.getFicketWorkSpace(eventId, userId);
+
+        return releaseSlot(eventId)
+                .then(deleteWorkSpace(workSpaceKey));
+    }
+
     public Mono<Void> deleteWorkSpace(String workspaceKey) {
-        return Mono.fromRunnable(() ->
-                        workReactiveRedisTemplate.execute(
-                                new DefaultRedisScript<>(DELETE_WORKSPACE_SCRIPT, Boolean.class),
-                                List.of(workspaceKey)
-                        )
-                ).doOnSuccess(unused -> log.info("워크스페이스 삭제 완료: workspaceKey={}", workspaceKey))
-                .doOnError(error -> log.warn("워크스페이스 삭제 실패: workspaceKey={}, error={}", workspaceKey, error.getMessage())).then();
+        return workReactiveRedisTemplate.execute(
+                        new DefaultRedisScript<>(DELETE_WORKSPACE_SCRIPT, Boolean.class),
+                        List.of(workspaceKey)
+                )
+                .doOnNext(success -> log.info("워크스페이스 삭제 성공 여부: workspaceKey={}, result={}", workspaceKey, success))
+                .doOnError(error -> log.warn("워크스페이스 삭제 실패: workspaceKey={}, error={}", workspaceKey, error.getMessage()))
+                .then();
     }
 
 

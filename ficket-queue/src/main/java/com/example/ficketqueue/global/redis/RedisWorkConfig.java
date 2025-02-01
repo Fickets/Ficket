@@ -1,5 +1,7 @@
 package com.example.ficketqueue.global.redis;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -7,10 +9,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+@Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class RedisWorkConfig {
 
     @Value("${spring.data.work.host}")
@@ -18,7 +24,6 @@ public class RedisWorkConfig {
 
     @Value("${spring.data.work.port}")
     private int port;
-
 
     @Bean(name = "workReactiveRedisConnectionFactory")
     public ReactiveRedisConnectionFactory workReactiveRedisConnectionFactory() {
@@ -41,18 +46,19 @@ public class RedisWorkConfig {
     }
 
 
-//    @Bean(name = "workRedisMessageListenerContainer")
-//    public RedisMessageListenerContainer redisMessageListenerContainer(
-//            @Qualifier("workRedisConnectionFactory") RedisConnectionFactory connectionFactory,
-//            KeyExpirationListener keyExpirationListener) {
-//        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-//        container.setConnectionFactory(connectionFactory);
-//
-//        // Keyspace Notifications에서 TTL 만료 이벤트 감지
-//        container.addMessageListener(
-//                keyExpirationListener,
-//                new PatternTopic("__keyevent@*__:expired")
-//        );
-//        return container;
-//    }
+    @Bean(name = "reactiveRedisMessageListenerContainer")
+    public ReactiveRedisMessageListenerContainer reactiveRedisMessageListenerContainer(
+            @Qualifier("workReactiveRedisConnectionFactory") ReactiveRedisConnectionFactory reactiveRedisConnectionFactory,
+            RedisKeyExpirationListener redisKeyExpirationListener) {
+        ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(reactiveRedisConnectionFactory);
+
+        // Keyspace Notifications에서 TTL 만료 이벤트 감지
+        ChannelTopic expiredTopic = new ChannelTopic("__keyevent@0__:expired");
+
+        container.receive(expiredTopic)
+                .flatMap(message -> redisKeyExpirationListener.handleExpireKey(message.getMessage()))
+                .subscribe();
+
+        return container;
+    }
 }
