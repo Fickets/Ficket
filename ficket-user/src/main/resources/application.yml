@@ -5,18 +5,3 @@ spring:
     active: local
   config:
     import: optional:configserver:http://localhost:8888
-
-encrypt:
-  key-store:
-    password: test1234
-    alias: apiEncryptionKey
-    location: classpath:/apiEncryptionKey.jks
-
-eureka:
-  instance:
-    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/  # Eureka 서버의 URL을 지정합니다.
-      register-with-eureka: true  # 이 서비스가 Eureka 서버에 등록되도록 설정합니다.
-      fetch-registry: true  # Eureka 서버로부터 다른 서비스 정보를 받아오도록 설정합니다.
