@@ -14,8 +14,6 @@ spring:
     include:
       - rabbitmq
       - key
-  application:
-    name: config-prod
   cloud:
     config:
       server:
@@ -25,6 +23,7 @@ spring:
           search-paths: ConfigFiles
           username: ${cloud.username}
           password: ${cloud.password}
+          clone-on-start: true  # 서버 시작 시 Git 클론
   endpoints:
     web:
       exposure:
