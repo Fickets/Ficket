@@ -2,13 +2,18 @@ server:
   port: 8089 # # 사용 가능한 임의의 포트 할당합니다.
 
 spring:
+  config:
+    import: configserver:http://localhost:8888 # Config 서버 URL
   application:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
 #  profiles:
-#    active: config-server
+#    group:
+#      config-server: config-server # Config Server 프로파일
+  profiles:
+    active: local
   zipkin:
-#    base-url: ${ZIPKIN_BASE_URL}
-    base-url: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411
+    base-url: ${ZIPKIN_BASE_URL}
+#    base-url: ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411
     enabled: true
   security:
     oauth2:
@@ -17,8 +22,7 @@ spring:
           kakao:
             client-id: a9f59c7ed287df6830de6012385df82d
             client-secret: rGRRKr9tdoOxHNOQEUvT2QmdgFUDAWiq
-#            redirect-uri: ${REDIRECT_URI} # 프론트 url
-            redirect-uri: http://localhost:8777/login/oauth2/code/kakao
+            redirect-uri: ${REDIRECT_URI} # 프론트 url
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             client-name: Kakao
@@ -83,7 +87,7 @@ management:
       produce: B3
   zipkin:
     tracing:
-      endpoint: http://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411/api/v2/spans
+      endpoint: ${ZIPKIN_ENDPOINT}
   endpoints:
     web:
       exposure:
