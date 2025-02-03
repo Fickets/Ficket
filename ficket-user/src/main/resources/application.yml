@@ -3,7 +3,7 @@ server:
 
 spring:
   config:
-    import: configserver:http://localhost:8888 # Config 서버 URL
+    import: optional:configserver:http://localhost:8888
   application:
     name: user-service  # 이 서비스의 이름을 설정합니다. Eureka 서버에 등록될 때 사용됩니다.
 #  profiles:
@@ -132,3 +132,6 @@ encrypt:
     alias: apiEncryptionKey
     location: classpath:/apiEncryptionKey.jks
 
+ZIPKIN_BASE_URL: http://127.0.0.1:9411
+ZIPKIN_ENDPOINT: http://localhost:9411/api/v2/spans
+REDIRECT_URI: http://localhost:8777/login/oauth2/code/kakao
