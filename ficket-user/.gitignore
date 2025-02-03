@@ -44,3 +44,6 @@ src/main/generated/
 
 ### Key ###
 /src/main/resources/apiEncryptionKey.jks
+
+
+/src/main/resources/application.yml
