@@ -1,11 +1,10 @@
 from marshmallow import Schema, fields
-from flask import jsonify
+
 
 class ResponseSchema(Schema):
     status = fields.Int(required=True, description="HTTP status code")
     message = fields.Str(required=True, description="Response message")
     data = fields.Dict(required=False, description="Optional data")
-
 
     @staticmethod
     def make_response(status, message, data=None):

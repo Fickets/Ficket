@@ -1,16 +1,10 @@
 import boto3
-from config import load_config_from_server
+import os
 
-config = load_config_from_server()
-
+# 환경 변수에서 AWS 설정 가져오기
 s3 = boto3.client(
     "s3",
-    aws_access_key_id=config["aws"]["accesskey"],
-    aws_secret_access_key=config["aws"]["secretkey"],
-    region_name=config["aws"]["region"]
+    aws_access_key_id=os.getenv("AWS_ACCESSKEY"),
+    aws_secret_access_key=os.getenv("AWS_SECRETKEY"),
+    region_name=os.getenv("AWS_REGION")
 )
-
-bucket_name = config["aws"]["bucketname"]
-
-# KMS 키 ARN
-kms_key_id = config["aws"]["kms"]

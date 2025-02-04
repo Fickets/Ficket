@@ -2,10 +2,12 @@
 from insightface.app import FaceAnalysis
 import cv2
 import numpy as np
+from config import logger
 
 # FaceAnalysis 객체 생성 및 초기화
 app = FaceAnalysis(name='buffalo_l', allowed_modules=['detection', 'recognition'], providers=['CPUExecutionProvider'])
 app.prepare(ctx_id=-1)  # CPU 모드 (GPU가 있는 경우 ctx_id=0)
+
 
 def get_face_embedding(image_data):
     # 이미지 바이트 데이터를 메모리에서 바로 디코딩
@@ -20,8 +22,9 @@ def get_face_embedding(image_data):
     if faces:
         return faces[0].embedding
     else:
-        print("No face_app detected in the provided image data")
+        logger.error("No face_app detected in the provided image data")
         return None
+
 
 def cosine_similarity(embedding1, embedding2):
     # 코사인 유사도 계산

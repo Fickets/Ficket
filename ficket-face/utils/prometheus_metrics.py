@@ -13,8 +13,10 @@ REQUEST_LATENCY = Histogram(
     "http_request_latency_seconds", "Request latency in seconds", ["endpoint"]
 )
 
+
 def setup_metrics(app):
     """Flask 앱에 Prometheus 엔드포인트 추가"""
+
     @app.route('/actuator/prometheus')
     def prometheus_metrics():
         """Prometheus 메트릭 노출"""

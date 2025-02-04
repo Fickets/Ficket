@@ -1,5 +1,10 @@
 import uuid
-from config.s3_config import s3, bucket_name, kms_key_id
+from config.s3_config import s3
+import os
+
+BUCKET_NAME = os.getenv("AWS_BUCKETNAME")
+KMS_KEY_ID = os.getenv("AWS_KMS")
+
 
 def upload_file_to_s3(file, folder="faces"):
     """S3에 파일 업로드 (putObject 사용)"""
@@ -11,15 +16,15 @@ def upload_file_to_s3(file, folder="faces"):
 
     # put_object를 사용해 업로드
     s3.put_object(
-        Bucket=bucket_name,
+        Bucket=BUCKET_NAME,
         Key=unique_filename,
         Body=file_content,
         ContentType=file.content_type,
         ServerSideEncryption="aws:kms",  # SSE-KMS 암호화
-        SSEKMSKeyId=kms_key_id           # KMS 키 ARN
+        SSEKMSKeyId=KMS_KEY_ID  # KMS 키 ARN
     )
 
-    file_url = f"https://{bucket_name}.s3.amazonaws.com/{unique_filename}"
+    file_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{unique_filename}"
     return file_url
 
 
@@ -27,21 +32,22 @@ def delete_file_from_s3(file_url):
     """S3에서 파일 삭제"""
 
     # 파일 경로 추출
-    file_key = file_url.split(f"https://{bucket_name}.s3.amazonaws.com/")[-1]
+    file_key = file_url.split(f"https://{BUCKET_NAME}.s3.amazonaws.com/")[-1]
 
     # S3에서 파일 삭제
-    s3.delete_object(Bucket=bucket_name, Key=file_key)
+    s3.delete_object(Bucket=BUCKET_NAME, Key=file_key)
+
 
 def generate_presigned_url(file_url, expiration=300):
     """Presigned URL 생성"""
     # 파일 경로 추출
-    file_key = file_url.split(f"https://{bucket_name}.s3.amazonaws.com/")[-1]
+    file_key = file_url.split(f"https://{BUCKET_NAME}.s3.amazonaws.com/")[-1]
 
     try:
         url = s3.generate_presigned_url(
             'get_object',
             Params={
-                'Bucket': bucket_name,
+                'Bucket': BUCKET_NAME,
                 'Key': file_key
             },
             ExpiresIn=expiration

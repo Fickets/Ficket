@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
-from config import config, start_rabbitmq_listener_thread, initialize_eureka_client
+from config import load_config_from_server, start_rabbitmq_listener_thread, initialize_eureka_client
 from database import initialize_database, db
 from utils import setup_metrics
 from face_app.apis.api import api_blueprint
@@ -10,8 +10,11 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
+    # 환경 변수 설정
+    load_config_from_server()
+
     # 데이터베이스 초기화
-    initialize_database(app, config)
+    initialize_database(app)
     Migrate(app, db)
 
     # 블루프린트 등록
@@ -24,7 +27,7 @@ def create_app():
 
 def initialize_services(app):
     # RabbitMQ와 에루카 초기화
-    start_rabbitmq_listener_thread(config, app)
+    start_rabbitmq_listener_thread(app)
     initialize_eureka_client()
 
 app = create_app()

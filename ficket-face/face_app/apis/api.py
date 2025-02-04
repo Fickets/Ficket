@@ -5,7 +5,7 @@ from face_app.models.model import Face
 from utils import get_face_embedding, cosine_similarity, encrypt_vector, decrypt_vector, upload_file_to_s3, \
     delete_file_from_s3, generate_presigned_url
 from database import db
-from config import config
+from config import logger
 from face_app.schemas.response import ResponseSchema
 from apscheduler.schedulers.background import BackgroundScheduler
 from urllib.parse import urlparse
@@ -53,12 +53,6 @@ match_parser = api.parser()
 match_parser.add_argument("file", location="files", type=FileStorage, required=True, help="Face image file")
 match_parser.add_argument("event_schedule_id", location="form", type=int, required=True, help="Event schedule ID")
 
-secret_key = config["encryption"].get("secret_key")
-if secret_key:
-    secret_key = secret_key.encode("utf-8")
-else:
-    raise ValueError("Failed to load secret key from Config server.")
-
 
 # 매일 자정에 ticket_id가 NULL인 Face 삭제
 def delete_null_ticket_faces():
@@ -69,12 +63,12 @@ def delete_null_ticket_faces():
                 delete_file_from_s3(face.face_img)
                 db.session.delete(face)
             db.session.commit()
-            print(f"{len(faces_to_delete)} face(s) with NULL ticket_id deleted successfully.")
+            logger.info(f"{len(faces_to_delete)} face(s) with NULL ticket_id deleted successfully.")
         else:
-            print("No faces with NULL ticket_id found.")
+            logger.warning("No faces with NULL ticket_id found.")
     except Exception as e:
         db.session.rollback()
-        print(f"Error occurred while deleting faces with NULL ticket_id: {e}")
+        logger.error(f"Error occurred while deleting faces with NULL ticket_id: {e}")
 
 
 scheduler = BackgroundScheduler()
@@ -101,7 +95,7 @@ class UploadFace(Resource):
         if embedding is None:
             return ResponseSchema.make_response(400, "No face detected."), 400
 
-        encrypted_embedding = encrypt_vector(embedding, secret_key)
+        encrypted_embedding = encrypt_vector(embedding)
         file.seek(0)
         file_url = upload_file_to_s3(file)
 
@@ -146,7 +140,7 @@ class MatchFace(Resource):
         max_similarity = -1
         best_match = None
         for face in faces:
-            decrypted_embedding = decrypt_vector(face.vector, secret_key)
+            decrypted_embedding = decrypt_vector(face.vector)
             similarity = cosine_similarity(embedding, decrypted_embedding)
             if similarity > max_similarity:
                 max_similarity = similarity
@@ -198,7 +192,6 @@ class SetRelationship(Resource):
         # 유효성 검사
         if not all([face_id, face_img_url, ticket_id, event_schedule_id]):
             return ResponseSchema.make_response(400, "모든 필드를 입력해야 합니다."), 400
-
 
         # 데이터베이스에서 Face 엔트리 조회
         face = Face.query.filter_by(face_id=face_id).first()

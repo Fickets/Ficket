@@ -1,23 +1,20 @@
 import pika
 import threading
-import logging
-from config import load_config_from_server
-
-logging.basicConfig(level=logging.INFO)
+import os
 
 
-def start_rabbitmq_listener_thread(config, app):
-    listener_thread = threading.Thread(target=start_rabbitmq_listener, args=(config, app))
+def start_rabbitmq_listener_thread(app):
+    listener_thread = threading.Thread(target=start_rabbitmq_listener, args=(app,))
     listener_thread.daemon = True
     listener_thread.start()
 
 
-def start_rabbitmq_listener(config, app):
+def start_rabbitmq_listener(app):
     # RabbitMQ 설정 로드
-    RABBITMQ_HOST = config["rabbitmq"].get("host", "localhost")
-    RABBITMQ_PORT = config["rabbitmq"].get("port", 5672)
-    RABBITMQ_USERNAME = config["rabbitmq"].get("username", "guest")
-    RABBITMQ_PASSWORD = config["rabbitmq"].get("password", "guest")
+    RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
+    RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", 5672))
+    RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME", "guest")
+    RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
     QUEUE_NAME = 'springCloudBus'
 
     credentials = pika.PlainCredentials(username=RABBITMQ_USERNAME, password=RABBITMQ_PASSWORD)
@@ -31,14 +28,10 @@ def start_rabbitmq_listener(config, app):
     channel.queue_bind(exchange=QUEUE_NAME, queue='springCloudBusByFlask', routing_key='#')
 
     def callback(ch, method, properties, body):
-        logging.info("Received configuration update message from RabbitMQ")
-        global config
-        config = load_config_from_server()
-        db_url = config["mysql"].get("url")
-        db_password = config["mysql"].get("password")
+        db_url = os.getenv("MYSQL_URL")
+        db_password = os.getenv("MYSQL_PASSWORD")
         if db_url and db_password:
             app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("{password}", db_password)
 
     channel.basic_consume(queue='springCloudBusByFlask', on_message_callback=callback, auto_ack=True)
-    logging.info("Waiting for configuration updates...")
     channel.start_consuming()
