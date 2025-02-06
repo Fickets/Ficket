@@ -6,7 +6,6 @@ export interface EventScheduledOpenResponse {
   genreList: Genre[];
   ticketStartTime: string;
   mobilePosterUrl: string;
-  // isNewPostEvent: boolean;
   newPostEvent: boolean;
 }
 
@@ -19,12 +18,6 @@ export interface PageDTO<T> {
   sortProperty: string;
   sortDirection: "ASC" | "DESC" | "none";
   last: boolean;
-}
-
-export interface EventOpenListProps {
-  events: PageDTO<EventScheduledOpenResponse>;
-  searchParams: SearchParams;
-  onSearchParamsChange: (newParams: Partial<SearchParams>) => void;
 }
 
 export interface SearchParams {

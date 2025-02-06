@@ -1,10 +1,6 @@
 import { AxiosResponse } from "axios";
 import { privateApi, publicApi } from "../../utils/http-common";
-import {
-  ResponseData,
-  EventDetailRes,
-  GenderStatisticRes,
-} from "../../types/ApiResponseType";
+import { ResponseData, EventDetailRes } from "../../types/ApiResponseType";
 
 const url = "events";
 

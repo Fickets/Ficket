@@ -14,6 +14,7 @@ import { Helmet } from "react-helmet-async";
 
 const STORE_ID: string = import.meta.env.VITE_STORE_ID;
 const CHANNEL_KEY: string = import.meta.env.VITE_CHANNEL_KEY;
+const PORTONE_WEBHOOK_URL: string = import.meta.env.PORTONE_WEBHOOK_URL;
 
 function Order() {
   const navigate = useNavigate();
@@ -99,9 +100,7 @@ function Order() {
           pc: "IFRAME",
           mobile: "REDIRECTION",
         },
-        noticeUrls: [
-          "https://9940-218-39-17-13.ngrok-free.app/api/v1/ticketing/order/valid",
-        ],
+        noticeUrls: [PORTONE_WEBHOOK_URL],
       });
 
       console.log("Payment request sent successfully!");
@@ -114,7 +113,7 @@ function Order() {
 
   const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `ws://localhost:9000/work-status/${user.userId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `ws://localhost:9000/work-status/${eventId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {

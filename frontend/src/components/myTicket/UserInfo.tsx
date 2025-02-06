@@ -4,7 +4,7 @@ import EditUserModal from "./EditUserModal";
 import { deleteUser } from "../../service/myTicket/api.ts";
 import { useStore } from "zustand";
 import { userStore } from "../../stores/UserStore.tsx";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const UserInfo = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -25,11 +25,11 @@ const UserInfo = () => {
       alert("회원 탈퇴가 완료되었습니다.");
       user.resetState();
       setShowDeleteModal(false);
-      navi("/")
-    } catch (error) {
+      navi("/");
+    } catch (error: any) {
       if (error.status === 409) {
-        alert("모든 예약 티켓에 대한 환불을 진행해 주세요.")
-        setShowDeleteModal(false)
+        alert("모든 예약 티켓에 대한 환불을 진행해 주세요.");
+        setShowDeleteModal(false);
       }
     }
   };

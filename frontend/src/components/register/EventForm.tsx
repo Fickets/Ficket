@@ -1,21 +1,21 @@
-import { useState, useEffect } from 'react';
-import Select from 'react-select';
+import { useState, useEffect } from "react";
+import Select from "react-select";
 import {
   EventData,
   GenreOption,
   EventFormProps,
   Company,
   Stage,
-} from '../../types/register';
-import { fetchCompanies, fetchStages } from '../../service/register/api';
+} from "../../types/register";
+import { fetchCompanies, fetchStages } from "../../service/register/api";
 
 const genres: GenreOption[] = [
-  { label: '뮤지컬', value: '뮤지컬' },
-  { label: '콘서트', value: '콘서트' },
-  { label: '스포츠', value: '스포츠' },
-  { label: '전시/행사', value: '전시_행사' },
-  { label: '클래식/무용', value: '클래식_무용' },
-  { label: '아동/가족', value: '아동_가족' },
+  { label: "뮤지컬", value: "뮤지컬" },
+  { label: "콘서트", value: "콘서트" },
+  { label: "스포츠", value: "스포츠" },
+  { label: "전시/행사", value: "전시_행사" },
+  { label: "클래식/무용", value: "클래식_무용" },
+  { label: "아동/가족", value: "아동_가족" },
 ];
 
 const EventForm = ({ onChange }: EventFormProps) => {
@@ -29,18 +29,16 @@ const EventForm = ({ onChange }: EventFormProps) => {
     companyId: 0,
     stageId: 0,
     genre: [],
-    age: '전체관람가',
-    content: '',
-    title: '',
-    subTitle: '',
+    age: "전체관람가",
+    content: "",
+    title: "",
+    subTitle: "",
     runningTime: 0,
-    ticketingTime: '',
+    ticketingTime: "",
     reservationLimit: 0,
     eventDate: [],
     seats: [],
   });
-
-  const [selectedStageImg, setSelectedStageImg] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +50,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
           companyData.map((c: Company) => ({
             value: c.companyId,
             label: c.companyName,
-          }))
+          })),
         );
 
         setStages(
@@ -65,11 +63,11 @@ const EventForm = ({ onChange }: EventFormProps) => {
               value: s.stageId,
               label: s.stageName,
               img: s.eventStageImg,
-            })
-          )
+            }),
+          ),
         );
       } catch (error) {
-        console.error('Error fetching companies or stages:', error);
+        console.error("Error fetching companies or stages:", error);
       }
     };
 
@@ -83,14 +81,12 @@ const EventForm = ({ onChange }: EventFormProps) => {
   };
 
   const handleStageChange = (
-    selected: { value: number; label: string; img: string } | null
+    selected: { value: number; label: string; img: string } | null,
   ) => {
     if (selected) {
-      handleInputChange('stageId', selected.value);
-      setSelectedStageImg(selected.img); // Update stage image
+      handleInputChange("stageId", selected.value);
     } else {
-      handleInputChange('stageId', 0);
-      setSelectedStageImg(null); // Clear stage image
+      handleInputChange("stageId", 0);
     }
   };
 
@@ -108,7 +104,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
           <input
             type="text"
             value={formState.title}
-            onChange={(e) => handleInputChange('title', e.target.value)}
+            onChange={(e) => handleInputChange("title", e.target.value)}
             className="border border-gray-300 rounded-lg w-full p-3 text-sm focus:outline-none focus:ring focus:ring-blue-200"
             placeholder="공연 제목을 입력해 주세요"
           />
@@ -122,7 +118,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
           <input
             type="text"
             value={formState.subTitle}
-            onChange={(e) => handleInputChange('subTitle', e.target.value)}
+            onChange={(e) => handleInputChange("subTitle", e.target.value)}
             className="border border-gray-300 rounded-lg w-full p-3 text-sm focus:outline-none focus:ring focus:ring-blue-200"
             placeholder="부제목을 입력해 주세요"
           />
@@ -136,7 +132,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
           <Select
             options={companies}
             onChange={(selected) =>
-              handleInputChange('companyId', selected?.value || 0)
+              handleInputChange("companyId", selected?.value || 0)
             }
             placeholder="공연회사를 검색해 주세요"
             isClearable
@@ -164,7 +160,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
           <input
             type="datetime-local"
             value={formState.ticketingTime}
-            onChange={(e) => handleInputChange('ticketingTime', e.target.value)}
+            onChange={(e) => handleInputChange("ticketingTime", e.target.value)}
             className="border border-gray-300 rounded-lg w-full p-3 text-sm focus:outline-none focus:ring focus:ring-blue-200"
           />
         </div>
@@ -179,7 +175,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
             min="1"
             value={formState.reservationLimit}
             onChange={(e) =>
-              handleInputChange('reservationLimit', Number(e.target.value))
+              handleInputChange("reservationLimit", Number(e.target.value))
             }
             className="border border-gray-300 rounded-lg w-full p-3 text-sm focus:outline-none focus:ring focus:ring-blue-200"
             placeholder="예: 4"
@@ -195,7 +191,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
             type="number"
             value={formState.runningTime}
             onChange={(e) =>
-              handleInputChange('runningTime', Number(e.target.value))
+              handleInputChange("runningTime", Number(e.target.value))
             }
             className="border border-gray-300 rounded-lg w-full p-3 text-sm focus:outline-none focus:ring focus:ring-blue-200"
           />
@@ -208,7 +204,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
           </label>
           <select
             value={formState.age}
-            onChange={(e) => handleInputChange('age', e.target.value)}
+            onChange={(e) => handleInputChange("age", e.target.value)}
             className="border border-gray-300 rounded-lg w-full p-3 text-sm focus:outline-none focus:ring focus:ring-blue-200"
           >
             <option value="전체관람가">전체 관람가</option>
@@ -234,7 +230,7 @@ const EventForm = ({ onChange }: EventFormProps) => {
                     const newGenres = formState.genre.includes(genre.value)
                       ? formState.genre.filter((g) => g !== genre.value)
                       : [...formState.genre, genre.value];
-                    handleInputChange('genre', newGenres);
+                    handleInputChange("genre", newGenres);
                   }}
                   className="focus:ring focus:ring-blue-200"
                 />
