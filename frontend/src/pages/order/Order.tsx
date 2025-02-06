@@ -14,7 +14,7 @@ import { Helmet } from "react-helmet-async";
 
 const STORE_ID: string = import.meta.env.VITE_STORE_ID;
 const CHANNEL_KEY: string = import.meta.env.VITE_CHANNEL_KEY;
-const PORTONE_WEBHOOK_URL: string = import.meta.env.PORTONE_WEBHOOK_URL;
+const PORTONE_WEBHOOK_URL: string = import.meta.env.VITE_PORTONE_WEBHOOK_URL;
 
 function Order() {
   const navigate = useNavigate();
