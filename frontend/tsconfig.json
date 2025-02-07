@@ -1,13 +1,29 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
   ],
   "compilerOptions": {
+    "lib": [
+      "es2021",
+      "dom"
+    ],
+    "target": "es2021",
     "baseUrl": "./",
+    "noEmitOnError": false,
+    "skipLibCheck": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "strict": false,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   }
 }

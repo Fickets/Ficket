@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from 'react';
 
-import { useCookies } from 'react-cookie';
-import { useNavigate } from 'react-router';
 import { useStore } from 'zustand';
 import { eventDetailStore } from '../../stores/EventStore';
 import HeadImg1 from '../../assets/ticketing/ticketingHeader1.png'

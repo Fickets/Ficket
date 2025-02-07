@@ -5,9 +5,9 @@ import { ApiResponse, Settlement } from '../../../types/admins/Settlement/Settle
 
 
 // 이벤트 목록 조회 API
-export const fetchEvents = async (): Promise<String[]> => {
+export const fetchEvents = async (): Promise<string[]> => {
     try {
-        const response: AxiosResponse<String[]> =
+        const response: AxiosResponse<string[]> =
             await adminPrivateApi.get(`/events/search-title`);
         return response.data;
     } catch (error: any) {
@@ -37,7 +37,7 @@ export const fetchSettlementListByCond = async (params = {}) => {
 
 export const settlementsList = async (
     eventId: string,
-    Response: (Response: AxiosResponse<Settlement>) => void,
+    Response: (Response: AxiosResponse<Settlement[]>) => void,
     Error: (Error: AxiosResponse<ResponseData>) => void,
 ) => {
     await adminPrivateApi.get(`/settlements/list/${eventId}`)

@@ -1,13 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { openRecent } from "../../service/home/api";
 import { useNavigate } from "react-router";
 import { SimpleEvent } from "../../types/home";
-import musical from '../../assets/navi/musical.png';
-import concert from '../../assets/navi/concert.png';
-import sports from '../../assets/navi/sports.png';
-import events from '../../assets/navi/event.png';
-import classic from '../../assets/navi/classic.png';
-import family from '../../assets/navi/family.png';
+
 const OpenRecent = ({ genre }: { genre: string }) => {
     const navi = useNavigate();
     const [open6, setopen6] = useState<SimpleEvent[]>([])
@@ -23,7 +18,7 @@ const OpenRecent = ({ genre }: { genre: string }) => {
         try {
             let data; // 조건문 밖에서 선언
             if (genre === "") {
-                data = await openRecent(null); // null로 호출
+                data = await openRecent(""); // null로 호출
             } else {
                 data = await openRecent(genre); // genre로 호출
             }
@@ -38,11 +33,6 @@ const OpenRecent = ({ genre }: { genre: string }) => {
         const inputDate = new Date(dateString); // 입력된 날짜
         const now = new Date(); // 현재 시간
 
-        // 오늘인지 확인 (연, 월, 일 비교)
-        const isToday =
-            inputDate.getFullYear() === now.getFullYear() &&
-            inputDate.getMonth() === now.getMonth() &&
-            inputDate.getDate() === now.getDate();
 
         // 현재 시간과 비교
         if (inputDate > now) {

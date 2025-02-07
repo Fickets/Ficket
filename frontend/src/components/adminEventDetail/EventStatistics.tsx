@@ -65,7 +65,7 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
     ],
   };
 
-  const chartOptions: ChartOptions<'bar'> = {
+  const chartOptions: ChartOptions<"bar"> = {
     responsive: true,
     plugins: {
       legend: {

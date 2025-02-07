@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import { userLogout } from "../../service/user/userApi";
+import { useStore } from "zustand";
+import { userStore } from "../../stores/UserStore"
 import userImg from "../../assets/bottomNav/User.png";
 import ticketImg from "../../assets/bottomNav/Ticket.png";
 import homeImg from "../../assets/bottomNav/Home.png";
@@ -10,7 +12,7 @@ const BottomNav = () => {
   const [cookies] = useCookies(["isLogin"]);
   const navi = useNavigate();
   const location = useLocation(); // 현재 경로 가져오기
-
+  const user = useStore(userStore);
   const handleSearchNavigation = () => {
     const searchPath = "/contents/search?keyword=null"; // 검색 페이지 경로
     if (location.pathname + location.search !== searchPath) {
@@ -21,12 +23,12 @@ const BottomNav = () => {
   const handleLoginToggle = async () => {
     if (Boolean(cookies.isLogin)) {
       await userLogout(
-        (response) => {
+        (_response) => {
           console.log("LOGOUT");
           user.resetState();
           navi("/");
         },
-        () => {},
+        () => { },
       );
     } else {
       navi("/users/login");

@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios';
 import { FaceApiResponse } from '../../types/uploadFace.ts';
-import { adminPrivateApi, publicApi } from '../../utils/http-common.ts';
+import {  publicApi } from '../../utils/http-common.ts';
 
 
 export const checkFace = async (

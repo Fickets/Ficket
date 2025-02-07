@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { openRecent } from "../../service/home/api";
 import { useNavigate } from "react-router";
 import { SimpleEvent } from "../../types/home";
@@ -20,7 +20,7 @@ const OpenGenre = ({ genre }: { genre: string }) => {
         try {
             let data; // 조건문 밖에서 선언
             if (genre === "") {
-                data = await openRecent(null); // null로 호출
+                data = await openRecent(""); // null로 호출
             } else {
                 data = await openRecent(genre); // genre로 호출
             }
@@ -36,10 +36,6 @@ const OpenGenre = ({ genre }: { genre: string }) => {
         const now = new Date(); // 현재 시간
 
         // 오늘인지 확인 (연, 월, 일 비교)
-        const isToday =
-            inputDate.getFullYear() === now.getFullYear() &&
-            inputDate.getMonth() === now.getMonth() &&
-            inputDate.getDate() === now.getDate();
 
 
         // 현재 시간과 비교

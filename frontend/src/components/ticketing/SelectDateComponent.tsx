@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar } from 'react-calendar'
+
 import CustomCalendar from './CustomCalendar';
-import { useCookies } from 'react-cookie';
+
 import { useNavigate } from 'react-router';
-import { useStore, create } from 'zustand';
-import moment from "moment";
+import { useStore } from 'zustand';
+
 import { eventDetailStore } from '../../stores/EventStore';
 import SelectDateRoundComponent from './SeleteDateRound';
 import { partitionDto, eventScheduleDto } from '../../types/StoreType/EventDetailStore';
-import { reverse } from 'dns';
+
 
 
 interface SelectRoundProps {
@@ -25,10 +25,8 @@ const SelectDateComponent: React.FC<SelectRoundProps> = ({ onRoundselected }) =>
     const [eventRounds, setEventRounds] = useState<Record<string, eventScheduleDto>>({}); // Map 타입으로 초기화
 
     // -------------------------------------------
-    const [gradeColors, setGradeColors] = useState<{
-        [key: string]: string;
-    } | null>(null);
-    let [seatGrades, setSeatGrades] = useState<string[]>();
+    const [gradeColors, setGradeColors] = useState<{ [key: string]: string }>({});
+
     useEffect(() => {
 
 
@@ -79,7 +77,7 @@ const SelectDateComponent: React.FC<SelectRoundProps> = ({ onRoundselected }) =>
             const t1 = eventDetail.scheduleMap[eventDetail.choiceDate][eventDetail.round]["partition"];
             setPartitionList(t1);
             //-------
-            setSeatGrades(Object.keys(t1).sort().reverse());
+            // setSeatGrades(Object.keys(t1).sort().reverse());
             const distinctColors = generateDistinctColors(2);
             const newGradeColors: { [key: string]: string } = {};
             Object.keys(t1).sort().reverse().forEach((grade, index) => {
@@ -96,26 +94,31 @@ const SelectDateComponent: React.FC<SelectRoundProps> = ({ onRoundselected }) =>
 
     }, [eventDetail.round])
 
-    const formatEventTime = (eventDate) => {
+
+    const formatEventTime = (eventDate: string) => {
         const dateObj = new Date(eventDate);  // eventDate를 Date 객체로 변환
         let hours = dateObj.getHours();  // 24시간 형식 시간
-        let minutes = dateObj.getMinutes();  // 분
+        let minutes: number = dateObj.getMinutes();  // 분
         let period = hours >= 12 ? '오후' : '오전';  // 오전/오후 구분
 
         // 12시간 형식으로 변환
         hours = hours % 12;
         hours = hours ? hours : 12;  // 0시인 경우 12로 변경
-        minutes = minutes < 10 ? '0' + minutes : minutes;  // 1자리 분을 두자리로 변경
+        // minutes를 10보다 작을 경우 0을 붙여서 문자열로 처리
+        const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`;
 
-        return `${period} ${hours}:${minutes}`;
+        return `${period} ${hours}:${formattedMinutes}`;
     };
 
-    const roundsClick = (event) => {
-        const key = event.target.value;
-        eventDetail.setRound(key);
-        const date = event.target.getAttribute("date");
-        eventDetail.setChoicetime(date)
-        navi("/ticketing/select-seat")
+
+
+
+    const roundsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        const key = event.currentTarget.value; // `event.target` 대신 `event.currentTarget` 사용
+        eventDetail.setRound(Number(key));
+        const date = event.currentTarget.getAttribute("data-date");
+        eventDetail.setChoicetime(date || "");
+        navi("/ticketing/select-seat");
     };
 
 
@@ -212,7 +215,7 @@ const SelectDateComponent: React.FC<SelectRoundProps> = ({ onRoundselected }) =>
                             <button
                                 className='bg-[#E44444] text-white w-[100px]'
                                 value={key}
-                                date={value["eventDate"].split("T")[1]}
+                                data-date={value["eventDate"].split("T")[1]}
                                 onClick={roundsClick}
                             >버튼</button>
                         </div>

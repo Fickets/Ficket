@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
 import { privateApi, publicApi } from "../../utils/http-common";
 import { ResponseData } from "../../types/ApiResponseType";
-import { UserAdditionalInfoType, UserAdditionalInfoReq } from "../../types/users/UserAdditionalInfoType";
+import {  UserAdditionalInfoReq } from "../../types/users/UserAdditionalInfoType";
 import { UserAdditionalInfoRes } from "../../types/ApiResponseType";
 const url = "users"
 

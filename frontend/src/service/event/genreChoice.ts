@@ -1,10 +1,10 @@
 import { AxiosResponse } from "axios";
-import { privateApi, publicApi } from "../../utils/http-common";
+import { publicApi } from "../../utils/http-common";
 import { ResponseData } from "../../types/ApiResponseType";
 import { Period } from "../../types/ReservationRateRanking";
-import { SimpleEvent, SimplePageRes } from "../../types/home";
+import { SimplePageRes } from "../../types/home";
 export const getArea = async (
-    Response: (Response: AxiosResponse<String[]>) => void,
+    Response: (Response: AxiosResponse<string[]>) => void,
     Error: (Error: AxiosResponse<ResponseData>) => void,
 ) => {
     await publicApi.get(`/events/area`).then(Response).catch(Error);

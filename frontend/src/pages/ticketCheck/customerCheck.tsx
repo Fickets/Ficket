@@ -12,7 +12,7 @@ const FaceDetectionPage: React.FC = () => {
     const connectId = queryParams.get("connectId");
 
     const [viewMessage, setViewMessage] = useState<string>("얼굴인식을 해주세요.")
-    const [client, setClient] = useState<Client | null>(null);
+    const [, setClient] = useState<Client | null>(null);
     const [socketMessage, setSocketMessage] = useState<SocketMessage | null>(null);
     const [modelsLoaded, setModelsLoaded] = useState(false);
     const [isCapturing, setIsCapturing] = useState(false);
@@ -116,7 +116,7 @@ const FaceDetectionPage: React.FC = () => {
         try {
             console.log(base64Image)
             const fileImage = dataUrlToFile(base64Image, "image.png");
-            const response = await checkFace(fileImage, eventId, connectId);
+            const response = await checkFace(fileImage, eventId || "", Number(connectId));
             console.log(response);
         } catch (error: any) {
             console.log(error.message);

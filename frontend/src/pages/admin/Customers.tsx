@@ -1,12 +1,13 @@
 import Sidebar from "../../components/@common/Sidebar.tsx";
 import CustomerSearchBar from "../../components/admin/customers/CustomerSearchBar.tsx";
 import { useEffect, useState } from "react";
-import { ApiResponse, SearchParams } from "../../types/eventList.ts";
+import { ApiResponse2, SearchParams } from "../../types/eventList.ts";
 import { fetchCustomerListByCond } from "../../service/admin/customer/customerService.ts";
 import CustomerList from "../../components/admin/customers/CustomerList.tsx";
 import { Helmet } from "react-helmet-async";
+
 const UserManagePage = () => {
-  const [data, setData] = useState<ApiResponse>({
+  const [data, setData] = useState<ApiResponse2>({
     content: [],
     page: 0,
     size: 10,
@@ -23,7 +24,7 @@ const UserManagePage = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const response = await fetchCustomerListByCond(searchParams); // 서버에서 데이터 가져오기
+        const response = await fetchCustomerListByCond(searchParams);
         setData(response);
       } catch (error) {
         console.error("Error fetching customers:", error);
@@ -31,20 +32,20 @@ const UserManagePage = () => {
     };
 
     fetchCustomers();
-  }, [searchParams]); // searchParams 변경 시 데이터 갱신
+  }, [searchParams]);
 
   const handleSearch = (newParams: SearchParams) => {
     setSearchParams((prev) => ({
       ...prev,
-      ...newParams, // 검색 조건 업데이트
-      page: 0, // 검색 시 첫 페이지로 이동
+      ...newParams,
+      page: 0,
     }));
   };
 
   const handlePageChange = (newPage: number) => {
     setSearchParams((prev) => ({
       ...prev,
-      page: newPage, // 페이지 값 업데이트
+      page: newPage,
     }));
   };
 

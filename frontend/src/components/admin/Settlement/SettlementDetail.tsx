@@ -1,10 +1,10 @@
 import React from 'react';
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 
 import closeButtonimg from '../../../assets/customerDetail/closebutton.png';
 import { Settlement } from '../../../types/admins/Settlement/Settlement';
-import { settlementsList, clearSettlement } from '../../../service/admin/settlement/SettlementService';
+import { settlementsList, clearSettlement } from '../../../service/admin/settlement/settlementService';
 
 
 interface ModalProps {
@@ -29,7 +29,7 @@ const SettlementDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) 
             (response) => {
                 console.log(response.data)
                 setSettlementInfo(response.data);
-            }, (error) => { },
+            }, () => { },
         )
     }
 
@@ -38,9 +38,9 @@ const SettlementDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) 
         try {
             const eventId = data.eventId;
             await clearSettlement(eventId
-                , (response) => {
+                , (_response) => {
                     onClose();
-                }, (error) => {
+                }, (_error) => {
                     alert("잠시후 다시 시도해 주세요.");
                 }
             )

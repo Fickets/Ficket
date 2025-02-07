@@ -1,19 +1,18 @@
 import { AxiosResponse } from 'axios';
-import { Customer } from "../../../types/admins/customer/Customers";
 import { adminPrivateApi } from "../../../utils/http-common";
 import { ResponseData } from '../../../types/ApiResponseType';
-import { ApiResponse } from '../../../types/eventList';
+import { ApiResponse2 } from '../../../types/eventList';
 import { customerTicket } from "../../../types/admins/customer/Customers"
 
 const url = "users"
 
 export const fetchCustomerListByCond = async (params = {}) => {
     try {
-        const response: AxiosResponse<ApiResponse> = await adminPrivateApi.get(
+        const response: AxiosResponse<ApiResponse2> = await adminPrivateApi.get(
             `${url}/customers`,
             { params }
         );
-        console.info(response.data.content);
+
         return response.data; // API 응답 데이터 반환
     } catch (error) {
         console.error('Error fetching customers list:', error);
@@ -40,7 +39,7 @@ export const fetchCustomers = async (): Promise<String[]> => {
 
 export const customerTicketList = async (
     userId: string,
-    Response: (Response: AxiosResponse<customerTicket>) => void,
+    Response: (Response: AxiosResponse<customerTicket[]>) => void,
     Error: (Error: AxiosResponse<ResponseData>) => void,
 ) => {
     await adminPrivateApi.get(`/${url}/customers/ticket/${userId}`)

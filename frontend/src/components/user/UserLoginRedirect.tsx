@@ -8,7 +8,7 @@ import { userTokenRefresh, userAdditionalInfo } from '../../service/user/userApi
 
 import FicketLogo from '../../assets/logo.png';
 import BangMark from '../../assets/bang.png';
-import { parseDate } from 'react-datepicker/dist/date_utils';
+
 const UserLoginRedirect: React.FC = () => {
     const [cookies] = useCookies(['isLogin']);
     const navi = useNavigate();
@@ -21,7 +21,7 @@ const UserLoginRedirect: React.FC = () => {
 
     const currentYear = new Date().getFullYear();
     const startYear = currentYear - 100; // 100년 전부터 시작
-    const years = [];
+    const years: number[] = [];
     for (let year = currentYear; year >= startYear; year--) {
         years.push(year);
     }
@@ -30,18 +30,18 @@ const UserLoginRedirect: React.FC = () => {
     useEffect(() => {
         getAccess();
         setGender("MALE")
-        setBirth(years[0])
+        setBirth(years[0].toString());
     }, [])
 
     const getAccess = async () => {
         if (Boolean(cookies.isLogin)) {
             await userTokenRefresh(
                 (response) => {
-        
+
                     user.setAccessToken(response.headers['authorization']);
                     user.setIsLogin(true);
 
-    
+
                 },
                 () => {
                     navi("/users/login")
@@ -49,7 +49,7 @@ const UserLoginRedirect: React.FC = () => {
             )
         }
     }
-    const submitBtn = async (event) => {
+    const submitBtn = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const requestData = {
             birth: parseInt(birth),
@@ -59,8 +59,8 @@ const UserLoginRedirect: React.FC = () => {
         await userAdditionalInfo(
             requestData,
             (response) => {
-           
-                const parsedData = response.data;
+
+                const parsedData = response.data.data;
                 user.setGender(parsedData.gender)
                 user.setBirth(parsedData.birth);
                 user.setUserName(parsedData.userName);

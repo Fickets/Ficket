@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-import { useCookies } from "react-cookie";
+
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 
@@ -15,7 +15,7 @@ const AdminLoginComponent: React.FC = () => {
   const [adminId, setId] = useState("");
   const [adminPw, setPw] = useState("");
 
-  const submitBtn = async (event) => {
+  const submitBtn = async (event: { preventDefault: () => void; }) => {
     event.preventDefault();
     const requestData = {
       id: adminId,
@@ -24,7 +24,7 @@ const AdminLoginComponent: React.FC = () => {
     await adminLogin(
       requestData,
       (response) => {
-        const resData = response.data;
+        const resData = JSON.parse(response.data.data);
         admin.setAccessToken(response.headers["authorization"]);
         admin.setAdminId(resData.adminId);
         admin.setAdminName(resData.adminName);
@@ -32,7 +32,7 @@ const AdminLoginComponent: React.FC = () => {
 
         navi("/admin/event-list");
       },
-      (error) => {},
+      (_error) => { },
     );
   };
 

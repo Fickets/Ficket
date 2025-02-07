@@ -4,7 +4,8 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import { useState, useEffect } from "react";
 import { SettlementSearchParams, SettlementSearchBarProps } from "../../../types/admins/Settlement/Settlement";
-import { fetchEvents } from '../../../service/admin/settlement/SettlementService';
+import { fetchEvents } from "../../../service/admin/settlement/settlementService";
+
 const SettlementSearchBar = ({ onSearch }: SettlementSearchBarProps) => {
     const [localSearchParams, setLocalSearchParams] = useState<SettlementSearchParams>({
         eventName: null,
@@ -12,7 +13,7 @@ const SettlementSearchBar = ({ onSearch }: SettlementSearchBarProps) => {
         startDate: null,
         endDate: null
     });
-    const [events, setEvents] = useState<String[]>([]);
+    const [events, setEvents] = useState<string[]>([]);
 
     useEffect(() => {
         fetchEvents().then((response) => setEvents(response));

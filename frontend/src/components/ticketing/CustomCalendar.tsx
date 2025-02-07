@@ -5,6 +5,7 @@ import 'react-calendar/dist/Calendar.css';
 import './CustomCalendar.css'; // 스타일 커스텀 파일 추가
 import { eventDetailStore } from '../../stores/EventStore';
 import moment from 'moment';
+import { Value } from 'react-calendar/dist/esm/shared/types.js';
 
 
 interface CustomCalendarProps {
@@ -15,7 +16,7 @@ interface CustomCalendarProps {
 const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
 
     const eventDetail = useStore(eventDetailStore);
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const eventDates = Object.keys(eventDetail.scheduleMap);
 
     // 예매 가능 날짜 설정
@@ -39,17 +40,20 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
 
 
     // 날짜 클릭 핸들러
-    const handleDateClick = (date) => {
-        if (availableDates.some(d => d.toDateString() === date.toDateString())) {
-            setSelectedDate(date);
-            const formattedDate = date.toLocaleDateString("en-CA");
+    const handleDateClick = (value: Value | [Date, Date] | null, _event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        // value가 배열(날짜 범위)인지 확인 후 첫 번째 날짜 선택
+        const selectedValue = Array.isArray(value) ? value[0] : value;
+
+        if (selectedValue && availableDates.some((d: Date) => d.toDateString() === selectedValue.toDateString())) {
+            setSelectedDate(selectedValue);
+            const formattedDate = selectedValue.toLocaleDateString("en-CA");
             onDateSelect(formattedDate);
             eventDetail.setChoiceDate(formattedDate);
         }
     };
 
     // 날짜별 스타일 적용
-    const tileClassName = ({ date, view }) => {
+    const tileClassName = ({ date, view }: { date: Date; view: string }) => {
         if (view === 'month') {
             if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
                 return 'selected-date'; // 선택된 날짜 스타일
@@ -61,11 +65,10 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
         return null;
     };
 
-    // 클릭 불가능한 날짜 설정
-    const tileDisabled = ({ date, view }) => {
+    const tileDisabled = ({ date, view }: { date: Date; view: string }) => {
         if (view === 'month') {
             // `availableDates`에 포함되지 않은 날짜는 클릭 비활성화
-            return !availableDates.some(d => d.toDateString() === date.toDateString());
+            return !availableDates.some((d) => d.toDateString() === date.toDateString());
         }
         return false;
     };
@@ -81,7 +84,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
                     className='customCalendar'
                     onChange={handleDateClick}
                     value={initialDate} // 초기 날짜 설정 (예매 가능 첫 날짜)
-                    formatDay={(locale, date) => moment(date).format("D")}
+                    formatDay={(date) => moment(date).format("D")}
                     tileClassName={tileClassName}
                     tileDisabled={tileDisabled} // 클릭 비활성화 로직 추가
                     locale="ko-KR" // 한국어 설정
@@ -95,7 +98,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
                     className='customCalendar'
                     onChange={handleDateClick}
                     value={initialDate} // 초기 날짜 설정 (예매 가능 첫 날짜)
-                    formatDay={(locale, date) => moment(date).format("D")}
+                    formatDay={(date) => moment(date).format("D")}
                     tileClassName={tileClassName}
                     tileDisabled={tileDisabled} // 클릭 비활성화 로직 추가
                     locale="ko-KR" // 한국어 설정

@@ -1,33 +1,30 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 import {
-    ReservationRateRankingResponse,
-    RankingItem,
-    Genre,
     Period,
 } from "../../types/ReservationRateRanking";
-import { getGenreAreaPeriod } from "../../service/event/GenreChoice";
-import { fetchReservationRateRanking } from "../../service/reservationRateRanking/api";
-import { getArea } from "../../service/event/GenreChoice";
+import { getGenreAreaPeriod } from "../../service/event/genreChoice";
+
+import { getArea } from "../../service/event/genreChoice";
 import { SimpleEvent } from "../../types/home";
-import NoContent from '../../assets/nocontent.png'
+
 
 const GenreSearch = ({ genre }: { genre: string }) => {
     const navi = useNavigate();
     const [period, setPeriod] = useState<Period>(Period.DAILY);
     const [area, setArea] = useState("전체");
-    const [areas, setAreas] = useState([]);
+    const [areas, setAreas] = useState<string[]>([]);  // areas를 string[] 타입으로 지정
     const [page, setPage] = useState(0);
     const [events, setEvents] = useState<SimpleEvent[]>([]);
     const [isLoading, setIsLoading] = useState(false); // 로딩 상태
 
     // select 요소에서 값 변경 시 실행되는 함수
-    const periodChange = (e) => {
-        setPeriod(e.target.value);
+    const periodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setPeriod(e.target.value as Period); // value를 Period로 타입 캐스팅
     };
 
-    const areaChange = (e) => {
+    const areaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         console.log("AREA CHAGNE", e.target.value, " : ", page)
         setArea(e.target.value);
     };

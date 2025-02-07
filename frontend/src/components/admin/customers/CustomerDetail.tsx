@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 import { refundMyTicket } from '../../../service/myTicket/api'
 import { customerTicket } from '../../../types/admins/customer/Customers';
@@ -27,9 +27,8 @@ const CustomerDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) =>
         await customerTicketList(
             data.userId,
             (response) => {
-                console.log(response.data)
                 setTicketInfo(response.data);
-            }, (error) => { },
+            }, (_error) => { },
         )
     }
 
@@ -121,7 +120,7 @@ const CustomerDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) =>
                                 <p className='w-1/6 border border-black'>{ticket.createdAt.split("T")[0] || "N/A"}</p>
                                 <div className='w-1/6 border border-black'>
                                     <button className='m-1 bg-red-400 border border-black'
-                                        onClick={() => orderCancel(ticket.orderId)}>예약강제취소</button>
+                                        onClick={() => orderCancel(ticket.orderId.toString())}>예약강제취소</button>
                                 </div>
                             </div>
                         ))}

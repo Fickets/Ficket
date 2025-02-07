@@ -1,9 +1,6 @@
 import {
     FaList,
-    FaAngleDoubleLeft,
-    FaAngleLeft,
-    FaAngleRight,
-    FaAngleDoubleRight,
+
 } from 'react-icons/fa';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -13,10 +10,10 @@ import {
     flexRender,
     ColumnDef,
 } from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
+
 import { SettlementRecord, SettlementListProps } from '../../../types/admins/Settlement/Settlement';
 import SettlementDetailModal from './SettlementDetail';
-const SettlementListComp: React.FC<SettlementListProps> = ({ data, onPageChange }) => {
+const SettlementListComp: React.FC<SettlementListProps> = ({ data }) => {
     const [selectedData, setSelectedData] = useState<any>(null); // 선택된 고객 데이터
 
     useEffect(() => {
@@ -136,64 +133,64 @@ const SettlementListComp: React.FC<SettlementListProps> = ({ data, onPageChange 
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
     });
-    const renderPageControls = () => {
-        const { pageIndex } = table.getState().pagination;
+    // const renderPageControls = () => {
+    //     const { pageIndex } = table.getState().pagination;
 
-        return (
-            <div className="flex justify-center items-center space-x-2 mt-4">
-                {/* 처음 페이지로 */}
-                <button
-                    onClick={() => onPageChange(0)}
-                    disabled={pageIndex === 0}
-                    className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
-                >
-                    <FaAngleDoubleLeft />
-                </button>
+    //     return (
+    //         <div className="flex justify-center items-center space-x-2 mt-4">
+    //             {/* 처음 페이지로 */}
+    //             <button
+    //                 onClick={() => onPageChange(0)}
+    //                 disabled={pageIndex === 0}
+    //                 className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
+    //             >
+    //                 <FaAngleDoubleLeft />
+    //             </button>
 
-                {/* 이전 페이지로 */}
-                <button
-                    onClick={() => onPageChange(pageIndex - 1)}
-                    disabled={pageIndex === 0}
-                    className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
-                >
-                    <FaAngleLeft />
-                </button>
+    //             {/* 이전 페이지로 */}
+    //             <button
+    //                 onClick={() => onPageChange(pageIndex - 1)}
+    //                 disabled={pageIndex === 0}
+    //                 className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
+    //             >
+    //                 <FaAngleLeft />
+    //             </button>
 
-                {/* 페이지 번호 */}
-                {Array.from({ length: data.totalPages }, (_, i) => (
-                    <button
-                        key={i}
-                        onClick={() => onPageChange(i)}
-                        className={`px-3 py-2 rounded-md text-sm ${pageIndex === i
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
-                    >
-                        {i + 1}
-                    </button>
-                ))}
+    //             {/* 페이지 번호 */}
+    //             {Array.from({ length: data.totalPages }, (_, i) => (
+    //                 <button
+    //                     key={i}
+    //                     onClick={() => onPageChange(i)}
+    //                     className={`px-3 py-2 rounded-md text-sm ${pageIndex === i
+    //                         ? 'bg-blue-500 text-white'
+    //                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+    //                         }`}
+    //                 >
+    //                     {i + 1}
+    //                 </button>
+    //             ))}
 
-                {/* 다음 페이지로 */}
-                <button
-                    onClick={() => onPageChange(pageIndex + 1)}
-                    disabled={pageIndex === data.totalPages - 1}
-                    className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
-                >
-                    <FaAngleRight />
-                </button>
+    //             {/* 다음 페이지로 */}
+    //             <button
+    //                 onClick={() => onPageChange(pageIndex + 1)}
+    //                 disabled={pageIndex === data.totalPages - 1}
+    //                 className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
+    //             >
+    //                 <FaAngleRight />
+    //             </button>
 
-                {/* 마지막 페이지로 */}
-                <button
-                    onClick={() => onPageChange(data.totalPages - 1)}
-                    disabled={pageIndex === data.totalPages - 1}
-                    className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
-                >
-                    <FaAngleDoubleRight />
-                </button>
-            </div>
-        );
+    //             {/* 마지막 페이지로 */}
+    //             <button
+    //                 onClick={() => onPageChange(data.totalPages - 1)}
+    //                 disabled={pageIndex === data.totalPages - 1}
+    //                 className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
+    //             >
+    //                 <FaAngleDoubleRight />
+    //             </button>
+    //         </div>
+    //     );
 
-    };
+    // };
 
     const userListClick = (rowId: string) => {
         const row = table.getRowModel().rows.find(r => r.id === rowId);

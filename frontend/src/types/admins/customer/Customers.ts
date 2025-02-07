@@ -3,6 +3,7 @@ export interface CustomerListProps {
     onPageChange: (page: number) => void;
 }
 
+
 export interface CustomerSearchParams {
     userId?: number | null; // 필터링용 이벤트 ID (선택적)
     userName?: string | null; // 공연 제목 (선택적)

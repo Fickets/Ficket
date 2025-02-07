@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { Client } from '@stomp/stompjs';
 import { SocketMessage } from "../../types/ticketCheck";
 import testImage from '../../assets/nocontent.png';
@@ -11,7 +11,7 @@ const ManagerCheckPage: React.FC = () => {
     const queryParams = new URLSearchParams(location.search);
     const connectId = queryParams.get("connectId");
 
-    const [client, setClient] = useState<Client | null>(null)
+    const [, setClient] = useState<Client | null>(null)
 
     const [socketMessage, setSocketMessage] = useState<SocketMessage | null>(null);
 
@@ -63,7 +63,7 @@ const ManagerCheckPage: React.FC = () => {
     const checkButton = async () => {
         if (socketMessage != null) {
             try {
-                const response = await ticketStatusChange(socketMessage?.data.ticket_id, eventId, connectId)
+                await ticketStatusChange(socketMessage?.data.ticket_id, eventId || "", Number(connectId))
             } catch (error: any) {
                 console.log(error);
             }

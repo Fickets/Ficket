@@ -42,3 +42,25 @@ export interface ApiResponse {
   totalElements: number;
   totalPages: number;
 }
+
+export interface ApiResponse2 {
+  content: userSimpleDto[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface userSimpleDto {
+  userId: number;
+  birth: string;
+  gender: string;
+  userName: string;
+  socialId: number;
+}
+
+export interface CustomerListProps2 {
+  data: ApiResponse2;
+  onPageChange: (page: number) => void;
+}
+

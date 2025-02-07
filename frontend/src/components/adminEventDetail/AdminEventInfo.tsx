@@ -21,7 +21,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
     await eventDetail(
       Number(eventId),
       (response) => {
-        const res = response.data;
+        const res = response.data.data;
         event.setAdminId(res.adminId);
         event.setCompanyId(res.companyId);
         event.setCompanyName(res.companyName);
@@ -44,9 +44,9 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
         event.setPosterPcMainUrl(res.posterPcMainUrl);
         event.setPartitionPrice(res.partitionPrice);
         event.setScheduleMap(res.scheduleMap);
-        setEventId(Number(eventId));
+        event.setEventId(eventId);
       },
-      (error) => {}
+      (_error) => { }
     );
   };
 
@@ -90,7 +90,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
               </div>
               <div className="flex mb-[20px]">
                 <p className="text-[16px] w-[90px]">관람연령</p>
-                <p>{event.age.replaceAll('_', ' ')}</p>
+                <p>{event.age.replace(/_/g, ' ')}</p>
               </div>
               <div className="flex mb-[20px]">
                 <h2 className="w-[90px]">장르</h2>
@@ -99,7 +99,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
                   {/* 외부 <p>를 <div>로 변경 */}
                   {event.genre.map((element, index) => (
                     <p key={index}>
-                      {element.replaceAll('_', '/')}&nbsp;&nbsp;
+                      {element.replace(/_/g, '/')}&nbsp;&nbsp;
                     </p>
                   ))}
                 </div>
@@ -146,21 +146,19 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === 'performance'
-                    ? 'border-b-2 border-black font-semibold'
-                    : 'text-gray-500'
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === 'performance'
+                  ? 'border-b-2 border-black font-semibold'
+                  : 'text-gray-500'
+                  }`}
                 onClick={() => setActiveTab('performance')}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === 'sales'
-                    ? 'border-b-2 border-black font-semibold'
-                    : 'text-gray-500'
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === 'sales'
+                  ? 'border-b-2 border-black font-semibold'
+                  : 'text-gray-500'
+                  }`}
                 onClick={() => setActiveTab('sales')}
               >
                 판매 정보
@@ -215,7 +213,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
                                   관람연령
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] w-[300px] border">
-                                  {event.age.replaceAll('_', ' ')}
+                                  {event.age.replace(/_/g, ' ')}
                                 </p>
                               </div>
                               <div className="flex">

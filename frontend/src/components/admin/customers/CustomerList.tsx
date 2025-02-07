@@ -13,15 +13,14 @@ import {
     flexRender,
     ColumnDef,
 } from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
-import { customerTicket, CustomerListProps } from '../../../types/admins/customer/Customers';
+
 import CustomerDetailModal from './CustomerDetail';
-const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
-    const navigate = useNavigate();
+import { CustomerListProps2, userSimpleDto } from '../../../types/eventList';
+const CustomerList: React.FC<CustomerListProps2> = ({ data, onPageChange }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedData, setSelectedData] = useState<any>(null); // 선택된 고객 데이터
 
-    const columns: ColumnDef<customerTicket>[] = useMemo(
+    const columns: ColumnDef<userSimpleDto>[] = useMemo(
         () => [
             {
                 header: 'NO',
@@ -44,8 +43,8 @@ const CustomerList: React.FC<CustomerListProps> = ({ data, onPageChange }) => {
                 accessorKey: 'birth',
             },
             {
-                header: '가입일',
-                accessorKey: 'createdAt',
+                header: '소셜 아이디',
+                accessorKey: 'socialId',
                 cell: ({ getValue }) => {
                     const value = getValue() as string[]; // 반환값을 string[]로 타입 단언
                     if (!Array.isArray(value) || value.length === 0) return null;

@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar } from 'react-calendar'
-import CustomCalendar from './CustomCalendar';
-import { useCookies } from 'react-cookie';
-import { useNavigate } from 'react-router';
-import { useStore, create } from 'zustand';
-import moment from "moment";
+
+import { useStore } from 'zustand';
+
 import { eventDetailStore } from '../../stores/EventStore';
 
 interface SelectDateRoundComponentProps {
@@ -18,7 +15,7 @@ const SelectDateRoundComponent: React.FC<SelectDateRoundComponentProps> = ({ sel
     const choiceDate = eventDetailStore((state) => state.choiceDate); // choiceDate 가져오기
 
     const [roundList, setRoundList] = useState<any[]>([]); // 회차 정보,
-    const [remainingSeat, setRamainingSeat] = useState<any[]>([]);
+
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null); // 클릭된 버튼의 인덱스
 
 
@@ -33,19 +30,23 @@ const SelectDateRoundComponent: React.FC<SelectDateRoundComponentProps> = ({ sel
 
     // 초기에  roundList 설정
     useEffect(() => {
-        const tmpp = selectedDate
+        const tmpp = selectedDate;
 
-        if (tmpp != null) {
-            const tmp = eventDetail.scheduleMap[tmpp];
+        if (tmpp !== null) {
+            const tmp = eventDetail.scheduleMap[tmpp] as Record<number, { round: number; eventDate: string }>;
+
             eventDetail.setChoiceDate(tmpp);
-            const tt = Object.keys(tmp).map((key) => ({
-                round: tmp[key].round,
-                eventTime: formatEventDate(tmp[key].eventDate.split("T")[1]),
-            }))
+
+            const tt = Object.keys(tmp).map((key) => {
+                const index = Number(key);  // 키를 숫자로 변환
+                return {
+                    round: tmp[index].round,
+                    eventTime: formatEventDate(tmp[index].eventDate.split("T")[1]),
+                };
+            });
+
             setRoundList(tt);
-
         }
-
     }, []);
 
 
@@ -62,21 +63,23 @@ const SelectDateRoundComponent: React.FC<SelectDateRoundComponentProps> = ({ sel
         // 여기서 남은 좌석 데이터 리스트 갱신할 예정 
         setSelectedIndex(0);
         eventDetail.setRound(1);
-     
+
     }, [roundList]); // roundList가 변경될 때마다 실행
 
 
     // 날짜 변경 시 회차 데이터 처리
     const handleChoiceDateChange = (newDate: string) => {
-        
-        const tmp = eventDetail.scheduleMap[newDate];
-        const keys = Object.keys(tmp);
-        const tt = Object.keys(tmp).map((key) => ({
-            round: tmp[key].round,
-            eventTime: formatEventDate(tmp[key].eventDate.split("T")[1]),
-        }))
-        setRoundList(tt);
+        const tmp = eventDetail.scheduleMap[newDate] as Record<number, { round: number; eventDate: string }>;
 
+        const roundDateList = Object.keys(tmp).map((key) => {
+            const index = Number(key);
+            return {
+                round: tmp[index].round,
+                eventTime: formatEventDate(tmp[index].eventDate.split("T")[1]),
+            };
+        });
+
+        setRoundList(roundDateList);
     };
 
 

@@ -2,7 +2,7 @@ import { FaDatabase } from "react-icons/fa";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import { useState, useEffect } from "react";
-import { CustomerSearchParams, CustomerSearchBarProps, Customer } from "../../../types/admins/customer/Customers.ts";
+import { CustomerSearchParams, CustomerSearchBarProps } from "../../../types/admins/customer/Customers.ts";
 import Select from "react-select";
 import { fetchCustomers } from "../../../service/admin/customer/customerService.ts";
 
@@ -94,7 +94,7 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
                     <Select
                         options={customers.map((customer) => ({
                             label: `${customer}`,
-                            value: customer, // 고객 이름을 value로 설정
+                            value: String(customer), // 고객 이름을 value로 설정
                         }))}
                         value={
                             localSearchParams.userName

@@ -5,6 +5,7 @@ import moment from "moment";
 import { Bar } from "react-chartjs-2";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { ChartOptions } from 'chart.js';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,6 +37,7 @@ import womanImg from "../../assets/detail/woman.png";
 import mappin from "../../assets/detail/MapPin.png";
 import calendar from "../../assets/detail/Calendar.png";
 import calculator from "../../assets/detail/Calculator.png";
+import { Value } from "react-calendar/dist/esm/shared/types.js";
 const EventDetail: React.FC = () => {
   const { eventId } = useParams();
   const navi = useNavigate();
@@ -50,7 +52,7 @@ const EventDetail: React.FC = () => {
     0, 0, 0, 0, 0, 0, 0,
   ]);
 
-  const [choiceRound, setChoiceRound] = useState<number>();
+
   const [activeTab, setActiveTab] = useState("performance");
   // const [selectedButton, setSelectedButton] = React.useState(null);
 
@@ -68,7 +70,7 @@ const EventDetail: React.FC = () => {
   const togglePrice = () => {
     setShowPrice((prev) => !prev);
   };
-  const { setEventId, setEventScheduleId, setEventDate, setEventTime } =
+  const { setEventId } =
     useEventStore();
 
   const chartData = {
@@ -84,44 +86,47 @@ const EventDetail: React.FC = () => {
     ],
   };
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<"bar"> = {
     responsive: true,
     plugins: {
       legend: {
-        display: false, // 범례 활성화
-        position: "top", // 범례 위치
+        display: false, // 범례 비활성화
+        position: "top",
         labels: {
           font: {
-            size: 14, // 범례 텍스트 크기
-            family: "Arial", // 텍스트 폰트
-            weight: "bold", // 텍스트 두께
+            size: 14,
+            family: "Arial",
+            weight: "bold",
           },
-          color: "#5B4DFF", // 범례 텍스트 색상
-          padding: 10, // 범례 항목 간격
+          color: "#5B4DFF",
+          padding: 10,
         },
       },
       tooltip: {
         enabled: false, // 툴팁 비활성화
       },
       datalabels: {
-        color: "#5B4DFF", // 데이터 레이블 색상
-        anchor: "end", // 데이터 레이블 위치
-        align: "end", // 데이터 레이블 정렬
-        formatter: (value) => `${value}%`, // 데이터 레이블 형식
+        color: "#5B4DFF",
+        anchor: "end",
+        align: "end",
+        formatter: (value) => `${value}%`, // 데이터 레이블 포맷
         font: {
-          size: 12, // 데이터 레이블 글씨 크기
+          size: 12,
         },
       },
     },
+
     scales: {
       x: {
-        display: true, // x축을 표시
-        labels: ["10대", "20대", "30대", "40대", "50대"], // x축의 레이블 설정
+        display: true,
+        type: "category",
       },
       y: {
-        display: false, // y축 숨김
+        display: false,
+        type: "linear",
       },
     },
+
     layout: {
       padding: {
         top: 10,
@@ -131,6 +136,10 @@ const EventDetail: React.FC = () => {
       },
     },
   };
+
+
+
+
   // 여기부터 달력 함수 입니다 ------------------------------------------------
 
   const eventDates = Object.keys(event.scheduleMap);
@@ -141,28 +150,31 @@ const EventDetail: React.FC = () => {
     const [year, month, day] = dateString.split("-").map(Number);
     return new Date(year, month - 1, day); // month는 0부터 시작하므로 -1 필요
   });
-  // 처음 선택 날자
-  const initialDate = availableDates.at(-1);
 
   // 날짜 클릭 핸들러
-  const handleDateClick = (date) => {
-    if (availableDates.some((d) => d.toDateString() === date.toDateString())) {
-      setChoiceDate(date);
-      const formattedDate = date.toLocaleDateString("en-CA");
-      const selectedEventRounds = event.scheduleMap[formattedDate];
+  const handleDateClick = (value: Value) => {
+    if (value && value instanceof Date && availableDates.some((d) => d.toDateString() === value.toDateString())) {
+      // Date 객체를 string으로 저장
+      setChoiceDate(value.toDateString());
+
+      const formattedDate = value.toLocaleDateString("en-CA");
+      const selectedEventRounds = event.scheduleMap[formattedDate];  // store에서 event 데이터를 가져옴
       event.setChoiceDate(formattedDate);
-      // event.setChoicetime()
       event.setTicketingStep(true);
+
       setEventRounds(selectedEventRounds);
-      setChoiceRound(1); // round를 초기화
       setSelectedButton(0);
       event.setRound(1);
+
       const scheduleData = event.scheduleMap[formattedDate][1];
       event.setScheduleId(scheduleData.eventScheduleId);
     }
   };
+
+
+
   // 클릭 불가능한 날짜 설정
-  const tileDisabled = ({ date, view }) => {
+  const tileDisabled = ({ date, view }: { date: Date; view: string }) => {
     if (view === "month") {
       // `availableDates`에 포함되지 않은 날짜는 클릭 비활성화
       return !availableDates.some(
@@ -172,9 +184,10 @@ const EventDetail: React.FC = () => {
     return false;
   };
   // 날짜별 스타일 적용
-  const tileClassName = ({ date, view }) => {
+  const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === "month") {
-      if (choiceDate && date.toDateString() === choiceDate.toDateString()) {
+      // choiceDate가 string일 경우, Date 객체로 변환
+      if (choiceDate && new Date(choiceDate).toDateString() === date.toDateString()) {
         return "selected-date"; // 선택된 날짜 스타일
       }
       if (
@@ -187,7 +200,7 @@ const EventDetail: React.FC = () => {
   };
 
   // 달력 함수 END LINE ------------------------------------------------
-  const roundButtonClick = (e) => {
+  const roundButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     const key = parseInt(e.currentTarget.getAttribute("data-key") || ""); // data-key 값을 숫자로 변환
     setSelectedButton(key); // 상태 업데이트
     console.log(`Clicked key: ${key}`);
@@ -206,30 +219,39 @@ const EventDetail: React.FC = () => {
     await genderStatistic(
       Number(eventId),
       (response) => {
-        const res = response.data;
-        const statisticData = res.slice(0, 2);
+        const res: string = response.data.data; // response.data.data는 문자열입니다.
+
+        // 문자열을 구분자로 분리해서 배열로 변환하고, 각 항목을 숫자로 변환
+        const numericRes = res
+          .split(',') // 예시로 콤마(,)로 구분된 문자열로 가정
+          .map(item => parseInt(item, 10))
+          .filter(item => !isNaN(item));  // NaN인 값은 필터링
+
+        const statisticData = numericRes.slice(0, 2);
         const sum = statisticData.reduce(
           (acc, currentValue) => acc + currentValue,
           0,
         );
-        console.log("TT", sum);
-        res.slice(2).forEach((value) => {
+
+        numericRes.slice(2).forEach((value) => {
           const ageStatistic = (value / sum) * 100;
           statisticData.push(ageStatistic);
         });
+
         setGenderStatisticData(statisticData);
-        console.log(response);
+
       },
-      (error) => {},
+      (_error) => { },
     );
   };
+
 
   const eventDetailGet = async () => {
     await eventDetail(
       Number(eventId),
       (response) => {
-        const res = response.data;
-        event.setEventId(eventId);
+        const res = response.data.data;
+        event.setEventId(eventId || "");
         event.setAdminId(res.adminId);
         event.setCompanyId(res.companyId);
         event.setCompanyName(res.companyName);
@@ -254,7 +276,7 @@ const EventDetail: React.FC = () => {
         event.setScheduleMap(res.scheduleMap);
         setEventId(Number(eventId));
       },
-      (error) => {},
+      (_error) => { },
     );
   };
 
@@ -364,14 +386,14 @@ const EventDetail: React.FC = () => {
               </div>
               <div className="flex mb-[20px]">
                 <p className="text-[16px] w-[90px]">관람연령</p>
-                <p>{event.age.replaceAll("_", " ")}</p>
+                <p>{event.age.replace(/_/g, " ")}</p>
               </div>
               <div className="flex mb-[20px]">
                 <h2 className="w-[90px]">장르</h2>
                 <p className="flex">
                   {event.genre.map((element, index) => (
                     <p key={index}>
-                      {element.replaceAll("_", "/")}&nbsp;&nbsp;
+                      {element.replace(/_/g, " ")}&nbsp;&nbsp;
                     </p> // 각 항목을 <p> 태그로 렌더링
                   ))}
                 </p>
@@ -418,7 +440,7 @@ const EventDetail: React.FC = () => {
                   onChange={handleDateClick}
                   value={Object.keys(event.scheduleMap).at(-1)} // 초기 날짜 설정 (예매 가능 첫 날짜)
                   locale="ko-KR" // 한국어 설정
-                  formatDay={(locale, date) => moment(date).format("D")}
+                  formatDay={(_locale, date) => moment(date).format("D")}
                   tileClassName={tileClassName}
                   tileDisabled={tileDisabled} // 클릭 비활성화 로직 추가
                   next2Label={null} // 다음 달 화살표 숨기기
@@ -429,17 +451,16 @@ const EventDetail: React.FC = () => {
                 <h1 className="my-[15px] ml-[20px] font-medium">회차</h1>
                 <div className="flex w-[300px] h-[70px]  mx-[20px] overflow-x-auto">
                   {eventRounds &&
-                    Object.entries(eventRounds).map(([key, value], index) => (
+                    Object.entries(eventRounds).map(([, value], index) => (
                       <button
                         key={index}
                         data-key={index}
-                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
-                          selectedButton === index
-                            ? "bg-[#8E43E7] text-white"
-                            : "bg-white"
-                        }`}
+                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
+                          ? "bg-[#8E43E7] text-white"
+                          : "bg-white"
+                          }`}
                         onClick={(e) => roundButtonClick(e)}
-                        // onClick={setSelectedButton(key)}
+                      // onClick={setSelectedButton(key)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
                         <p>
@@ -471,21 +492,19 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "performance"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "performance"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "sales"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "sales"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -585,7 +604,7 @@ const EventDetail: React.FC = () => {
                                   관람연령
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] w-[300px] border">
-                                  {event.age.replaceAll("_", " ")}
+                                  {event.age.replace(/_/g, " ")}
                                 </p>
                               </div>
                               <div className="flex">
@@ -768,7 +787,7 @@ const EventDetail: React.FC = () => {
             <p className="flex">
               {event.genre.map((element, index) => (
                 <p key={index} className="text-[#666666] text-[10px]">
-                  {element.replaceAll("_", "/")}&nbsp;&nbsp;
+                  {element.replace(/_/g, " ")}&nbsp;&nbsp;
                 </p> // 각 항목을 <p> 태그로 렌더링
               ))}
             </p>
@@ -776,7 +795,7 @@ const EventDetail: React.FC = () => {
               {event.runningTime}분&nbsp;
             </p>
             <p className="text-[#666666] text-[10px]">
-              {event.age.replaceAll("_", " ")}
+              {event.age.replace(/_/g, " ")}
             </p>
           </div>
           <div className="flex">
@@ -852,21 +871,19 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "performance"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "performance"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "sales"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "sales"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -973,7 +990,7 @@ const EventDetail: React.FC = () => {
                                   관람연령
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] ">
-                                  {event.age.replaceAll("_", " ")}
+                                  {event.age.replace(/_/g, " ")}
                                 </p>
                               </div>
                               <hr className="mx-[10px]" />

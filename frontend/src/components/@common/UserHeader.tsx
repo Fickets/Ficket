@@ -1,4 +1,5 @@
 import { userLogout } from "../../service/user/userApi";
+import { MouseEvent } from 'react';
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
@@ -18,20 +19,20 @@ const UserHeader = () => {
   const handleLoginToggle = async () => {
     if (Boolean(cookies.isLogin)) {
       await userLogout(
-        (response) => {
+        (_response) => {
           console.log("LOGOUT");
           user.resetState();
           navi("/");
         },
-        () => {},
+        () => { },
       );
     } else {
       navi("/users/login");
     }
   };
 
-  const genreChoice = (e) => {
-    navi(`/events/genre-choice?choice=${e.target.value}`);
+  const genreChoice = (e: MouseEvent<HTMLButtonElement>) => {
+    navi(`/events/genre-choice?choice=${e.currentTarget.value}`);
   };
 
   return (

@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect,  useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useStore } from "zustand";
-import { set } from "date-fns";
+
 
 import Logo from '../../assets/logo.png'
 import { checkUrl } from "../../service/ticketCheck/ticketCheck";
@@ -44,7 +44,7 @@ const EventCheckPage: React.FC = () => {
 
     const checkUUID = async () => {
         try {
-            const guestTokenAndCheckUrl = await checkUrl(eventId, uuid);
+            const guestTokenAndCheckUrl = await checkUrl(eventId || "", uuid || "");
             console.log(guestTokenAndCheckUrl);
             setReady(true);
             // 토큰 저장 로직 추가 해야함 이거면 될듯?
