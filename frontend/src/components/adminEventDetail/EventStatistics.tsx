@@ -11,6 +11,7 @@ import {
   Tooltip,
   LineElement,
   PointElement,
+  ChartOptions,
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { genderStatistic } from '../../service/event/eventApi.ts';
@@ -64,7 +65,7 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
     ],
   };
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     plugins: {
       legend: {
@@ -116,19 +117,27 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
     await genderStatistic(
       Number(eventId),
       (response) => {
+        console.log(response); // 데이터 확인
         const res = response.data;
+
+        if (!Array.isArray(res)) {
+          console.error('API 응답 데이터가 배열이 아닙니다.', res);
+          return;
+        }
+
         const statisticData = res.slice(0, 2);
         const sum = statisticData.reduce(
           (acc, currentValue) => acc + currentValue,
           0
         );
-        console.log('TT', sum);
+
         res.slice(2).forEach((value) => {
           const ageStatistic = (value / sum) * 100;
           statisticData.push(ageStatistic);
         });
+
         setGenderStatisticData(statisticData);
-        console.log(response);
+        console.log(statisticData);
       },
       (error: any) => {
         console.log(error.message);
@@ -249,15 +258,13 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
             </div>
             <div className="flex mb-[20px]">
               <p className="text-[16px] w-[90px]">관람연령</p>
-              <p>{event.age.replaceAll('_', ' ')}</p>
+              <p>{event.age.replace(/_/g, ' ')}</p>
             </div>
             <div className="flex mb-[20px]">
               <h2 className="w-[90px]">장르</h2>
               <div className="flex">
-                {' '}
-                {/* 외부 <p>를 <div>로 변경 */}
                 {event.genre.map((element, index) => (
-                  <p key={index}>{element.replaceAll('_', '/')}&nbsp;&nbsp;</p>
+                  <p key={index}>{element.replace(/_/g, '/')}&nbsp;&nbsp;</p>
                 ))}
               </div>
             </div>
