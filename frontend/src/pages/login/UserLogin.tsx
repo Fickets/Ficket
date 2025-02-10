@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 
 const UserLogin: React.FC = () => {
   const login = async () => {
-    window.location.href = "http://localhost:8089/oauth2/authorization/kakao";
+    window.location.href = "http://ec2-54-180-239-27.ap-northeast-2.compute.amazonaws.com:8089/oauth2/authorization/kakao";
   };
 
   return (

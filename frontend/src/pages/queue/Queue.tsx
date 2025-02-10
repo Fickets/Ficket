@@ -36,7 +36,7 @@ const Queue = () => {
   // WebSocket 연결 함수
   const connectWebSocket = (token: string) => {
     const encodedToken = encodeURIComponent(token);
-    const WEBSOCKET_URL = `ws://localhost:9000/queue-status/${eventId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `ws://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/queue-status/${eventId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {

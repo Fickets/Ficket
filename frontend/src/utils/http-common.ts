@@ -6,7 +6,7 @@ import { userTokenRefresh } from "../service/user/userApi";
 axios.defaults.withCredentials = true;
 
 // gateway서버 URL
-const baseURL: string = "http://localhost:9000/api/v1";
+const baseURL: string = "http://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/api/v1";
 
 // 새 토큰 저장
 const newAccess = (header: string) => {

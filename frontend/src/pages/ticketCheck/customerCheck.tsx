@@ -146,7 +146,7 @@ const FaceDetectionPage: React.FC = () => {
             if (obj.state.accessToken !== "") {
                 const token = obj.state.accessToken;
                 const connectionOptions = {
-                    brokerURL: "ws://localhost:9000/ticketing-check/ws",
+                    brokerURL: "ws://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/ticketing-check/ws",
                     connectHeaders: {
                         Authorization: token,
                     },
