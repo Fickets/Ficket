@@ -18,8 +18,8 @@ const FilterSection = ({ onFilterChange }: FilterSectionProps) => {
   ]);
   const [selectedLocations, setSelectedLocations] = useState<Location[]>([]);
 
-  const [currentYear, setCurrentYear] = useState(2025);
-  const [currentMonth, setCurrentMonth] = useState(1); // 1월부터 시작
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const today = new Date();
