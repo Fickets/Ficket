@@ -94,8 +94,11 @@ dependencies {
     // Feign Micrometer integration
     implementation 'io.github.openfeign:feign-micrometer'
 
-    //web socket
+    // web socket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // flyway-mysql
+    implementation 'org.flywaydb:flyway-mysql:11.3.1'
 
 }
 
