@@ -37,6 +37,8 @@ const BottomNav = () => {
   const myTicketClick = async () => {
     if (Boolean(cookies.isLogin)) {
       navi("/my-ticket")
+    } else {
+      navi("/users/login");
     }
   }
 

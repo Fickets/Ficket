@@ -20,7 +20,6 @@ const UserHeader = () => {
     if (Boolean(cookies.isLogin)) {
       await userLogout(
         (_response) => {
-          console.log("LOGOUT");
           user.resetState();
           navi("/");
         },
@@ -38,6 +37,8 @@ const UserHeader = () => {
   const myTicketClick = async () => {
     if (Boolean(cookies.isLogin)) {
       navi("/my-ticket")
+    } else {
+      navi("/users/login");
     }
   }
 
@@ -66,7 +67,7 @@ const UserHeader = () => {
             ) : (
               <div>
                 <button onClick={handleLoginToggle}>로그인</button>
-                <button className="ml-[10px]">회원가입</button>
+                <button onClick={() => navi("/users/login")} className="ml-[10px]">회원가입</button>
               </div>
             )}
             <button onClick={myTicketClick} className="ml-[10px]">
