@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // useNavigate import
+import { useNavigate } from "react-router-dom";
 import { ViewRankResponse } from "../../types/home.ts";
 import { fetchViewRanking } from "../../service/home/api.ts";
 import { useSwipeable } from "react-swipeable";
@@ -17,7 +17,6 @@ const MobileViewRanking = () => {
       setViewRankingResponse(response);
     } catch (error) {
       console.error(error);
-      alert("Failed to fetch view rankings.");
     }
   };
 

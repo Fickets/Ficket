@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ViewRankResponse } from '../../types/home.ts';
-import { fetchViewRanking } from '../../service/home/api.ts';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ViewRankResponse } from "../../types/home.ts";
+import { fetchViewRanking } from "../../service/home/api.ts";
 
 const PCViewRanking = () => {
   const [viewRankingResponse, setViewRankingResponse] = useState<
@@ -18,7 +18,6 @@ const PCViewRanking = () => {
       console.log(response);
     } catch (error) {
       console.error(error);
-      alert('Failed to fetch view rankings.');
     }
   };
 
@@ -28,13 +27,13 @@ const PCViewRanking = () => {
 
   const handlePrev = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? viewRankingResponse.length - 1 : prevIndex - 1
+      prevIndex === 0 ? viewRankingResponse.length - 1 : prevIndex - 1,
     );
   };
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === viewRankingResponse.length - 1 ? 0 : prevIndex + 1
+      prevIndex === viewRankingResponse.length - 1 ? 0 : prevIndex + 1,
     );
   };
 
@@ -44,7 +43,7 @@ const PCViewRanking = () => {
 
   // 날짜 포맷팅 함수
   const formatEventDateRange = (eventDateList: string[]) => {
-    if (eventDateList.length === 0) return '';
+    if (eventDateList.length === 0) return "";
 
     const sortedDates = [...eventDateList].sort(); // 날짜를 문자열 기준으로 정렬
     const startDate = sortedDates[0]; // 가장 첫 날짜
@@ -63,7 +62,7 @@ const PCViewRanking = () => {
     <div
       className="relative w-screen h-[540px] bg-black overflow-hidden -mt-[50px]"
       style={{
-        transform: 'translateX(-24px)', // 전체를 왼쪽으로 24px 이동
+        transform: "translateX(-24px)", // 전체를 왼쪽으로 24px 이동
       }}
     >
       {viewRankingResponse.length > 0 && (
@@ -73,7 +72,7 @@ const PCViewRanking = () => {
             className="w-full h-full bg-cover bg-center transition-transform duration-500"
             style={{
               transform: `translateX(-${currentIndex * 100}%)`,
-              whiteSpace: 'nowrap',
+              whiteSpace: "nowrap",
             }}
           >
             {viewRankingResponse.map((item) => (
@@ -126,21 +125,21 @@ const PCViewRanking = () => {
             {/* 썸네일 배경 */}
             <div
               className={`absolute bottom-0 left-0 w-full h-[200px] bg-black/60 transition-opacity duration-300 ${
-                showThumbnails ? 'opacity-100' : 'opacity-0'
+                showThumbnails ? "opacity-100" : "opacity-0"
               }`}
             ></div>
 
             {/* 구분선 */}
             <div
               className={`absolute left-0 w-full h-[3px] bg-gray-400 transition-transform duration-300 ${
-                showThumbnails ? 'translate-y-[-200px]' : ''
+                showThumbnails ? "translate-y-[-200px]" : ""
               }`}
             ></div>
 
             {/* 썸네일 영역 */}
             <div
               className={`absolute bottom-0 left-0 w-full transition-transform duration-300 ${
-                showThumbnails ? 'translate-y-[-3px]' : 'translate-y-[200px]'
+                showThumbnails ? "translate-y-[-3px]" : "translate-y-[200px]"
               }`}
             >
               <div className="flex items-center justify-center gap-6 overflow-x-auto px-8 py-4 scrollbar-hide">
@@ -149,7 +148,7 @@ const PCViewRanking = () => {
                     key={item.eventId}
                     onClick={() => setCurrentIndex(index)} // 클릭으로 슬라이드 이동
                     className={`cursor-pointer w-[100px] h-[140px] flex-shrink-0 rounded-md overflow-hidden relative transition-all ${
-                      currentIndex === index ? 'border-4 border-orange-500' : ''
+                      currentIndex === index ? "border-4 border-orange-500" : ""
                     }`}
                   >
                     {/* 썸네일 이미지 */}
