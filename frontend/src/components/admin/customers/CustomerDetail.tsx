@@ -45,8 +45,7 @@ const CustomerDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) =>
 
     const deleteCustomer = async (userId: string) => {
         await customerDelete(userId,
-            (response) => {
-                console.log(response.status, " SUCCESS ")
+            (_response) => {
                 alert("유저가 제거 되었습니다.");
                 onClose();
                 window.location.reload();

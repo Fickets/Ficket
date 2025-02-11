@@ -20,7 +20,6 @@ const SearchBar = () => {
       }
       try {
         const response = await searchAutoComplete(lowerCaseQuery);
-        console.log("검색 결과:", response);
         setResults(response);
       } catch (error) {
         console.error("검색 요청 실패:", error);

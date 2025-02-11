@@ -77,7 +77,7 @@ function RegisterFace() {
 
   const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `ws://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/work-status/${eventId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `wss://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/work-status/${eventId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {

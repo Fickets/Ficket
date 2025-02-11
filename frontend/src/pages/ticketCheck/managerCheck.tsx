@@ -24,7 +24,7 @@ const ManagerCheckPage: React.FC = () => {
                 const token = obj.state.accessToken
                 // WebSocket 연결 설정
                 const connectionOptions = {
-                    brokerURL: 'ws://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/ticketing-check/ws',
+                    brokerURL: 'wss://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/ticketing-check/ws',
                     connectHeaders: {
                         Authorization: token
                     }, // 연결 시 헤더 설정

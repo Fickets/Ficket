@@ -24,7 +24,6 @@ const BottomNav = () => {
     if (Boolean(cookies.isLogin)) {
       await userLogout(
         (_response) => {
-          console.log("LOGOUT");
           user.resetState();
           navi("/");
         },
@@ -34,6 +33,13 @@ const BottomNav = () => {
       navi("/users/login");
     }
   };
+
+  const myTicketClick = async () => {
+    if (Boolean(cookies.isLogin)) {
+      navi("/my-ticket")
+    }
+  }
+
 
   return (
     <div className="block md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 z-50">
@@ -58,7 +64,7 @@ const BottomNav = () => {
         {/* 마이티켓 */}
         <div
           className="flex flex-col items-center text-sm text-gray-700"
-          onClick={() => navi("/my-ticket")}
+          onClick={myTicketClick}
         >
           <img src={ticketImg} alt="마이티켓" className="w-8 h-8" />
           <p>마이티켓</p>

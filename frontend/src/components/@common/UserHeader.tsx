@@ -35,6 +35,12 @@ const UserHeader = () => {
     navi(`/events/genre-choice?choice=${e.currentTarget.value}`);
   };
 
+  const myTicketClick = async () => {
+    if (Boolean(cookies.isLogin)) {
+      navi("/my-ticket")
+    }
+  }
+
   return (
     <div>
       {/* PC */}
@@ -63,7 +69,7 @@ const UserHeader = () => {
                 <button className="ml-[10px]">회원가입</button>
               </div>
             )}
-            <button onClick={() => navi("/my-ticket")} className="ml-[10px]">
+            <button onClick={myTicketClick} className="ml-[10px]">
               마이티켓
             </button>
           </div>
