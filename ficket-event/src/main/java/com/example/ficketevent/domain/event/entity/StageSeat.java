@@ -1,6 +1,5 @@
 package com.example.ficketevent.domain.event.entity;
 
-import com.example.ficketevent.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
