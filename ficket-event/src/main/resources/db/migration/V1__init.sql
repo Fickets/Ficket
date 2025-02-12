@@ -115,6 +115,10 @@ CREATE TABLE IF NOT EXISTS seat_mapping
     seat_id           BIGINT NOT NULL,
     event_schedule_id BIGINT NOT NULL,
 
+    created_at       DATETIME(6)    NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    last_modified_at DATETIME(6)    NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    deleted_at       DATETIME(6)    NULL,
+
     FOREIGN KEY (partition_id) REFERENCES stage_partition (partition_id) ON DELETE CASCADE,
     FOREIGN KEY (seat_id) REFERENCES stage_seat (seat_id) ON DELETE CASCADE,
     FOREIGN KEY (event_schedule_id) REFERENCES event_schedule (event_schedule_id) ON DELETE CASCADE
