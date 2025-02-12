@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS ticket
 (
     ticket_id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    viewing_status    VARCHAR(50) NOT NULL, -- Enum (문자열 저장)
+    viewing_status    ENUM('DELETED', 'NOT_WATCHED', 'WATCHED') NOT NULL,
     event_schedule_id BIGINT      NOT NULL,
 
     created_at        DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS orders
     order_id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     payment_id       VARCHAR(255)   NOT NULL,
     order_price      DECIMAL(19, 2) NOT NULL,
-    order_status     VARCHAR(50)    NOT NULL,        -- Enum (문자열 저장)
+    order_status     ENUM('CANCELLED', 'COMPLETED', 'INPROGRESS', 'REFUNDED')    NOT NULL,
     refund_price     DECIMAL(19, 2) NOT NULL DEFAULT 0,
     user_id          BIGINT         NOT NULL,
     ticket_id        BIGINT         NOT NULL UNIQUE, -- 1:1 관계 (Foreign Key)
