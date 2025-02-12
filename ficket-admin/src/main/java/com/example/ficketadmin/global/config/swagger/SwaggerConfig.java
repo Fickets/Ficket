@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +16,9 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(title = "API Document", description = "ADMIN SERVICE 명세서", version = "v1")
 )
 public class SwaggerConfig {
+
+    @Value("${swagger.server.url}")
+    private String serverUrl;
 
     @Bean
     public OpenAPI openAPI() {
@@ -31,6 +35,6 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .components(new Components().addSecuritySchemes("BearerAuth", securityScheme))
                 .addSecurityItem(securityRequirement)
-                .addServersItem(new Server().url("/"));
+                .addServersItem(new Server().url(serverUrl));
     }
 }

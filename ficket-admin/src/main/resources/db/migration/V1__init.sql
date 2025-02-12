@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS admin
     ID       VARCHAR(255) NOT NULL,
     PW       VARCHAR(255) NOT NULL,
     NAME     VARCHAR(255) NOT NULL,
-    ROLE     VARCHAR(255) NOT NULL
+    ROLE     TINYINT NOT NULL
 );
 
 -- Account 테이블 생성
