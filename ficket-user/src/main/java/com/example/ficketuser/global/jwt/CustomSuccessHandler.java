@@ -63,7 +63,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         if(user.getState().equals(State.SUSPENDED)){
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("User is suspended.");
-            response.sendRedirect("http://localhost:5173/users/suspended");
+//            response.sendRedirect("http://localhost:5173/users/suspended");
+            response.sendRedirect("https://ficket.shop/users/suspended");
             return;
         }
         if(user.getDeletedAt() != null){
