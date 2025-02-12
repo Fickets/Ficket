@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS admin
     ID       VARCHAR(255) NOT NULL,
     PW       VARCHAR(255) NOT NULL,
     NAME     VARCHAR(255) NOT NULL,
-    ROLE     TINYINT NOT NULL
+    ROLE     TINYINT      NOT NULL
 );
 
 -- Account 테이블 생성
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS settlement_record
     total_service_fee       DECIMAL(19, 2) NOT NULL,
     total_settlement_value  DECIMAL(19, 2) NOT NULL,
     total_refund_value      DECIMAL(19, 2) NOT NULL,
-    settlement_status       VARCHAR(50),
+    settlement_status       TINYINT        NOT NULL,
     event_id                BIGINT         NOT NULL,
 
     created_at              DATETIME(6)    NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS settlement
     service_fee          DECIMAL(19, 2) NOT NULL,
     refund_value         DECIMAL(19, 2) NOT NULL,
     settlement_value     DECIMAL(19, 2) NOT NULL,
-    settlement_status    VARCHAR(50)    NOT NULL,
+    settlement_status    TINYINT        NOT NULL,
     order_id             BIGINT         NOT NULL,
     settlement_record_id BIGINT         NOT NULL,
 

@@ -48,7 +48,7 @@ public class SettlementRecord extends BaseEntity {
     @Column(name = "total_refund_value", nullable = false)
     private BigDecimal totalRefundValue;
 
-    @Column(name = "settlement_status")
+    @Column(name = "settlement_status", nullable = false)
     private SettlementStatus settlementStatus;
 
     @Column(name = "event_id", nullable = false)
