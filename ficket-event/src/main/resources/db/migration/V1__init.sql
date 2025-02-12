@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS failed_item
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     item_id          BIGINT       NOT NULL,
     reason           VARCHAR(255) NOT NULL,
-    status           VARCHAR(50)  NOT NULL, -- Enum (PENDING, RETRIED, SUCCESS)
+    status           ENUM('PENDING', 'RETRIED', 'SUCCESS')  NOT NULL,
 
     created_at       DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     last_modified_at DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
