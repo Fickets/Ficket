@@ -118,20 +118,25 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
       Number(eventId),
       (response) => {
         console.log(response); // 데이터 확인
-        const res = response.data;
+        const res: string = response.data;
 
         if (!Array.isArray(res)) {
           console.error('API 응답 데이터가 배열이 아닙니다.', res);
           return;
         }
 
-        const statisticData = res.slice(0, 2);
+        const numericRes = res
+          .split(',') // 예시로 콤마(,)로 구분된 문자열로 가정
+          .map(item => parseInt(item, 10))
+          .filter(item => !isNaN(item));  // NaN인 값은 필터링
+
+        const statisticData = numericRes.slice(0, 2);
         const sum = statisticData.reduce(
           (acc, currentValue) => acc + currentValue,
-          0
+          0,
         );
 
-        res.slice(2).forEach((value) => {
+        numericRes.slice(2).forEach((value) => {
           const ageStatistic = (value / sum) * 100;
           statisticData.push(ageStatistic);
         });
