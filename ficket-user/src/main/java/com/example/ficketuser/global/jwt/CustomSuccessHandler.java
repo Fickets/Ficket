@@ -82,9 +82,11 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         userTokenRedisRepository.save(userTokenRedis);
         if (user.getGender() == null){
 
-            response.sendRedirect("http://localhost:5173/users/addition-info");
+//            response.sendRedirect("http://localhost:5173/users/addition-info");
+            response.sendRedirect("https://ficket.shop/users/addition-info");
         }else{
-            response.sendRedirect("http://localhost:5173");
+//            response.sendRedirect("http://localhost:5173");
+            response.sendRedirect("https://ficket.shop");
         }
     }
 
