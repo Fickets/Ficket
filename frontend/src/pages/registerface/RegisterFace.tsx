@@ -12,6 +12,8 @@ import { WorkStatus } from "../../types/queue.ts";
 import { uploadUserFace } from "../../service/uploadFace/api.ts";
 import { Helmet } from "react-helmet-async";
 
+const WORK_WEBSOCKET_URL: string = import.meta.env.VITE_WORK_WEBSOCKET_URL;
+
 function RegisterFace() {
   const navigate = useNavigate();
 
@@ -77,7 +79,7 @@ function RegisterFace() {
 
   const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `wss://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/work-status/${eventId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {

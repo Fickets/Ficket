@@ -6,7 +6,7 @@ import { userTokenRefresh } from "../service/user/userApi";
 axios.defaults.withCredentials = true;
 
 // gateway서버 URL
-const baseURL: string = "https://54.180.138.77.nip.io/api/v1/";
+const baseURL: string = import.meta.env.VITE_BASE_URL;
 
 // 새 토큰 저장
 const newAccess = (header: string) => {
@@ -136,7 +136,7 @@ adminPrivateApi.interceptors.response.use(
             return axios(originRequest);
           }
         },
-        () => { },
+        () => {},
       );
     }
   },

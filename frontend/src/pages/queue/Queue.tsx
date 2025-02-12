@@ -10,6 +10,8 @@ type Params = {
   eventId: string;
 };
 
+const QUEUE_WEBSOCKET_URL: string = import.meta.env.VITE_QUEUE_WEBSOCKET_URL;
+
 const Queue = () => {
   const { eventId } = useParams<Params>();
 
@@ -36,7 +38,7 @@ const Queue = () => {
   // WebSocket 연결 함수
   const connectWebSocket = (token: string) => {
     const encodedToken = encodeURIComponent(token);
-    const WEBSOCKET_URL = `wss://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:9000/queue-status/${eventId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `${QUEUE_WEBSOCKET_URL}/${eventId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {
