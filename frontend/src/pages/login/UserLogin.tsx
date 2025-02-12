@@ -3,10 +3,11 @@ import LoginLogo from "../../assets/logo.png";
 import LoginBtn from "../../assets/Login/kakaoLoginBtn.png";
 import { Helmet } from "react-helmet-async";
 
-const KAKAO_AUTHORIZATION_URL: string = import.meta.env.KAKAO_AUTHORIZATION_URL;
+const KAKAO_AUTHORIZATION_URL: string = import.meta.env.VITE_KAKAO_AUTHORIZATION_URL;
 
 const UserLogin: React.FC = () => {
   const login = async () => {
+    console.log(KAKAO_AUTHORIZATION_URL)
     window.location.href = KAKAO_AUTHORIZATION_URL;
   };
 

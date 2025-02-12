@@ -1,8 +1,9 @@
 import { AxiosResponse } from "axios";
 import { privateApi, publicApi } from "../../utils/http-common";
 import { ResponseData } from "../../types/ApiResponseType";
-import {  UserAdditionalInfoReq } from "../../types/users/UserAdditionalInfoType";
-import { UserAdditionalInfoRes } from "../../types/ApiResponseType";
+import { UserAdditionalInfoReq } from "../../types/users/UserAdditionalInfoType";
+// import { UserAdditionalInfoRes } from "../../types/ApiResponseType";
+import { UserAdditionalInfoType } from "../../types/users/UserAdditionalInfoType";
 const url = "users"
 
 // 유저토큰 갱신
@@ -17,7 +18,7 @@ export const userTokenRefresh = async (
 // 유저 정보 넣기
 export const userAdditionalInfo = async (
     params: UserAdditionalInfoReq,
-    Response: (Response: AxiosResponse<UserAdditionalInfoRes>) => void,
+    Response: (Response: AxiosResponse<UserAdditionalInfoType>) => void,
     Error: (Error: AxiosResponse<ResponseData>) => void) => {
     await privateApi.post(`/${url}/additional-info`, params)
         .then(Response)

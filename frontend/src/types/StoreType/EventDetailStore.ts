@@ -1,4 +1,4 @@
-export interface eventDetail {
+export interface eventDetailType {
   adminId: number; // 관리자 ID
   companyId: number; // 회사 ID
   companyName: string; // 회사 이름

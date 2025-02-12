@@ -64,3 +64,6 @@ export interface CustomerListProps2 {
   onPageChange: (page: number) => void;
 }
 
+export interface EventDetailType {
+  
+}

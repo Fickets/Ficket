@@ -1,5 +1,5 @@
 import { UserAdditionalInfoType } from "./users/UserAdditionalInfoType";
-import { eventDetail } from './StoreType/EventDetailStore'
+import { eventDetailType } from './StoreType/EventDetailStore'
 export interface ResponseData {
     data: string;
     status: number;
@@ -8,17 +8,6 @@ export interface ResponseData {
     config: string;
 }
 
-export interface AdminLoginData {
-    datas: {
-        adminId: number;
-        adminName: string;
-        // 다른 필요한 필드 추가
-    };
-    status: number;
-    statusText: string;
-    headers: Record<string, string>;
-    config: string;
-}
 
 export interface datas {
     adminId: number;
@@ -34,7 +23,7 @@ export interface UserAdditionalInfoRes {
 
 export interface EventDetailRes {
     status: number;
-    data: eventDetail;
+    data: eventDetailType;
 }
 
 export interface GenderStatisticRes {

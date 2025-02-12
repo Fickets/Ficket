@@ -219,7 +219,7 @@ const EventDetail: React.FC = () => {
     await genderStatistic(
       Number(eventId),
       (response) => {
-        const res: string = response.data.data; // response.data.data는 문자열입니다.
+        const res: string = response.data;
 
         // 문자열을 구분자로 분리해서 배열로 변환하고, 각 항목을 숫자로 변환
         const numericRes = res
@@ -250,7 +250,9 @@ const EventDetail: React.FC = () => {
     await eventDetail(
       Number(eventId),
       (response) => {
-        const res = response.data.data;
+        console.log(response)
+        const res = response.data;
+        console.log(res)
         event.setEventId(eventId || "");
         event.setAdminId(res.adminId);
         event.setCompanyId(res.companyId);

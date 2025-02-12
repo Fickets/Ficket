@@ -59,8 +59,7 @@ const UserLoginRedirect: React.FC = () => {
         await userAdditionalInfo(
             requestData,
             (response) => {
-
-                const parsedData = response.data.data;
+                const parsedData = response.data;
                 user.setGender(parsedData.gender)
                 user.setBirth(parsedData.birth);
                 user.setUserName(parsedData.userName);

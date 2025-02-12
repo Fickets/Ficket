@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
-  eventDetail,
+  eventDetailType,
   eventScheduleDto,
 } from "../types/StoreType/EventDetailStore";
 import { subscribeWithSelector } from "zustand/middleware";
 export const eventDetailStore = create(
   subscribeWithSelector(
-    persist<eventDetail>(
+    persist<eventDetailType>(
       (set) => ({
         eventId: "",
         adminId: 0,

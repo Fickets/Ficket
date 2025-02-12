@@ -1,12 +1,12 @@
 import { AxiosResponse } from "axios";
 import { privateApi, publicApi } from "../../utils/http-common";
-import { ResponseData, EventDetailRes } from "../../types/ApiResponseType";
-
+import { ResponseData } from "../../types/ApiResponseType";
+import { eventDetailType } from '../../types/StoreType/EventDetailStore'
 const url = "events";
 
 export const eventDetail = async (
   eventId: number,
-  Response: (Response: AxiosResponse<EventDetailRes>) => void,
+  Response: (Response: AxiosResponse<eventDetailType>) => void,
   Error: (Error: AxiosResponse<ResponseData>) => void,
 ) => {
   await publicApi.get(`/${url}/detail/${eventId}`).then(Response).catch(Error);
@@ -14,7 +14,7 @@ export const eventDetail = async (
 
 export const genderStatistic = async (
   eventId: number,
-  Response: (Response: AxiosResponse<ResponseData>) => void,
+  Response: (Response: AxiosResponse<string>) => void,
   Error: (Error: AxiosResponse<ResponseData>) => void,
 ) => {
   await publicApi

@@ -21,7 +21,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
     await eventDetail(
       Number(eventId),
       (response) => {
-        const res = response.data.data;
+        const res = response.data;
         event.setAdminId(res.adminId);
         event.setCompanyId(res.companyId);
         event.setCompanyName(res.companyName);
