@@ -25,6 +25,7 @@ const AdminLoginComponent: React.FC = () => {
       requestData,
       (response) => {
         const resData = JSON.parse(response.data.data);
+        console.log(resData)
         admin.setAccessToken(response.headers["authorization"]);
         admin.setAdminId(resData.adminId);
         admin.setAdminName(resData.adminName);
