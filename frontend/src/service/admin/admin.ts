@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import { adminPrivateApi, publicApi } from "../../utils/http-common";
-import { ResponseData } from "../../types/ApiResponseType";
+import { ResponseData, datas } from "../../types/ApiResponseType";
 import { AdminLoginReq } from "../../types/admins/AdminLoginReq";
 const url = "admins";
 
@@ -15,7 +15,7 @@ export const adminTokenRefresh = async (
 // 관리자 로그인
 export const adminLogin = async (
   params: AdminLoginReq,
-  Response: (Response: AxiosResponse<ResponseData>) => void,
+  Response: (Response: AxiosResponse<datas>) => void,
   Error: (Error: AxiosResponse<ResponseData>) => void,
 ) => {
   await publicApi.post(`/${url}/login`, params).then(Response).catch(Error);

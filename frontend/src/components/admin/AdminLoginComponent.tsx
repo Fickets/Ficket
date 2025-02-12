@@ -16,18 +16,23 @@ const AdminLoginComponent: React.FC = () => {
   const [adminPw, setPw] = useState("");
 
   const submitBtn = async (event: { preventDefault: () => void; }) => {
+    console.log("TEST START")
     event.preventDefault();
     const requestData = {
       id: adminId,
       pw: adminPw,
     };
-    console.log("TEST START")
     await adminLogin(
       requestData,
       (response) => {
-        console.log("TEST LOGIN RESPONSE")
-        const resData = JSON.parse(response.data.data);
-        console.log(resData)
+
+        // response.data는 ResponseData 타입이고, 그 안의 data는 string임
+        // JSON.parse로 response.data.data를 파싱해야 함
+        const resData = (response.data);  // response.data.data를 JSON.parse로 파싱
+
+        console.log(resData);  // 이제 resData에서 adminId, adminName을 사용할 수 있음
+
+        // adminId와 adminName 추출
         admin.setAccessToken(response.headers["authorization"]);
         admin.setAdminId(resData.adminId);
         admin.setAdminName(resData.adminName);
