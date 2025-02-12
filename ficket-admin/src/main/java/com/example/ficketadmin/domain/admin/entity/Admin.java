@@ -24,6 +24,7 @@ public class Admin {
     @Column(name = "NAME", nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
     private Role role;
 
