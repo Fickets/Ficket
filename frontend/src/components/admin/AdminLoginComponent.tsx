@@ -21,9 +21,11 @@ const AdminLoginComponent: React.FC = () => {
       id: adminId,
       pw: adminPw,
     };
+    console.log("TEST START")
     await adminLogin(
       requestData,
       (response) => {
+        console.log("TEST LOGIN RESPONSE")
         const resData = JSON.parse(response.data.data);
         console.log(resData)
         admin.setAccessToken(response.headers["authorization"]);
@@ -33,7 +35,7 @@ const AdminLoginComponent: React.FC = () => {
 
         navi("/admin/event-list");
       },
-      (_error) => { },
+      (_error) => { console.log("TEST LOGIN FAILED") },
     );
   };
 
