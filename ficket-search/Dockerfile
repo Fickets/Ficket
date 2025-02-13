@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY build/libs/ficket-search-0.0.1-SNAPSHOT.jar ficket-search-0.0.1-SNAPSHOT.jar
 
-EXPOSE 8094
+EXPOSE 8089
 
 ENV SPRING_APPLICATION_NAME=search-service
 ENV SPRING_PROFILES_ACTIVE=prod
