@@ -22,6 +22,7 @@ const newAccess = (header: string) => {
 // 토큰 X
 export const publicApi: AxiosInstance = axios.create({
   baseURL: baseURL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -29,6 +30,7 @@ export const publicApi: AxiosInstance = axios.create({
 // 토큰 O
 export const privateApi: AxiosInstance = axios.create({
   baseURL: baseURL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -136,7 +138,7 @@ adminPrivateApi.interceptors.response.use(
             return axios(originRequest);
           }
         },
-        () => {},
+        () => { },
       );
     }
   },
