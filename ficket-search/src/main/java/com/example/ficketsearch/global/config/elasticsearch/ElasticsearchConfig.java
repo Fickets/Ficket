@@ -9,46 +9,30 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Base64;
-
 import org.apache.http.HttpHost;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.net.ssl.SSLContext;
+
 @Configuration
 public class ElasticsearchConfig {
 
-    @Value("${spring.elasticsearch.username}")
+    @Value("${spring.elasticsearch.rest.username}")
     private String username;
 
-    @Value("${spring.elasticsearch.password}")
+    @Value("${spring.elasticsearch.rest.password}")
     private String password;
 
-    @Value("${spring.elasticsearch.host}")
+    @Value("${spring.elasticsearch.rest.host}")
     private String host;
 
-    @Value("${spring.elasticsearch.port:9200}")
+    @Value("${spring.elasticsearch.rest.port:9200}")
     private int port;
-
-    @Value("${elasticsearch.ca-certificate-path}")
-    private String certificateBase64;
 
     /**
      * ElasticsearchClient Bean 생성
@@ -74,12 +58,12 @@ public class ElasticsearchConfig {
      */
     @Bean
     public RestClient restClient() throws Exception {
-        // CA 인증서 로드
-        SSLContext sslContext = getSSLContext(); // getSSLContext()를 호출하여 SSLContext 객체 생성
+        // JVM 기본 TrustStore 사용 (별도의 인증서 로드 필요 없음)
+        SSLContext sslContext = SSLContext.getDefault();
 
         RestClientBuilder builder = RestClient.builder(new HttpHost(host, port, "https"))
                 .setHttpClientConfigCallback(httpAsyncClientBuilder -> httpAsyncClientBuilder
-                        .setSSLContext(sslContext)  // getSSLContext()에서 반환된 SSLContext 설정
+                        .setSSLContext(sslContext) // TrustStore 사용
                         .setDefaultCredentialsProvider(credentialsProvider()));
 
         return builder.build();
@@ -89,26 +73,5 @@ public class ElasticsearchConfig {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
         return credentialsProvider;
-    }
-
-    private SSLContext getSSLContext() throws Exception {
-        byte[] decodedCertificate = Base64.getMimeDecoder().decode(certificateBase64);
-
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-        X509Certificate ca;
-        try (InputStream certificateInputStream = new ByteArrayInputStream(decodedCertificate)) {
-            ca = (X509Certificate) certificateFactory.generateCertificate(certificateInputStream);
-        }
-
-        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keyStore.load(null, null);
-        keyStore.setCertificateEntry("ca", ca);
-
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(keyStore);
-
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, tmf.getTrustManagers(), new java.security.SecureRandom());
-        return sslContext;
     }
 }
