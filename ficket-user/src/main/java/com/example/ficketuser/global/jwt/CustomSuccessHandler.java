@@ -29,20 +29,31 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UserRepository userRepository;
 
 
-    private String REFRESH_HEADER;
-    private String ACCESS_HEADER;
-    private int REFRESH_TOKEN_MAX_AGE;
+    private final String REFRESH_HEADER;
+    private final String ACCESS_HEADER;
+    private final int REFRESH_TOKEN_MAX_AGE;
+    private final String REDIRECT_URL;
+    private final String SUSPENDED_URL;
+    private final String ADDITIONAL_INFO_URL;
+
 
     public CustomSuccessHandler(JwtUtils jwtUtils, UserTokenRedisRepository userTokenRedisRepository, UserRepository userRepository,
                                 @Value("${jwt.refresh.header}") String refreshHeader,
                                 @Value("${jwt.access.header}") String accessHeader,
-                                @Value("${refresh-token-maxage}") int refreshTokenMaxAge) {
+                                @Value("${refresh-token-maxage}") int refreshTokenMaxAge,
+                                @Value("${login.redirect-url}") String redirectUrl,
+                                @Value("${login.suspended-url}") String suspendedUrl,
+                                @Value("${login.additional-info-url}") String additionalInfoUrl
+    ) {
         this.jwtUtils = jwtUtils;
         this.userTokenRedisRepository = userTokenRedisRepository;
         this.userRepository = userRepository;
         this.REFRESH_HEADER = refreshHeader;
         this.ACCESS_HEADER = accessHeader;
         this.REFRESH_TOKEN_MAX_AGE = refreshTokenMaxAge;
+        this.REDIRECT_URL = redirectUrl;
+        this.SUSPENDED_URL = suspendedUrl;
+        this.ADDITIONAL_INFO_URL = additionalInfoUrl;
     }
 
 
@@ -53,21 +64,21 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         String userName = customOAuth2User.getName();
         Long socialId = customOAuth2User.getSocialId();
-        Long userId = customOAuth2User.getUserId();;
+        Long userId = customOAuth2User.getUserId();
+        ;
 
         String access = jwtUtils.createAccessToken(customOAuth2User);
         String refresh = jwtUtils.createRefreshToken(customOAuth2User);
 
         User user = userRepository.findByDeletedSocialId(socialId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
-        if(user.getState().equals(State.SUSPENDED)){
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
+        if (user.getState().equals(State.SUSPENDED)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("User is suspended.");
-//            response.sendRedirect("http://localhost:5173/users/suspended");
-            response.sendRedirect("https://ficket.shop/users/suspended");
+            response.sendRedirect(SUSPENDED_URL);
             return;
         }
-        if(user.getDeletedAt() != null){
+        if (user.getDeletedAt() != null) {
             userRepository.updateUserDeletedAt(user.getUserId());
         }
 
@@ -82,20 +93,17 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build();
         userTokenRedisRepository.save(userTokenRedis);
         if (user.getGender() == null){
-
-//            response.sendRedirect("http://localhost:5173/users/addition-info");
-            response.sendRedirect("https://ficket.shop/users/addition-info");
-        }else{
-//            response.sendRedirect("http://localhost:5173");
-            response.sendRedirect("https://ficket.shop");
+            response.sendRedirect(ADDITIONAL_INFO_URL);
+        } else {
+            response.sendRedirect(REDIRECT_URL);
         }
     }
 
-    public Cookie createCookie(String key, String value){
+    public Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
         cookie.setPath("/");
-        if(key.equals(REFRESH_HEADER)){
+        if (key.equals(REFRESH_HEADER)) {
             cookie.setHttpOnly(true);
         }
         return cookie;
