@@ -105,7 +105,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setPath("/");
         cookie.setSecure(true);
         cookie.setAttribute("SameSite", "None");
-        cookie.setDomain(".ficket.store");
+        cookie.setDomain("ficket.store");
         if(key.equals(REFRESH_HEADER)){
             cookie.setHttpOnly(true);
         }
