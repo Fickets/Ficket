@@ -15,6 +15,13 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
+
 
 @Configuration
 @EnableWebSecurity
@@ -30,7 +37,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         //CSRF, CORS
         http.csrf((csrf) -> csrf.disable());
-        http.cors(Customizer.withDefaults());
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         // 세션 관리 상태 없음으로 구성
         http.sessionManagement(sessionManagement -> sessionManagement
@@ -62,6 +69,21 @@ public class SecurityConfig {
                         .anyRequest().authenticated());
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://ficket.shop")); // 모든 출처 허용
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(
+                Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // 허용할 HTTP 메소드 지정
+        configuration.setAllowedHeaders(Arrays.asList("Sec-Websocket-Version","Sec-Websocket-Extensions","Pragma","Host","Cache-Control","Accept-Language","Accept-Encoding","User-Agent","Sec-Ch-Ua-Platform","Sec-Ch-Ua-Mobile","Sec-Ch-Ua","Referer","X-Frame-Options","Sec-WebSocket-Extensions","Sec-WebSocket-Version","Connection","Upgrade","Sec-Websocket-Key","Authorization","text/event-stream" ,"authorization", "Content-Type", "X-Requested-With", "accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "password", "sseKey")); // 모든 헤더 허용
+        configuration.setAllowCredentials(true); // 크레덴셜 허용
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 위 설정 적용
+        return source;
     }
 
 }
