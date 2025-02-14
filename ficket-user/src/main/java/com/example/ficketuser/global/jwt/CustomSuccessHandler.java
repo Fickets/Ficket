@@ -106,9 +106,6 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setSecure(true);
         cookie.setHttpOnly(false);
         cookie.setAttribute("SameSite", "None");
-        if(key.equals(REFRESH_HEADER)){
-            cookie.setHttpOnly(true);
-        }
         return cookie;
     }
 }
