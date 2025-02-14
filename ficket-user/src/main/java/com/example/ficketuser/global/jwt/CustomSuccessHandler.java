@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 
-@Component
 @Slf4j
+@Component
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtUtils jwtUtils;
@@ -86,13 +86,15 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(createCookie(REFRESH_HEADER, refresh));
         response.setHeader(ACCESS_HEADER, "Bearer " + access);
 
+        log.info("Access Token: Bearer {}", access);
+        log.info("Refresh Token: Bearer {}", refresh);
 
         UserTokenRedis userTokenRedis = UserTokenRedis.builder()
                 .userId(userId)
                 .refreshToken(refresh)
                 .build();
         userTokenRedisRepository.save(userTokenRedis);
-        if (user.getGender() == null){
+        if (user.getGender() == null) {
             response.sendRedirect(ADDITIONAL_INFO_URL);
         } else {
             response.sendRedirect(REDIRECT_URL);
