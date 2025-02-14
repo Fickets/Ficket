@@ -111,9 +111,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
         cookie.setPath("/");
         cookie.setSecure(true);
-
+        cookie.setDomain(".ficket.shop");
         cookie.setHttpOnly(false);
-        cookie.setAttribute("SameSite", "None");
         return cookie;
     }
 }
