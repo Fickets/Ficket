@@ -1,0 +1,13 @@
+services:
+  mysql:
+    image: mysql:8.0.30
+    container_name: ticketing-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ficket  # 이 부분은 zipkin에서 사용하려는 DB 이름입니다.
+    volumes:
+      - mysql-data:/var/lib/mysql
+volumes:
+  mysql-data:

@@ -1,0 +1,7 @@
+services:
+  redis3:
+    image: redis
+    container_name: token-cache
+    ports:
+      - "6381:6381"
+    command: ["redis-server", "--appendonly", "yes", "--port", "6381"]
