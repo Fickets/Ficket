@@ -74,15 +74,20 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://ficket.shop")); // 모든 출처 허용
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(
-                Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // 허용할 HTTP 메소드 지정
-        configuration.setAllowedHeaders(Arrays.asList("Sec-Websocket-Version","Sec-Websocket-Extensions","Pragma","Host","Cache-Control","Accept-Language","Accept-Encoding","User-Agent","Sec-Ch-Ua-Platform","Sec-Ch-Ua-Mobile","Sec-Ch-Ua","Referer","X-Frame-Options","Sec-WebSocket-Extensions","Sec-WebSocket-Version","Connection","Upgrade","Sec-Websocket-Key","Authorization","text/event-stream" ,"authorization", "Content-Type", "X-Requested-With", "accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "password", "sseKey")); // 모든 헤더 허용
-        configuration.setAllowCredentials(true); // 크레덴셜 허용
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://ficket.shop"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Sec-Websocket-Version", "Sec-Websocket-Extensions", "Pragma", "Host", "Cache-Control",
+                "Accept-Language", "Accept-Encoding", "User-Agent", "Sec-Ch-Ua-Platform", "Sec-Ch-Ua-Mobile",
+                "Sec-Ch-Ua", "Referer", "X-Frame-Options", "Sec-WebSocket-Extensions", "Sec-WebSocket-Version",
+                "Connection", "Upgrade", "Sec-Websocket-Key", "Authorization", "text/event-stream",
+                "authorization", "Content-Type", "X-Requested-With", "accept", "Origin",
+                "Access-Control-Request-Method", "Access-Control-Request-Headers", "password", "sseKey"
+        ));
+        configuration.setAllowCredentials(true);  // 쿠키 허용
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 위 설정 적용
+        source.registerCorsConfiguration("/**", configuration);  // 모든 경로에 대해 적용
         return source;
     }
 
