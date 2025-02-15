@@ -9,6 +9,7 @@ services:
       MYSQL_DATABASE: ficket  # 이 부분은 zipkin에서 사용하려는 DB 이름입니다.
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   zipkin:
     image: openzipkin/zipkin
