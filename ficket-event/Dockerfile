@@ -1,16 +1,19 @@
-FROM openjdk:17
+# 기본 Java 17 이미지를 사용
+FROM openjdk:17-jdk-slim
 
+# 작업 디렉터리 설정
 WORKDIR /app
 
-COPY build/libs/ficket-event-0.0.1-SNAPSHOT.jar ficket-event-0.0.1-SNAPSHOT.jar
+# JAR 파일 복사
+COPY build/libs/ficket-event-0.0.1-SNAPSHOT.jar app.jar
 
-EXPOSE 8089
+# 애플리케이션 실행 포트
+EXPOSE 8091
 
-ENV SPRING_APPLICATION_NAME=event-service
-ENV SPRING_PROFILES_ACTIVE=prod
-ENV SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+# 환경 변수 설정
+ENV SPRING_APPLICATION_NAME=event-service \
+    SPRING_PROFILES_ACTIVE=prod \
+    SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
 
-CMD ["java", "-Duser.timezone=Asia/Seoul", "-jar", "ficket-event-0.0.1-SNAPSHOT.jar",
-     "--spring.application.name=${SPRING_APPLICATION_NAME}",
-     "--spring.profiles.active=${SPRING_PROFILES_ACTIVE}",
-     "--spring.config.import=${SPRING_CONFIG_IMPORT}"]
+# 애플리케이션 실행
+CMD ["java", "-Duser.timezone=Asia/Seoul", "-jar", "app.jar"]
