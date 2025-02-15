@@ -71,7 +71,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             "e.title AS title, " +
             "es.stage_name AS stageName, " +
             "es.sido AS sido, " +
-            "ei.poster_pc_url AS posterUrl, " +
+            "ANY_VALUE(ei.poster_pc_url) AS posterUrl, " +
             "e.ticketing_time AS ticketingTime, " +
             "GROUP_CONCAT(DISTINCT g.genre) AS genreList, " +
             "GROUP_CONCAT(DISTINCT ec.event_date) AS eventDateList " +
