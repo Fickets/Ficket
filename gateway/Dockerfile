@@ -15,4 +15,4 @@ ENV SPRING_APPLICATION_NAME=gateway-service \
     SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
 
 # 애플리케이션 실행
-CMD ["java", "-Duser.timezone=Asia/Seoul", "-jar", "app.jar"]
+CMD ["java", "-Duser.timezone=Asia/Seoul", "-jar", "gateway-0.0.1-SNAPSHOT.jar"]
