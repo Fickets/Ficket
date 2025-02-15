@@ -8,21 +8,23 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 
+import java.io.Serializable;
+
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @RedisHash(value = "userToken")
-public class UserTokenRedis {
+public class UserTokenRedis implements Serializable {
 
-        @Id
-        private Long userId;
+    @Id
+    private Long userId;
 
-        private String refreshToken;
+    private String refreshToken;
 
-        @TimeToLive
-        @Builder.Default
-        private Long ttl = 1209600L;
-    }
+    @TimeToLive
+    @Builder.Default
+    private Long ttl = 1209600L;
+}
 

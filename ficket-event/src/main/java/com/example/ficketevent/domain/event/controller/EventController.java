@@ -15,6 +15,17 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -22,15 +33,27 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/events")
 public class EventController {
 
     private final EventService eventService;
+
+    private final JobLauncher jobLauncher;
+    private final Job exportEventsJob;
+    private final RedissonClient redisson;
+
+    private static final long FULL_INDEX_TTL = 60 * 60 * 1000L; // 1시간
+    private static final String INDEXING_LOCK = "FULL_INDEXING_LOCK";
+
 
     /**
      * 행사 등록 API
@@ -346,5 +369,36 @@ public class EventController {
     @GetMapping("/events/getScheduleId")
     List<Long> getScheduledId(@RequestParam Long eventId){
         return eventService.getScheduleId(eventId);
+    }
+
+    @PostMapping("/detail/test")
+    public String runExportEventsJob() {
+        RLock lock = redisson.getLock(INDEXING_LOCK);
+        try {
+            if (lock.tryLock(0, FULL_INDEX_TTL, TimeUnit.MILLISECONDS)) {
+                String uniqueRunId = UUID.randomUUID().toString();
+
+                JobParameters jobParameters = new JobParametersBuilder()
+                        .addString("jobName", "exportEventsJob")
+                        .addString("executionDate", uniqueRunId)
+                        .toJobParameters();
+
+                jobLauncher.run(exportEventsJob, jobParameters);
+
+                log.info("Batch Job 'exportEventsJob' manually executed.");
+                return "Batch Job 'exportEventsJob' started successfully.";
+            } else {
+                log.warn("Job is already running. Skipping execution.");
+                return "Job is already running. Try again later.";
+            }
+        } catch (JobExecutionAlreadyRunningException | JobRestartException |
+                 JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
+            log.error("Failed to execute Batch Job 'exportEventsJob': {}", e.getMessage(), e);
+            return "Failed to execute batch job: " + e.getMessage();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Lock acquisition was interrupted: {}", e.getMessage(), e);
+            return "Lock acquisition was interrupted.";
+        }
     }
 }

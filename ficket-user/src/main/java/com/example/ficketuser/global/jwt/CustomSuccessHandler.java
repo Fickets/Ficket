@@ -65,43 +65,37 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String userName = customOAuth2User.getName();
         Long socialId = customOAuth2User.getSocialId();
         Long userId = customOAuth2User.getUserId();
-        log.info("HERE : 1");
 
         String access = jwtUtils.createAccessToken(customOAuth2User);
-        log.info("HERE : 2");
         String refresh = jwtUtils.createRefreshToken(customOAuth2User);
-        log.info("HERE : 3");
         User user = userRepository.findByDeletedSocialId(socialId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
-        log.info("HERE : 4");
+
         if (user.getState().equals(State.SUSPENDED)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("User is suspended.");
             response.sendRedirect(SUSPENDED_URL);
             return;
         }
-        log.info("HERE : 5");
+
         if (user.getDeletedAt() != null) {
             userRepository.updateUserDeletedAt(user.getUserId());
         }
-        log.info("HERE : 6");
+
         response.addCookie(createCookie("isLogin", "true"));
         response.addCookie(createCookie(REFRESH_HEADER, refresh));
         response.setHeader(ACCESS_HEADER, "Bearer " + access);
-        log.info("HERE : 7");
-        log.info("Access Token: Bearer {}", access);
-        log.info("Refresh Token: Bearer {}", refresh);
-        log.info("HERE : 8");
+
         UserTokenRedis userTokenRedis = UserTokenRedis.builder()
                 .userId(userId)
                 .refreshToken(refresh)
                 .build();
+
         userTokenRedisRepository.save(userTokenRedis);
+
         if (user.getGender() == null) {
-            log.info("HERE : 9-1");
             response.sendRedirect(ADDITIONAL_INFO_URL);
         } else {
-            log.info("HERE : 9-2");
             response.sendRedirect(REDIRECT_URL);
         }
     }
