@@ -165,6 +165,11 @@ public class UserService {
         // Refresh 토큰 찾기
         Cookie[] cookies = request.getCookies();
         String refresh = null;
+        if (cookies == null || cookies.length == 0) {
+            log.info("쿠키가 없습니다.");
+        } else {
+            log.info("쿠키 개수: {}", cookies.length);
+        }
         for (Cookie cookie : cookies) {
             if (cookie != null && cookie.getName().equals(REFRESH_HEADER)) {
                 refresh = cookie.getValue();
