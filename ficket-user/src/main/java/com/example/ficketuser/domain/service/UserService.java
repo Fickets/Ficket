@@ -211,6 +211,9 @@ public class UserService {
         CustomOAuth2User oAuth2User = new CustomOAuth2User(userDto);
 
         String newAccess = jwtUtils.createAccessToken(oAuth2User);
+
+        log.info("New Access Token: {}", newAccess);
+
         response.setHeader(ACCESS_HEADER, "Bearer " + newAccess);
         response.addHeader("Access-Control-Expose-Headers", ACCESS_HEADER);
 
