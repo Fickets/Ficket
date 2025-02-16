@@ -42,7 +42,7 @@ public class WebSocketConfig {
             if (path.startsWith("/work-status") || path.startsWith("/queue-status")) {
                 CorsConfiguration corsConfig = new CorsConfiguration();
                 corsConfig.addAllowedOrigin("http://localhost:5173");
-                corsConfig.addAllowedOrigin("http://localhost:8089");
+                corsConfig.addAllowedOrigin("https://ficket.shop");
                 corsConfig.addAllowedMethod("GET");
                 corsConfig.addAllowedMethod("POST");
                 corsConfig.addAllowedMethod("PUT");
