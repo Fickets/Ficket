@@ -166,15 +166,25 @@ public class UserService {
         Cookie[] cookies = request.getCookies();
         String refresh = null;
         if (cookies == null || cookies.length == 0) {
-            log.info("쿠키가 없습니다.");
+            log.error("쿠키가 없습니다.");
+            throw new BusinessException(ErrorCode.COOKIE_NOT_FOUND);
         } else {
-            log.info("쿠키 개수: {}", cookies.length);
-        }
-        for (Cookie cookie : cookies) {
-            if (cookie != null && cookie.getName().equals(REFRESH_HEADER)) {
-                refresh = cookie.getValue();
+            for (Cookie cookie : cookies) {
+                if (cookie != null) {
+                    log.info("쿠키 이름: {}, 값: {}, 도메인: {}, 경로: {}, MaxAge: {}",
+                            cookie.getName(),
+                            cookie.getValue(),
+                            cookie.getDomain(),
+                            cookie.getPath(),
+                            cookie.getMaxAge());
+
+                    if (cookie.getName().equals(REFRESH_HEADER)) {
+                        refresh = cookie.getValue();
+                    }
+                }
             }
         }
+
         if (refresh == null) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
         }
@@ -213,11 +223,11 @@ public class UserService {
 
         // 유저 있으면 지우기
         User user = userRepository.findByUserId(userId)
-                .orElseThrow(() ->  new BusinessException(ErrorCode.NOT_USER_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
         List<TicketInfoDto> ticketInfoDtoList = ticketingServiceClient.getMyTickets(user.getUserId());
 
-        if (!ticketInfoDtoList.isEmpty()){
+        if (!ticketInfoDtoList.isEmpty()) {
             throw new BusinessException(ErrorCode.EXIST_USER_EVENT);
         }
 
@@ -251,7 +261,6 @@ public class UserService {
     }
 
     /**
-     *
      * @param updateUserRequest 유저 변경 정보
      */
     @Transactional
@@ -259,16 +268,16 @@ public class UserService {
         User user = userRepository.findByUserId(updateUserRequest.getUserId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
-        user.updateUserInfo(updateUserRequest.getUserName(),updateUserRequest.getBirth(),updateUserRequest.getGender());
+        user.updateUserInfo(updateUserRequest.getUserName(), updateUserRequest.getBirth(), updateUserRequest.getGender());
     }
 
     /**
      * 사용자 티켓 조회 서비스
      *
-     * @param userId 사용자 ID
-     * @param page   페이지 번호
-     * @param size   페이지 크기
-     * @param sort   정렬 기준 ("asc" 또는 "desc")
+     * @param userId     사용자 ID
+     * @param page       페이지 번호
+     * @param size       페이지 크기
+     * @param sort       정렬 기준 ("asc" 또는 "desc")
      * @param sidoFilter 시/도 필터 (null일 경우 필터링 없음)
      * @return 페이징된 티켓 리스트
      */
@@ -354,7 +363,7 @@ public class UserService {
         return response;
     }
 
-    public List<UserSimpleDto> getTicketingUsers(List<Long> userIds){
+    public List<UserSimpleDto> getTicketingUsers(List<Long> userIds) {
         List<UserSimpleDto> res = new ArrayList<>();
         for (Long userId : userIds) {
             userRepository.findByUserId(userId)
@@ -364,7 +373,7 @@ public class UserService {
         return res;
     }
 
-    public UserSimpleDto getMyInfo(){
+    public UserSimpleDto getMyInfo() {
 
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = userDetails.getUserId();
@@ -375,13 +384,14 @@ public class UserService {
         return userMapper.toUserSimpleDto(user);
     }
 
-    public List<String> getAllUser(){
+    public List<String> getAllUser() {
         List<String> res = userRepository.findAll().stream()
                 .map(user -> user.getUserName())
                 .toList();
         return res;
     }
-    public PagedResponse<UserSimpleDto> getCustomerSearch(CustomerReq customerReq, Pageable pageable){
+
+    public PagedResponse<UserSimpleDto> getCustomerSearch(CustomerReq customerReq, Pageable pageable) {
         List<UserSimpleDto> results = userCustomRepository.getUserPage(customerReq, pageable);
 
         // 페이징 처리
@@ -391,14 +401,14 @@ public class UserService {
 
         return new PagedResponse<>(
                 pagedResults,
-                pageable. getPageNumber(),
+                pageable.getPageNumber(),
                 pageable.getPageSize(),
                 results.size(),
                 (int) Math.ceil((double) results.size() / pageable.getPageSize())
         );
     }
 
-    public List<OrderInfoDto> getCustomerTicket(Long userId){
+    public List<OrderInfoDto> getCustomerTicket(Long userId) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
@@ -406,13 +416,13 @@ public class UserService {
         return res;
     }
 
-    public void customerDelete(Long userId){
+    public void customerDelete(Long userId) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_USER_FOUND));
 
         List<OrderInfoDto> ticketInfoDtoList = ticketingServiceClient.getCustomerTicket(user.getUserId());
 
-        if (!ticketInfoDtoList.isEmpty()){
+        if (!ticketInfoDtoList.isEmpty()) {
             throw new BusinessException(ErrorCode.EXIST_USER_EVENT);
         }
         userRepository.customerForceDelete(user.getUserId());
