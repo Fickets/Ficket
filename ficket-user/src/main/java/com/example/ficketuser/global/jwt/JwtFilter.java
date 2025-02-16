@@ -24,6 +24,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private static final String[] NO_CHECK_URL = new String[]{
             "/api/v1/users/login",
+            "/api/v1/users/reissue",
             "/api/v1/users/my-ticket",
             "/actuator/**"
     };
@@ -41,7 +42,7 @@ public class JwtFilter extends OncePerRequestFilter {
         // Authorization 헤더에서 JWT 추출
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-            log.info("ERROR NO ACCESS TOKEN");
+            log.error("access token is missing or malformed in the header");
             filterChain.doFilter(request, response);
             return;
         }
