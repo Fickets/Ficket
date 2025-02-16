@@ -6,25 +6,34 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: ficket  # 이 부분은 zipkin에서 사용하려는 DB 이름입니다.
     volumes:
       - mysql-data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  storage:
+    image: openzipkin/zipkin-mysql
+    container_name: zipkin-mysql
+    environment:
+      - MYSQL_DATABASE=zipkin
+      - MYSQL_USER=zipkin
+      - MYSQL_PASSWORD=zipkin
+    ports:
+      - "3307:3306"
 
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin
     environment:
-      - STORAGE_TYPE=mysql             # Zipkin이 MySQL을 사용하도록 설정
-      - MYSQL_DB=ficket                # MySQL의 데이터베이스 이름 (mysql 서비스에서 설정한 것)
-      - MYSQL_USER=root                # MySQL 사용자 이름 (mysql에서 설정한 사용자 이름)
-      - MYSQL_PASS=rootpassword        # MySQL 비밀번호 (mysql에서 설정한 비밀번호)
-      - MYSQL_HOST=mysql               # Docker 파일 내 서비스 이름
-      - MYSQL_TCP_PORT=3306            # MySQL 포트 (기본 3306)
+      - STORAGE_TYPE=mysql
+      - MYSQL_DB=zipkin
+      - MYSQL_USER=zipkin
+      - MYSQL_PASS=zipkin
+      - MYSQL_HOST=zipkin-mysql
+      - MYSQL_TCP_PORT=3307
     ports:
-      - 9411:9411                       # Zipkin UI 포트
+      - "9411:9411"
     depends_on:
-      - mysql                           # MySQL 서비스에 의존 (MySQL이 먼저 시작되어야 zipkin이 실행)
+      - storage
     restart: always
 
   dependencies:
@@ -32,13 +41,13 @@ services:
     container_name: dependencies
     entrypoint: crond -f
     environment:
-      - MYSQL_DB=ficket
-      - MYSQL_USER=root
-      - MYSQL_PASS=rootpassword
-      - MYSQL_HOST=mysql
-      - MYSQL_TCP_PORT=3306
+      - MYSQL_DB=zipkin
+      - MYSQL_USER=zipkin
+      - MYSQL_PASS=zipkin
+      - MYSQL_HOST=zipkin-mysql
+      - MYSQL_TCP_PORT=3307
     depends_on:
-      - mysql
+      - storage
     restart: always
 volumes:
   mysql-data:
