@@ -1,5 +1,5 @@
-# Python 3.10을 기본 이미지로 사용
-FROM python:3.10
+# Python 3.12을 기본 이미지로 사용
+FROM python:3.12
 
 # 필수 시스템 라이브러리 설치 (OpenCV 실행을 위한 libGL.so.1 포함)
 RUN apt-get update && apt-get install -y \
@@ -23,5 +23,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 프로젝트 코드 복사
 COPY . .
 
-# Flask 실행 (컨테이너 외부에서 접근 가능)
-CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
+# 마이그레이션 실행 후 Flask 실행
+CMD ["sh", "-c", "flask db upgrade && python3 -m flask run --host=0.0.0.0 --port=5000"]
