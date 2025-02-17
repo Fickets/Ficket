@@ -4,6 +4,7 @@ import { Client } from "@stomp/stompjs";
 import { SocketMessage } from "../../types/ticketCheck";
 import testImage from "../../assets/nocontent.png";
 import { ticketStatusChange } from "../../service/ticketCheck/ticketCheck";
+import { Helmet } from "react-helmet-async";
 
 const BROKER_URL: string = import.meta.env.BROKER_URL;
 
@@ -82,6 +83,9 @@ const ManagerCheckPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center  bg-gray-400 min-h-screen">
+      <Helmet>
+        <title>티켓 정보 확인</title>
+      </Helmet>
       {/* 제목 섹션 */}
       <div className="mt-[30px] flex justify-between w-full px-[50px]">
         <p className="font-bold text-[30px]">Ficket Manager</p>

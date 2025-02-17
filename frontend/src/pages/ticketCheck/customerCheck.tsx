@@ -4,6 +4,7 @@ import * as faceapi from "face-api.js";
 import { checkFace } from "../../service/ticketCheck/ticketCheck";
 import { Client } from "@stomp/stompjs";
 import { SocketMessage } from "../../types/ticketCheck";
+import { Helmet } from "react-helmet-async";
 
 const BROKER_URL: string = import.meta.env.VITE_BROKER_URL;
 
@@ -194,6 +195,9 @@ const FaceDetectionPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
+      <Helmet>
+        <title>얼굴 인식 티켓 조회</title>
+      </Helmet>
       <header className="py-4 px-6 bg-purple-500 text-white flex justify-between items-center shadow-md">
         <h1 className="text-[40px] font-bold">Ficket</h1>
         <span className="text-lg font-medium">{connectId}</span>
