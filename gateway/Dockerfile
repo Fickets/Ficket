@@ -10,7 +10,7 @@ COPY build/libs/gateway-0.0.1-SNAPSHOT.jar gateway-0.0.1-SNAPSHOT.jar
 EXPOSE 9000
 
 # 환경 변수 설정
-ENV SPRING_APPLICATION_NAME=gateway-service \
+ENV SPRING_APPLICATION_NAME=apigateway-service \
     SPRING_PROFILES_ACTIVE=prod \
     SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
 
