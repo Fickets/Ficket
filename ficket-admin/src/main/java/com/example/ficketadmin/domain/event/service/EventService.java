@@ -12,7 +12,6 @@ import com.example.ficketadmin.domain.event.dto.response.TemporaryUrlResponse;
 import com.example.ficketadmin.global.jwt.JwtUtils;
 import com.example.ficketadmin.global.result.error.ErrorCode;
 import com.example.ficketadmin.global.result.error.exception.BusinessException;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -104,6 +103,28 @@ public class EventService {
         return new TemporaryUrlResponse(url); // URL 응답 객체 반환
     }
 
+    /**
+     * 해당 이벤트 ID의 임시 URL이 존재하는지 확인하고, 존재하면 URL을 반환합니다.
+     *
+     * @param eventId 확인할 이벤트 ID
+     * @return 임시 URL이 존재하면 해당 URL을 포함한 응답 객체, 없으면 null을 반환
+     */
+    public TemporaryUrlResponse checkTemporaryUrlExists(Long eventId) {
+        String redisKey = "url:" + eventId;
+        String uuid = redisTemplate.opsForValue().get(redisKey);
+
+        if (uuid == null) {
+            log.info("임시 url이 존재하지 않습니다.");
+            return new TemporaryUrlResponse(null); // 존재하지 않으면 null 반환
+        }
+
+        // URL 구성
+        String url = String.format("%s/events/%d/access?uuid=%s", baseUrl, eventId, uuid);
+
+        log.info("기존 임시 URL: {}, 이벤트 ID: {}", url, eventId);
+        return new TemporaryUrlResponse(url);
+    }
+
     public GuestTokenResponse checkUrl(Long eventId, String url) {
         String redisKey = "url:" + eventId;
         String redisUrl = redisTemplate.opsForValue().get(redisKey);
@@ -128,7 +149,6 @@ public class EventService {
     public void ticketStatusChange(Long ticketId, Long eventId, Long connectId) {
         ticketingServiceClient.ticketWatchedChange(ticketId, eventId, connectId);
     }
-
 
     public void initializeSlot(String eventId, int maxSlot) {
         slotServiceClient.setMaxSlot(eventId, maxSlot);

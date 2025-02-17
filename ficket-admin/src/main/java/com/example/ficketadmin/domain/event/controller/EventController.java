@@ -60,6 +60,19 @@ public class EventController {
         return eventService.generateTemporaryUrl(eventId);
     }
 
+    /**
+     * 특정 이벤트 ID에 대해 임시 URL이 존재하는지 확인하는 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2025-02-17
+     * 변경 이력:
+     * - 2025-02-17 오형상: 초기 작성
+     */
+    @GetMapping("/{eventId}/temporary-url/exists")
+    public TemporaryUrlResponse checkTemporaryUrlExists(@PathVariable Long eventId) {
+        return eventService.checkTemporaryUrlExists(eventId);
+    }
+
     @GetMapping("/check-url/{eventId}")
     public GuestTokenResponse checkUrl(@PathVariable(name = "eventId") Long eventId, @RequestParam(name = "uuid") String uuid) {
         return eventService.checkUrl(eventId, uuid);
