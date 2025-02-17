@@ -1,5 +1,8 @@
-import { useState } from 'react';
-import { generateTemporaryUrl } from '../../service/temporaryUrl/api.ts';
+import { useState, useEffect } from "react";
+import {
+  generateTemporaryUrl,
+  checkTemporaryUrl,
+} from "../../service/temporaryUrl/api.ts";
 
 const TemporaryUrlModal = ({
   isOpen,
@@ -10,23 +13,58 @@ const TemporaryUrlModal = ({
   onClose: () => void;
   eventId: string;
 }) => {
-  if (!isOpen) return null; // 모달이 닫혀 있으면 렌더링하지 않음
+  const [temporaryUrl, setTemporaryUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const [temporaryUrl, setTemporaryUrl] = useState<string>('');
+  // 모달이 열릴 때 기존 URL 체크
+  useEffect(() => {
+    const fetchTemporaryUrl = async () => {
+      if (!isOpen) return;
 
+      setLoading(true);
+      try {
+        const existingUrl = await checkTemporaryUrl(eventId);
+        if (existingUrl) {
+          const userConfirmed = window.confirm(
+            "이미 임시 URL이 존재합니다.\n\n✅ 기존 URL 사용: [취소] 버튼\n🔄 새로 발급: [확인] 버튼",
+          );
+
+          if (!userConfirmed) {
+            setTemporaryUrl(existingUrl); // 기존 URL 유지
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("임시 URL 확인 중 오류 발생:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTemporaryUrl();
+  }, [isOpen, eventId]);
+
+  // 임시 URL 발급
   const handleGenerateTemporaryUrl = async () => {
-    const url = await generateTemporaryUrl(eventId);
-
-    if (url) {
-      setTemporaryUrl(url); // URL 상태 저장
-      alert('임시 URL이 발급되었습니다!');
-    } else {
-      alert('URL 발급에 실패했습니다. 다시 시도해주세요.');
+    try {
+      setLoading(true);
+      const newUrl = await generateTemporaryUrl(eventId);
+      setTemporaryUrl(newUrl);
+      alert("임시 URL이 발급되었습니다!");
+    } catch (error) {
+      console.error("임시 URL 발급 중 오류 발생:", error);
+      alert("오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div
+      className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ${
+        isOpen ? "" : "hidden"
+      }`}
+    >
       <div className="bg-white rounded-lg shadow-lg w-[680px]">
         {/* 헤더 */}
         <div className="flex justify-between items-center border-b px-4 py-3">
@@ -49,6 +87,7 @@ const TemporaryUrlModal = ({
               <li>링크의 유효기간이 지나면 접근이 불가능합니다.</li>
             </ul>
           </div>
+
           <div className="mb-4">
             <h3 className="text-sm font-bold mb-1">주의 사항:</h3>
             <ul className="text-sm text-gray-600 list-disc list-inside">
@@ -60,8 +99,11 @@ const TemporaryUrlModal = ({
               <li>지정된 시간 내에만 사용 가능하며, 재발급은 불가합니다.</li>
             </ul>
           </div>
+
           <div className="relative">
-            {temporaryUrl ? (
+            {loading ? (
+              <p className="text-gray-500 text-sm">⏳ URL 확인 중...</p>
+            ) : temporaryUrl ? (
               <a
                 href={temporaryUrl}
                 target="_blank"
@@ -71,20 +113,22 @@ const TemporaryUrlModal = ({
                 {temporaryUrl}
               </a>
             ) : (
-              <input
-                type="text"
-                value={temporaryUrl}
-                readOnly
-                className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-800"
-              />
+              <p className="text-gray-500 text-sm">
+                ❌ 발급된 임시 URL이 없습니다.
+              </p>
             )}
-            <button
-              onClick={() => navigator.clipboard.writeText(temporaryUrl)}
-              className="absolute right-2 top-2 text-gray-500 hover:text-black"
-              aria-label="복사"
-            >
-              📋
-            </button>
+            {temporaryUrl && (
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(temporaryUrl);
+                  alert("URL이 클립보드에 복사되었습니다!");
+                }}
+                className="absolute right-2 top-2 text-gray-500 hover:text-black"
+                aria-label="복사"
+              >
+                📋
+              </button>
+            )}
           </div>
         </div>
 
@@ -94,13 +138,13 @@ const TemporaryUrlModal = ({
             onClick={handleGenerateTemporaryUrl}
             className="px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600"
           >
-            임시 URL 발급
+            {temporaryUrl ? "새로 발급" : "임시 URL 발급"}
           </button>
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-500 bg-gray-100 rounded-md hover:bg-gray-200"
           >
-            취소
+            닫기
           </button>
         </div>
       </div>
