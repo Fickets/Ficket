@@ -5,12 +5,11 @@ import com.example.ficketqueue.global.webfluxWebsocket.handler.WorkWebSocketHand
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
-import org.springframework.web.reactive.socket.WebSocketHandler;
-
+import org.springframework.web.reactive.socket.server.WebSocketService;
+import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
+import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,36 +23,25 @@ public class WebSocketConfig {
 
     @Bean
     public HandlerMapping webSocketHandlerMapping() {
-        Map<String, WebSocketHandler> handlerMap = new HashMap<>();
-        handlerMap.put("/work-status/*", workWebSocketHandler);
-        handlerMap.put("/queue-status/*", queueStatusWebSocketHandler);
+        Map<String, Object> handlerMap = new HashMap<>();
+
+        // 동적 Path 지원
+        handlerMap.put("/work-status/{eventId}", workWebSocketHandler);
+        handlerMap.put("/queue-status/{eventId}", queueStatusWebSocketHandler);
 
         SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
         mapping.setUrlMap(handlerMap);
-        mapping.setOrder(-1); // WebSocket 핸들러의 우선 순위를 설정
-        mapping.setCorsConfigurationSource(corsConfigurationSource()); // CORS 설정 추가
+        mapping.setOrder(-1); // WebSocket 핸들러 우선순위 설정
         return mapping;
     }
 
+    @Bean
+    public WebSocketHandlerAdapter webSocketHandlerAdapter() {
+        return new WebSocketHandlerAdapter(webSocketService());
+    }
 
-    private CorsConfigurationSource corsConfigurationSource() {
-        return exchange -> {
-            String path = exchange.getRequest().getURI().getPath(); // 요청 URI 경로 가져오기
-            if (path.startsWith("/work-status") || path.startsWith("/queue-status")) {
-                CorsConfiguration corsConfig = new CorsConfiguration();
-                corsConfig.addAllowedOrigin("http://localhost:5173");
-                corsConfig.addAllowedOrigin("https://ficket.shop");
-                corsConfig.addAllowedMethod("GET");
-                corsConfig.addAllowedMethod("POST");
-                corsConfig.addAllowedMethod("PUT");
-                corsConfig.addAllowedMethod("DELETE");
-                corsConfig.addAllowedMethod("OPTIONS");
-                corsConfig.addAllowedMethod("HEAD");
-                corsConfig.addAllowedHeader("*");
-                corsConfig.setAllowCredentials(true);
-                return corsConfig;
-            }
-            return null;
-        };
+    @Bean
+    public WebSocketService webSocketService() {
+        return new HandshakeWebSocketService();
     }
 }
