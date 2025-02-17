@@ -6,7 +6,7 @@ import testImage from "../../assets/nocontent.png";
 import { ticketStatusChange } from "../../service/ticketCheck/ticketCheck";
 import { Helmet } from "react-helmet-async";
 
-const BROKER_URL: string = import.meta.env.BROKER_URL;
+const BROKER_URL: string = import.meta.env.VITE_BROKER_URL;
 
 const ManagerCheckPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -56,7 +56,7 @@ const ManagerCheckPage: React.FC = () => {
               },
             );
           },
-          onDisconnect: () => {},
+          onDisconnect: () => { },
         };
         const newClient = new Client();
         newClient.configure(connectionOptions);
