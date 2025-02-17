@@ -99,7 +99,6 @@ def load_config_from_server():
             # MySQL 설정
             if "flask.mysql.url" in source_data:
                 os.environ["MYSQL_URL"] = source_data["flask.mysql.url"]
-                print(os.getenv("MYSQL_URL"))
             if "flask.mysql.password" in source_data:
                 os.environ["MYSQL_PASSWORD"] = decrypt_value(source_data["flask.mysql.password"], private_key)
 
