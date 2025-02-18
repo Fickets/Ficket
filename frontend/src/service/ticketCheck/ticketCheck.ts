@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios';
 import { FaceApiResponse } from '../../types/uploadFace.ts';
-import {  publicApi } from '../../utils/http-common.ts';
+import { publicApi } from '../../utils/http-common.ts';
 
 
 export const checkFace = async (
@@ -48,7 +48,7 @@ export const ticketStatusChange = async (
 ): Promise<Object> => {
     const params = new URLSearchParams({ eventId: eventId, connectId: connectId.toString() });
     const response: AxiosResponse<{ res: string }> =
-        await publicApi.get(`/admins/ticket-watch/${ticketId}?${params.toString()}`);
+        await publicApi.get(`/admins/check/ticket-watch/${ticketId}?${params.toString()}`);
 
     return response;
 }

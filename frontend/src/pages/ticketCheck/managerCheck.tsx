@@ -41,7 +41,7 @@ const ManagerCheckPage: React.FC = () => {
                   // JSON 메시지를 파싱
                   const parsedMessage: SocketMessage = JSON.parse(message.body);
                   console.log(parsedMessage);
-                  if (parsedMessage.data.message != null) {
+                  if (parsedMessage.data.message == null) {
                     setSocketMessage(parsedMessage);
                   } else {
                     setSocketMessage(null);
