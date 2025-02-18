@@ -183,5 +183,8 @@ public class SettlementService {
         record.setTotalServiceFee(record.getTotalServiceFee().subtract(settlement.getServiceFee()));
 
         settlement.setServiceFee(BigDecimal.ZERO);
+        log.info("REFUND + " + refund);
+        settlementRepository.save(settlement);
+        settlementRecordRepository.save(record);
     }
 }
