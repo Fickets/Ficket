@@ -44,21 +44,9 @@ public class CheckService {
         template.convertAndSend(destination, message);
     }
 
-    public static String convertToBase64(MultipartFile file) throws IOException {
-        byte[] fileBytes = file.getBytes();  // 파일의 바이너리 데이터 가져오기
-        return Base64.getEncoder().encodeToString(fileBytes);  // Base64 문자열로 변환
-    }
 
     public void matchFace(MultipartFile userFaceImage, Long eventId, Long connectId) {
         log.info("TEST MATCH FACE START");
-        try {
-            String imageString = convertToBase64(userFaceImage);
-            log.info(imageString);
-
-        }catch (IOException e){
-            log.info("CHANGE FAIL");
-        }
-
 
         List<Long> eventScheduleIds = executeWithCircuitBreaker(circuitBreakerRegistry,
                 "getEventScheduleIdList",
