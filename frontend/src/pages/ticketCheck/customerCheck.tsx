@@ -100,26 +100,25 @@ const FaceDetectionPage: React.FC = () => {
   }, [modelsLoaded, isCapturing]);
 
   const captureFace = (video: HTMLVideoElement, box: faceapi.Box) => {
+    const padding = 20; // 얼굴 주변으로 20px 더 넓게 캡처
+
+    const x = Math.max(0, box.x - padding);
+    const y = Math.max(0, box.y - padding);
+    const width = Math.min(video.videoWidth - x, box.width + padding * 2);
+    const height = Math.min(video.videoHeight - y, box.height + padding * 2);
+
     const canvas = document.createElement("canvas");
-    canvas.width = box.width;
-    canvas.height = box.height;
+    canvas.width = width;
+    canvas.height = height;
     const context = canvas.getContext("2d");
+
     if (context) {
-      context.drawImage(
-        video,
-        box.x,
-        box.y,
-        box.width,
-        box.height,
-        0,
-        0,
-        box.width,
-        box.height,
-      );
+      context.drawImage(video, x, y, width, height, 0, 0, width, height);
       const faceImage = canvas.toDataURL("image/png");
       sendImageToServer(faceImage);
     }
   };
+
 
   const sendImageToServer = async (base64Image: string) => {
     try {
@@ -183,7 +182,7 @@ const FaceDetectionPage: React.FC = () => {
               },
             );
           },
-          onDisconnect: () => {},
+          onDisconnect: () => { },
         };
         const newClient = new Client();
         newClient.configure(connectionOptions);
