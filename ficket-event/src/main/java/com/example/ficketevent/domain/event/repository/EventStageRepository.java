@@ -14,6 +14,6 @@ public interface EventStageRepository extends JpaRepository<EventStage, Long> {
 //            "FROM EventStage e")
 //    List<SimpleEventStageDto> findAllSimpleStages();
 
-    @Query("SELECT e.sido FROM EventStage e")
+    @Query("SELECT DISTINCT e.sido FROM EventStage e")
     List<String> findAllSido();
 }

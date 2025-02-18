@@ -22,6 +22,15 @@ public class CheckController {
         return ResponseEntity.noContent().build();
     }
 
+
+    /**
+     * 티켓 확인 처리
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-14
+     * 변경 이력:
+     * - 2024-12-14 최용수: 초기 작성
+     */
     @GetMapping("/ticket-watch/{ticketId}")
     public ResponseEntity<Void> ticketWatchedChange(@PathVariable(name = "ticketId")Long ticketId,
                                                     @RequestParam(name = "eventId")Long eventId,

@@ -12,6 +12,8 @@ WORKDIR /app
 
 # 환경 변수 설정
 ENV CONFIG_SERVER_URL=http://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:8888/face-service/prod
+ENV EUREKA_URL=http://ec2-54-180-138-77.ap-northeast-2.compute.amazonaws.com:8761/eureka
+ENV EUREKA_INSTANCE_HOST=ec2-54-180-229-80.ap-northeast-2.compute.amazonaws.com
 
 # 최신 pip & 필수 Python 패키지 설치
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel

@@ -78,12 +78,7 @@ public class EventController {
         return eventService.checkUrl(eventId, uuid);
     }
 
-    @GetMapping("/ticket-watch/{ticketId}")
-    public void ticketWatchedChange(@PathVariable(name = "ticketId") Long ticketId,
-                                    @RequestParam(name = "eventId") Long eventId,
-                                    @RequestParam(name = "connectId") Long connectId) {
-        eventService.ticketStatusChange(ticketId, eventId, connectId);
-    }
+
 
     /**
      * 해당 이벤트의 슬롯 초기화 API (ADMIN -> QUEUE)

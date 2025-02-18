@@ -145,10 +145,6 @@ public class EventService {
         return new GuestTokenResponse(guestToken);
     }
 
-    @CircuitBreaker(name = "deleteFaceCircuitBreaker")
-    public void ticketStatusChange(Long ticketId, Long eventId, Long connectId) {
-        ticketingServiceClient.ticketWatchedChange(ticketId, eventId, connectId);
-    }
 
     public void initializeSlot(String eventId, int maxSlot) {
         slotServiceClient.setMaxSlot(eventId, maxSlot);

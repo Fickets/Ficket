@@ -44,10 +44,11 @@ public class CheckService {
 
 
     public void matchFace(MultipartFile userFaceImage, Long eventId, Long connectId) {
+        log.info("TEST MATCH FACE START");
         List<Long> eventScheduleIds = executeWithCircuitBreaker(circuitBreakerRegistry,
                 "getEventScheduleIdList",
                 () -> eventServiceClient.getScheduledId(eventId));
-
+        log.info("EVENT IDS FIND : " + eventScheduleIds.size());
         for (Long eventScheduleId : eventScheduleIds) {
             FaceApiResponse faceApiResponse = null;
             try{
@@ -60,7 +61,7 @@ public class CheckService {
             }
 
             if (faceApiResponse != null && faceApiResponse.getStatus() == 200) {
-
+                log.info("FOUND FACE SUCCESS");
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map<String, Object> map = objectMapper.convertValue(faceApiResponse.getData(), Map.class);
                 Long ticketId = ((Number) map.get("ticket_id")).longValue();
