@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.servlet.function.EntityResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -55,7 +54,7 @@ public class SettlementController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("api/v1/settlements/refund")
+    @GetMapping("/refund")
     ResponseEntity<Void> refundSettlement(@RequestParam(name = "orderId") Long orderId, @RequestParam(name = "refund") BigDecimal refund){
         settlementService.refundSettlement(orderId, refund);
         return ResponseEntity.noContent().build();
