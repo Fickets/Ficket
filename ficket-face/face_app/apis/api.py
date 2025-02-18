@@ -118,7 +118,7 @@ class UploadFace(Resource):
 class MatchFace(Resource):
     @api.expect(match_parser)
     @api.response(200, "Face match found", response_model)
-    @api.response(404, "No matching face found", response_model)
+    @api.response(204, "No matching face found", response_model)
     @api.response(400, "Bad Request", response_model)
     def post(self):
         args = match_parser.parse_args()
@@ -139,6 +139,7 @@ class MatchFace(Resource):
 
         max_similarity = -1
         best_match = None
+
         for face in faces:
             decrypted_embedding = decrypt_vector(face.vector)
             similarity = cosine_similarity(embedding, decrypted_embedding)
@@ -156,7 +157,7 @@ class MatchFace(Resource):
         if best_match and max_similarity > threshold:
             return ResponseSchema.make_response(200, "Face match found.", best_match), 200
         else:
-            return ResponseSchema.make_response(404, "No matching face found."), 404
+            return ResponseSchema.make_response(206, "No matching face found."), 206
 
 
 @api.route("/<int:ticket_id>")

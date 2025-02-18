@@ -5,6 +5,8 @@ from config import load_config_from_server, start_rabbitmq_listener_thread, init
 from database import initialize_database, db
 from utils import setup_metrics
 from face_app.apis.api import api_blueprint
+from utils import get_face_analyzer
+
 
 def create_app():
     app = Flask(__name__)
@@ -25,10 +27,15 @@ def create_app():
 
     return app
 
+
 def initialize_services(app):
     # RabbitMQ와 에루카 초기화
     start_rabbitmq_listener_thread(app)
     initialize_eureka_client()
+
+    # FaceAnalysis Lazy Loading 적용
+    get_face_analyzer()  # 앱 시작 시 한 번 로드하여 대기
+
 
 app = create_app()
 initialize_services(app)
