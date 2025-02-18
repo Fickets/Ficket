@@ -16,10 +16,10 @@ const ManagerCheckPage: React.FC = () => {
   const connectId = queryParams.get("connectId");
 
   const [, setClient] = useState<Client | null>(null);
-
   const [socketMessage, setSocketMessage] = useState<SocketMessage | null>(
     null,
   );
+  const [showFullSeats, setShowFullSeats] = useState(false); // "더보기" 상태 관리
 
   useEffect(() => {
     const stored = localStorage.getItem("ADMIN_STORE");
@@ -27,26 +27,22 @@ const ManagerCheckPage: React.FC = () => {
       const obj = JSON.parse(stored);
       if (obj.state.accessToken !== "") {
         const token = obj.state.accessToken;
-        // WebSocket 연결 설정
         const connectionOptions = {
           brokerURL: BROKER_URL,
           connectHeaders: {
             Authorization: token,
-          }, // 연결 시 헤더 설정
+          },
           onConnect: () => {
             newClient.subscribe(
               `/sub/check/${eventId}/${connectId}`,
               (message) => {
                 try {
-                  // JSON 메시지를 파싱
                   const parsedMessage: SocketMessage = JSON.parse(message.body);
-                  console.log(parsedMessage);
                   if (parsedMessage.data.message == null) {
                     setSocketMessage(parsedMessage);
                   } else {
                     setSocketMessage(null);
                   }
-                  // 상태 업데이트
                 } catch (error) {
                   console.error(
                     "Failed to parse message or invalid data",
@@ -56,11 +52,10 @@ const ManagerCheckPage: React.FC = () => {
               },
             );
           },
-          onDisconnect: () => { },
+          onDisconnect: () => {},
         };
         const newClient = new Client();
         newClient.configure(connectionOptions);
-        // 웹소켓 세션 활성화
         newClient.activate();
         setClient(newClient);
       }
@@ -81,8 +76,20 @@ const ManagerCheckPage: React.FC = () => {
     }
   };
 
+  // 일치율 상태 변환 함수
+  const getSimilarityStatus = (similarity: number | undefined) => {
+    if (similarity === undefined) return "";
+    if (similarity <= 0.4) return "❌ 불일치";
+    if (similarity < 0.5) return "⚠️ 일치하나 필요 시 재확인";
+    return "✅ 일치";
+  };
+
+  // 좌석 정보 포맷팅 (배열을 그대로 반환)
+  const seatList = socketMessage?.seatLoc ?? []; // 좌석 정보가 없으면 빈 배열 반환
+  const displayedSeats = showFullSeats ? seatList : seatList.slice(0, 4); // 처음 4개만 표시
+
   return (
-    <div className="flex flex-col items-center  bg-gray-400 min-h-screen">
+    <div className="flex flex-col items-center bg-gray-400 min-h-screen">
       <Helmet>
         <title>티켓 정보 확인</title>
       </Helmet>
@@ -106,26 +113,42 @@ const ManagerCheckPage: React.FC = () => {
         <div className="flex flex-col w-2/5 border-r border-[#666666]">
           <p className="ml-[5px] mt-[5px] text-[25px]">식별번호</p>
           <p className="ml-[5px] mt-[5px] text-[25px]">이름</p>
-          <p className="ml-[5px] mt-[5px] text-[25px]">생년월일</p>
-          <p className="ml-[5px] mt-[5px] text-[25px]">일치율</p>
+          <p className="ml-[5px] mt-[5px] text-[25px]">출생연도</p>
+          <p className="ml-[5px] mt-[5px] text-[25px]">일치 여부</p>
           <p className="ml-[5px] mt-[5px] text-[25px]">좌석</p>
         </div>
         <div className="flex flex-col w-3/5">
           <p className="ml-[5px] mt-[5px] text-[25px]">
-            {socketMessage?.data.ticket_id || "N/A"}
+            {socketMessage?.data.ticket_id || ""}
           </p>
           <p className="ml-[5px] mt-[5px] text-[25px]">
-            {socketMessage?.name || "N/A"}
+            {socketMessage?.name || ""}
           </p>
           <p className="ml-[5px] mt-[5px] text-[25px]">
-            {socketMessage?.birth || "N/A"}
+            {socketMessage?.birth || ""}
           </p>
-          <p className="ml-[5px] mt-[5px] text-[25px]">
-            {socketMessage?.data.similarity || "N/A"}
+          <p className="ml-[5px] mt-[5px] text-[25px] font-bold">
+            {getSimilarityStatus(socketMessage?.data.similarity)}
           </p>
-          <p className="ml-[5px] mt-[5px] text-[25px]">
-            {socketMessage?.seatLoc || "N/A"}
-          </p>
+          <div className="ml-[5px] mt-[5px] text-[25px] whitespace-pre-line">
+            {seatList.length > 0 ? (
+              <>
+                {displayedSeats.join("\n")}
+                {seatList.length > 4 && (
+                  <button
+                    className="mt-2 text-blue-500 underline text-[20px]"
+                    onClick={() => setShowFullSeats(!showFullSeats)}
+                  >
+                    {showFullSeats
+                      ? "접기"
+                      : `더보기 (${seatList.length - 4}석)`}
+                  </button>
+                )}
+              </>
+            ) : (
+              ""
+            )}
+          </div>
         </div>
       </div>
 
