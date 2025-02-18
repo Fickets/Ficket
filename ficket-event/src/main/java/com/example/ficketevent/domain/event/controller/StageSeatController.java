@@ -159,4 +159,9 @@ public class StageSeatController {
     public TicketSimpleInfo getTicketSimpleInfo(@RequestParam Long ticketId){
         return  stageSeatService.getTicketSimpleInfo(ticketId);
     }
+
+    @GetMapping("/count-ticket/{ticketId}")
+    public Long getBuyTicketCount(@PathVariable Long ticketId){
+        return stageSeatService.ticketSeatCount(ticketId);
+    }
 }

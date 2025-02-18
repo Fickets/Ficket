@@ -328,7 +328,7 @@ public class OrderService {
             executeWithCircuitBreaker(
                     circuitBreakerRegistry,
                     "refundSettlementCircuitBreaker",
-                    () -> adminServiceClient.refundSettlement(orderId, BigDecimal.ZERO)
+                    () -> adminServiceClient.refundSettlement(orderId, order.getOrderPrice())
             );
             return; // 환불 처리 완료 후 메서드 종료
         }
@@ -341,6 +341,8 @@ public class OrderService {
         // 우선순위가 높은 환불 정책을 기준으로 수수료를 결정
         String refundFeeDescription = determineRefundFee(refundPolicies, currentDateTime, orderDateTime, eventDateTime);
 
+        Long ticketCounts = eventServiceClient.getBuyTicketCount(order.getTicket().getTicketId());
+        BigDecimal additionalAmount = BigDecimal.valueOf(ticketCounts * 1000);
         // 수수료 적용 여부에 따라 환불 처리
         if (refundFeeDescription.equals("없음")) {
             // 수수료가 없는 경우 - 전체 금액 환불 처리
@@ -349,7 +351,7 @@ public class OrderService {
             executeWithCircuitBreaker(
                     circuitBreakerRegistry,
                     "refundSettlementCircuitBreaker",
-                    () -> adminServiceClient.refundSettlement(orderId, BigDecimal.ZERO)
+                    () -> adminServiceClient.refundSettlement(orderId, additionalAmount)
             );
 
         } else {
@@ -360,7 +362,7 @@ public class OrderService {
             executeWithCircuitBreaker(
                     circuitBreakerRegistry,
                     "refundSettlementCircuitBreaker",
-                    () -> adminServiceClient.refundSettlement(orderId, refundAmount)
+                    () -> adminServiceClient.refundSettlement(orderId, refundAmount.add(additionalAmount))
             );
         }
     }

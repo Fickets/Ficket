@@ -386,8 +386,10 @@ public class StageSeatService {
                     .build();
         }
         return TicketSimpleInfo.builder().build();
+    }
 
-
-
+    public Long ticketSeatCount(Long ticketId){
+        List<SeatMapping> seatMappings = seatMappingRepository.findAllByTicketId(ticketId);
+        return (long) seatMappings.size();
     }
 }

@@ -46,4 +46,7 @@ public interface EventServiceClient {
 
     @GetMapping("/api/v1/events/events/getScheduleId")
     List<Long> getScheduledId(@RequestParam Long eventId);
+
+    @GetMapping("/api/v1/events/count-ticket/{ticketId}")
+    Long getBuyTicketCount(@PathVariable Long ticketId);
 }
