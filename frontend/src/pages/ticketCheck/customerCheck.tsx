@@ -100,7 +100,7 @@ const FaceDetectionPage: React.FC = () => {
   }, [modelsLoaded, isCapturing]);
 
   const captureFace = (video: HTMLVideoElement, box: faceapi.Box) => {
-    const padding = 20; // 얼굴 주변으로 20px 더 넓게 캡처
+    const padding = 30; // 얼굴 주변으로 20px 더 넓게 캡처
 
     const x = Math.max(0, box.x - padding);
     const y = Math.max(0, box.y - padding);
