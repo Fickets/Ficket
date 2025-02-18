@@ -65,6 +65,11 @@ public class EventServiceFallbackFactory implements FallbackFactory<EventService
             public List<Long> getScheduledId(Long eventId) {
                 return List.of();
             }
+
+            @Override
+            public Long getBuyTicketCount(Long ticketId) {
+                return 0L;
+            }
         };
     }
 }
