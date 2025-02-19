@@ -35,6 +35,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final String REDIRECT_URL;
     private final String SUSPENDED_URL;
     private final String ADDITIONAL_INFO_URL;
+    private final String COOKIE_DOMAIN;
 
 
     public CustomSuccessHandler(JwtUtils jwtUtils, UserTokenRedisRepository userTokenRedisRepository, UserRepository userRepository,
@@ -43,7 +44,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                 @Value("${refresh-token-maxage}") int refreshTokenMaxAge,
                                 @Value("${login.redirect-url}") String redirectUrl,
                                 @Value("${login.suspended-url}") String suspendedUrl,
-                                @Value("${login.additional-info-url}") String additionalInfoUrl
+                                @Value("${login.additional-info-url}") String additionalInfoUrl,
+                                @Value("${login.cookie.domain}") String domain
     ) {
         this.jwtUtils = jwtUtils;
         this.userTokenRedisRepository = userTokenRedisRepository;
@@ -54,6 +56,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         this.REDIRECT_URL = redirectUrl;
         this.SUSPENDED_URL = suspendedUrl;
         this.ADDITIONAL_INFO_URL = additionalInfoUrl;
+        this.COOKIE_DOMAIN = domain;
     }
 
 
@@ -105,7 +108,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
         cookie.setPath("/");
         cookie.setSecure(true);
-        cookie.setDomain("ficket.shop");
+        cookie.setDomain(COOKIE_DOMAIN);
         cookie.setHttpOnly(false);
         return cookie;
     }
