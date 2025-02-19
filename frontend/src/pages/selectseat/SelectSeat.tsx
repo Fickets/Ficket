@@ -278,7 +278,7 @@ const SelectSeat = () => {
         </div>
       </div>
 
-      <div className="relative -mt-8 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-0 px-4 z-10">
+      <div className="relative mt-[48px] sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 space-y-0 space-x-0 px-4 z-10">
         <DraggableSeatMap
           eventStageImg={eventSummary.eventStageImg}
           reservationLimit={event.reservationLimit}
@@ -302,7 +302,7 @@ const SelectSeat = () => {
               selectedSeats={selectedSeats}
             />
           </div>
-          <div className="w-[235px] -mt-[25px] relative">
+          <div className="sm:w-[235px] sm:-mt-[25px] relative">
             <div className="hidden sm:block">
               <div className="w-full mt-4">
                 <button

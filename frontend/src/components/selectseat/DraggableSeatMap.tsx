@@ -11,35 +11,24 @@ const DraggableSeatMap = ({
 }: SeatMapProps) => {
   const seatMapRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef({ x: 0, y: 0 });
+
   const [dragging, setDragging] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
-  const [isDraggable, setIsDraggable] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const containerWidth = 630; // 컨테이너 크기
-  const containerHeight = 460; // 컨테이너 크기
-  const contentWidth = containerWidth; // 컨텐츠 크기
-  const contentHeight = containerHeight; // 컨텐츠 크기
+  const containerWidth = 630;
+  const containerHeight = 460;
+  const contentWidth = containerWidth;
+  const contentHeight = containerHeight;
 
   useEffect(() => {
-    // 초기 위치를 설정 (컨테이너의 중앙)
-    if (seatMapRef.current) {
-      setPosition({
-        x: 0,
-        y: 0,
-      });
-    }
-
     const updateDraggableStatus = () => {
-      // 화면 크기가 768px 이하일 때만 드래그 활성화
-      setIsDraggable(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth <= 768);
     };
 
-    // 초기 드래그 상태 설정
     updateDraggableStatus();
-
-    // 화면 크기 변경 이벤트 추가
     window.addEventListener("resize", updateDraggableStatus);
 
     return () => {
@@ -48,24 +37,23 @@ const DraggableSeatMap = ({
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDraggable || !seatMapRef.current) return;
+    if (!isMobile || !seatMapRef.current) return;
+
     setDragging(true);
     const rect = seatMapRef.current.getBoundingClientRect();
-    setOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    offsetRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDraggable || !dragging || !containerRef.current) return;
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isMobile || !dragging || !containerRef.current) return;
 
-    const newX = e.clientX - offset.x;
-    const newY = e.clientY - offset.y;
+    const newX = e.clientX - offsetRef.current.x;
+    const newY = e.clientY - offsetRef.current.y;
+    const dragSpeed = 1;
 
-    const dragSpeed = 0.4; // 드래그 속도 계수 (1보다 작으면 느려짐, 크면 빨라짐)
-
-    // 컨테이너 바운더리 체크
     const maxX = containerWidth / 2;
     const minX = -(contentWidth * scale - containerWidth / 2);
     const maxY = containerHeight / 2;
@@ -78,22 +66,22 @@ const DraggableSeatMap = ({
   };
 
   const handleMouseUp = () => {
-    if (!isDraggable) return;
     setDragging(false);
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (!isDraggable) return;
+    if (!isMobile) return;
     e.preventDefault();
     const zoomFactor = 0.1;
 
     setScale((prevScale) => {
       const newScale =
         e.deltaY > 0
-          ? Math.max(0.5, prevScale - zoomFactor) // 축소
-          : Math.min(2, prevScale + zoomFactor); // 확대
+          ? Math.max(0.5, prevScale - zoomFactor)
+          : Math.min(2, prevScale + zoomFactor);
 
-      // 확대/축소 시 바운더리 체크
       const maxX = containerWidth / 2;
       const minX = -(contentWidth * newScale - containerWidth / 2);
       const maxY = containerHeight / 2;
@@ -120,9 +108,10 @@ const DraggableSeatMap = ({
   const calculatePosition = (x: number, y: number) => {
     const xScaleFactor = 0.9;
     const yScaleFactor = 0.9;
-    const scaledX = (x / originalWidth) * containerWidth * xScaleFactor;
-    const scaledY = (y / originalHeight) * containerHeight * yScaleFactor;
-    return { scaledX, scaledY };
+    return {
+      scaledX: (x / originalWidth) * containerWidth * xScaleFactor,
+      scaledY: (y / originalHeight) * containerHeight * yScaleFactor,
+    };
   };
 
   const handleSeatClick = (seat: SeatStatusResponse) => {
@@ -155,38 +144,29 @@ const DraggableSeatMap = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-[630px] h-[460px] bg-white border border-gray-300 overflow-hidden"
+      className="relative w-[400px] h-[460px] sm:w-[630px] sm:h-[460px] bg-white border border-gray-300 overflow-hidden"
     >
       <div
         ref={seatMapRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
+        onMouseDown={isMobile ? handleMouseDown : undefined}
+        onWheel={isMobile ? handleWheel : undefined}
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
           transformOrigin: "center center",
-          cursor: dragging ? "grabbing" : "grab",
+          cursor: isMobile ? (dragging ? "grabbing" : "grab") : "default",
           position: "absolute",
           width: `${contentWidth}px`,
           height: `${contentHeight}px`,
         }}
       >
         <div className="relative w-[630px] h-[460px] bg-gray-200">
-          <img
-            src={eventStageImg}
-            alt="Stage"
-            className="w-full h-full"
-            onContextMenu={(e) => e.preventDefault()} // 우클릭 메뉴 방지
-            onDragStart={(e) => e.preventDefault()}
-          />
+          <img src={eventStageImg} alt="Stage" className="w-full h-full" />
+
           {seatStatusResponse.map((seat) => {
             const { scaledX, scaledY } = calculatePosition(
               seat.seatX,
               seat.seatY,
             );
-
             const isSelected = selectedSeats.some(
               (s) => s.seatMappingId === seat.seatMappingId,
             );
@@ -195,25 +175,12 @@ const DraggableSeatMap = ({
               <div
                 key={seat.seatMappingId}
                 className={`absolute w-[8px] h-[8px] flex items-center justify-center cursor-pointer border ${
-                  seat.status === "LOCKED" || seat.status === "PURCHASED"
-                    ? "cursor-not-allowed"
-                    : isSelected
-                      ? "border-black"
-                      : "border-gray-300"
+                  isSelected ? "border-black" : "border-gray-300"
                 }`}
                 style={{
-                  backgroundColor:
-                    seat.status === "LOCKED" || seat.status === "PURCHASED"
-                      ? "#FFF"
-                      : isSelected
-                        ? "#000"
-                        : gradeColors[seat.seatGrade],
+                  backgroundColor: gradeColors[seat.seatGrade],
                   top: `${scaledY}px`,
                   left: `${scaledX}px`,
-                  pointerEvents:
-                    seat.status === "LOCKED" || seat.status === "PURCHASED"
-                      ? "none"
-                      : "auto",
                 }}
                 onClick={() => handleSeatClick(seat)}
               ></div>
