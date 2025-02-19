@@ -46,55 +46,14 @@ const CustomerList: React.FC<CustomerListProps2> = ({ data, onPageChange }) => {
                 header: '소셜 아이디',
                 accessorKey: 'socialId',
                 cell: ({ getValue }) => {
-                    const value = getValue() as string[]; // 반환값을 string[]로 타입 단언
-                    if (!Array.isArray(value) || value.length === 0) return null;
+                    const value = getValue() as any; // number로 예상되는 값
 
-                    const uniqueDates = Array.from(
-                        new Set(
-                            value.map((date) => {
-                                const localDate = new Date(date);
-                                return new Date(
-                                    localDate.getFullYear(),
-                                    localDate.getMonth(),
-                                    localDate.getDate()
-                                ).toISOString();
-                            })
-                        )
-                    )
-                        .sort()
-                        .map((dateString) => new Date(dateString));
+                    if (!value) return null; // socialId가 없으면 빈 값 리턴
 
-                    const formattedDates: string[] = [];
-                    let start = uniqueDates[0];
-                    let end = uniqueDates[0];
-
-                    for (let i = 1; i <= uniqueDates.length; i++) {
-                        if (
-                            i === uniqueDates.length ||
-                            new Date(uniqueDates[i]).getTime() !==
-                            new Date(end.getTime() + 24 * 60 * 60 * 1000).getTime()
-                        ) {
-                            if (start.getTime() === end.getTime()) {
-                                formattedDates.push(start.toLocaleDateString('ko-KR'));
-                            } else {
-                                formattedDates.push(
-                                    `${start.toLocaleDateString(
-                                        'ko-KR'
-                                    )} ~ ${end.toLocaleDateString('ko-KR')}`
-                                );
-                            }
-                            start = uniqueDates[i];
-                            end = uniqueDates[i];
-                        } else {
-                            end = uniqueDates[i];
-                        }
-                    }
-
-                    return formattedDates.map((dateRange, index) => (
-                        <span key={index} className="block">
-                            {dateRange}
-                        </span>
-                    ));
+                    // socialId를 하나의 값으로 변환하여 표시
+                    return (
+                        <span className="block">{value}</span>
+                    );
                 },
             },
         ],
@@ -118,6 +77,9 @@ const CustomerList: React.FC<CustomerListProps2> = ({ data, onPageChange }) => {
 
     const renderPageControls = () => {
         const { pageIndex } = table.getState().pagination;
+        const maxPagesToShow = 5;
+        const startPage = Math.max(0, pageIndex - Math.floor(maxPagesToShow / 2));
+        const endPage = Math.min(startPage + maxPagesToShow, data.totalPages);
 
         return (
             <div className="flex justify-center items-center space-x-2 mt-4">
@@ -140,19 +102,21 @@ const CustomerList: React.FC<CustomerListProps2> = ({ data, onPageChange }) => {
                 </button>
 
                 {/* 페이지 번호 */}
-                {Array.from({ length: data.totalPages }, (_, i) => (
+                {Array.from(
+                    { length: endPage - startPage },
+                    (_, i) => i + startPage,
+                ).map((page) => (
                     <button
-                        key={i}
-                        onClick={() => onPageChange(i)}
-                        className={`px-3 py-2 rounded-md text-sm ${pageIndex === i
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        key={page}
+                        onClick={() => onPageChange(page)}
+                        className={`px-3 py-2 rounded-md text-sm ${pageIndex === page
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                             }`}
                     >
-                        {i + 1}
+                        {page + 1}
                     </button>
                 ))}
-
                 {/* 다음 페이지로 */}
                 <button
                     onClick={() => onPageChange(pageIndex + 1)}

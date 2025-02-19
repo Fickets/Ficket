@@ -4,7 +4,6 @@ import { useStore } from 'zustand';
 import 'react-calendar/dist/Calendar.css';
 import './CustomCalendar.css'; // 스타일 커스텀 파일 추가
 import { eventDetailStore } from '../../stores/EventStore';
-import moment from 'moment';
 import { Value } from 'react-calendar/dist/esm/shared/types.js';
 
 
@@ -84,7 +83,11 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
                     className='customCalendar'
                     onChange={handleDateClick}
                     value={initialDate} // 초기 날짜 설정 (예매 가능 첫 날짜)
-                    formatDay={(date) => moment(date).format("D")}
+                    // formatDay={(date) => moment(date).format("D")}
+                    formatDay={(_locale, date) => {
+                        const dateObj = new Date(date); // date가 string일 수 있기 때문에 Date 객체로 변환
+                        return dateObj.getDate().toString(); // 숫자를 문자열로 변환하여 반환
+                    }}
                     tileClassName={tileClassName}
                     tileDisabled={tileDisabled} // 클릭 비활성화 로직 추가
                     locale="ko-KR" // 한국어 설정
@@ -98,7 +101,10 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
                     className='customCalendar'
                     onChange={handleDateClick}
                     value={initialDate} // 초기 날짜 설정 (예매 가능 첫 날짜)
-                    formatDay={(date) => moment(date).format("D")}
+                    formatDay={(_locale, date) => {
+                        const dateObj = new Date(date); // date가 string일 수 있기 때문에 Date 객체로 변환
+                        return dateObj.getDate().toString(); // 숫자를 문자열로 변환하여 반환
+                    }}
                     tileClassName={tileClassName}
                     tileDisabled={tileDisabled} // 클릭 비활성화 로직 추가
                     locale="ko-KR" // 한국어 설정

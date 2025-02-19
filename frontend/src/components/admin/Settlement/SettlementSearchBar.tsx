@@ -13,10 +13,15 @@ const SettlementSearchBar = ({ onSearch }: SettlementSearchBarProps) => {
         startDate: null,
         endDate: null
     });
+
     const [events, setEvents] = useState<string[]>([]);
+    const [filteredEvents, setFilteredEvents] = useState<string[]>([]);
 
     useEffect(() => {
-        fetchEvents().then((response) => setEvents(response));
+        fetchEvents().then((response) => {
+            setEvents(response);
+            setFilteredEvents(response.slice(0, 10)); // 처음 10개만 표시
+        });
     }, []);
 
     const handleInputChange = (
@@ -42,6 +47,15 @@ const SettlementSearchBar = ({ onSearch }: SettlementSearchBarProps) => {
         });
     };
 
+    // 공연 검색 기능 추가 (10개까지만 표시)
+    const handleSearchChange = (query: string) => {
+
+        const filtered = events
+            .filter(event => event.toLowerCase().includes(query.toLowerCase()))
+            .slice(0, 10); // 검색된 결과 중 상위 10개만 유지
+
+        setFilteredEvents(filtered);
+    };
 
     return (
         <div className="w-full bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -70,28 +84,23 @@ const SettlementSearchBar = ({ onSearch }: SettlementSearchBarProps) => {
             </div>
             <hr className="mb-6 border-gray-300" />
             <form className="grid grid-cols-6 gap-x-4 gap-y-4">
-                {/* 고객 이름 */}
+                {/* 공연 선택 */}
                 <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         공연
                     </label>
                     <Select
-                        options={events.map((event) => ({
-                            label: `${event}`,
-                            value: event, // 고객 이름을 value로 설정
+                        options={filteredEvents.map((event) => ({
+                            label: event,
+                            value: event,
                         }))}
                         value={
                             localSearchParams.eventName
-                                ? {
-                                    label: `${localSearchParams.eventName}`,
-                                    value: localSearchParams.eventName,
-                                }
+                                ? { label: localSearchParams.eventName, value: localSearchParams.eventName }
                                 : null
                         }
-                        onChange={(option) => {
-                            // 고객 이름 선택 시 userId를 업데이트하지 않도록 설정
-                            handleInputChange("eventName", option?.value || null);
-                        }}
+                        onInputChange={(inputValue) => handleSearchChange(inputValue)}
+                        onChange={(option) => handleInputChange("eventName", option?.value || null)}
                         placeholder="공연을 선택하세요"
                         isClearable
                         styles={{
@@ -109,24 +118,26 @@ const SettlementSearchBar = ({ onSearch }: SettlementSearchBarProps) => {
                         }}
                     />
                 </div>
-                {/**정산 상태 */}
+
+                {/* 정산 상태 */}
                 <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         정산 상태
                     </label>
                     <select
-                        value={localSearchParams.settlementStatus || ""}  // 기본값 설정 (정산 상태가 없으면 빈 값으로 설정)
+                        value={localSearchParams.settlementStatus || ""}
                         onChange={(e) =>
-                            handleInputChange("settlementStatus", e.target.value || null)  // 값이 없으면 null로 처리
+                            handleInputChange("settlementStatus", e.target.value || null)
                         }
                         className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700"
                     >
-                        <option value="">선택하세요</option>  {/* 기본 선택 옵션 */}
+                        <option value="">선택하세요</option>
                         <option value="SETTLEMENT">정산완료</option>
                         <option value="PARTIAL_SETTLEMENT">부분정산</option>
                         <option value="UNSETTLED">미정산</option>
                     </select>
                 </div>
+
                 {/* 기간 조회 */}
                 <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -175,7 +186,7 @@ const SettlementSearchBar = ({ onSearch }: SettlementSearchBarProps) => {
                 </div>
             </form>
         </div>
-    )
-}
+    );
+};
 
 export default SettlementSearchBar;

@@ -42,6 +42,18 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
         });
     };
 
+    const filterCustomers = (inputValue: string) => {
+        return customers
+            .filter((customer) =>
+                customer.toLowerCase().includes(inputValue.toLowerCase())
+            )
+            .slice(0, 10) // 10개만 반환
+            .map((customer) => ({
+                label: customer,
+                value: customer,
+            }));
+    };
+
     return (
         <div className="w-full bg-white rounded-lg shadow-md p-6 border border-gray-200">
             {/* 헤더 */}
@@ -92,10 +104,7 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
                         고객 이름
                     </label>
                     <Select
-                        options={customers.map((customer) => ({
-                            label: `${customer}`,
-                            value: String(customer), // 고객 이름을 value로 설정
-                        }))}
+                        options={filterCustomers(localSearchParams.userName || '')}
                         value={
                             localSearchParams.userName
                                 ? {
@@ -104,8 +113,10 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
                                 }
                                 : null
                         }
+                        onInputChange={(newValue) => {
+                            handleInputChange("userName", newValue || null); // 입력값 변경 시 userName 업데이트
+                        }}
                         onChange={(option) => {
-                            // 고객 이름 선택 시 userId를 업데이트하지 않도록 설정
                             handleInputChange("userName", option?.value || null);
                         }}
                         placeholder="고객을 선택하세요"

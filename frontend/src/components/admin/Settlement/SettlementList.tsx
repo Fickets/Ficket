@@ -1,4 +1,10 @@
-import { FaList } from "react-icons/fa";
+import {
+  FaList,
+  FaAngleDoubleLeft,
+  FaAngleLeft,
+  FaAngleRight,
+  FaAngleDoubleRight,
+} from "react-icons/fa";
 import { useEffect, useMemo, useState } from "react";
 import {
   useReactTable,
@@ -13,7 +19,7 @@ import {
   SettlementListProps,
 } from "../../../types/admins/Settlement/Settlement";
 import SettlementDetailModal from "./SettlementDetail";
-const SettlementListComp: React.FC<SettlementListProps> = ({ data }) => {
+const SettlementListComp: React.FC<SettlementListProps> = ({ data, onPageChange }) => {
   const [selectedData, setSelectedData] = useState<any>(null); // 선택된 고객 데이터
 
   useEffect(() => {
@@ -89,7 +95,7 @@ const SettlementListComp: React.FC<SettlementListProps> = ({ data }) => {
             if (
               i === uniqueDates.length ||
               new Date(uniqueDates[i]).getTime() !==
-                new Date(end.getTime() + 24 * 60 * 60 * 1000).getTime()
+              new Date(end.getTime() + 24 * 60 * 60 * 1000).getTime()
             ) {
               if (start.getTime() === end.getTime()) {
                 formattedDates.push(start.toLocaleDateString("ko-KR"));
@@ -132,64 +138,71 @@ const SettlementListComp: React.FC<SettlementListProps> = ({ data }) => {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-  // const renderPageControls = () => {
-  //     const { pageIndex } = table.getState().pagination;
 
-  //     return (
-  //         <div className="flex justify-center items-center space-x-2 mt-4">
-  //             {/* 처음 페이지로 */}
-  //             <button
-  //                 onClick={() => onPageChange(0)}
-  //                 disabled={pageIndex === 0}
-  //                 className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
-  //             >
-  //                 <FaAngleDoubleLeft />
-  //             </button>
+  const renderPageControls = () => {
+    const { pageIndex } = table.getState().pagination;
+    const maxPagesToShow = 5;
+    const startPage = Math.max(0, pageIndex - Math.floor(maxPagesToShow / 2));
+    const endPage = Math.min(startPage + maxPagesToShow, data.totalPages);
 
-  //             {/* 이전 페이지로 */}
-  //             <button
-  //                 onClick={() => onPageChange(pageIndex - 1)}
-  //                 disabled={pageIndex === 0}
-  //                 className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
-  //             >
-  //                 <FaAngleLeft />
-  //             </button>
+    return (
+      <div className="flex justify-center items-center space-x-2 mt-4">
+        {/* 처음 페이지로 */}
+        <button
+          onClick={() => onPageChange(0)}
+          disabled={pageIndex === 0}
+          className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
+        >
+          <FaAngleDoubleLeft />
+        </button>
 
-  //             {/* 페이지 번호 */}
-  //             {Array.from({ length: data.totalPages }, (_, i) => (
-  //                 <button
-  //                     key={i}
-  //                     onClick={() => onPageChange(i)}
-  //                     className={`px-3 py-2 rounded-md text-sm ${pageIndex === i
-  //                         ? 'bg-blue-500 text-white'
-  //                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-  //                         }`}
-  //                 >
-  //                     {i + 1}
-  //                 </button>
-  //             ))}
+        {/* 이전 페이지로 */}
+        <button
+          onClick={() => onPageChange(pageIndex - 1)}
+          disabled={pageIndex === 0}
+          className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
+        >
+          <FaAngleLeft />
+        </button>
 
-  //             {/* 다음 페이지로 */}
-  //             <button
-  //                 onClick={() => onPageChange(pageIndex + 1)}
-  //                 disabled={pageIndex === data.totalPages - 1}
-  //                 className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
-  //             >
-  //                 <FaAngleRight />
-  //             </button>
+        {/* 페이지 번호 */}
+        {Array.from(
+          { length: endPage - startPage },
+          (_, i) => i + startPage,
+        ).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-2 rounded-md text-sm ${pageIndex === page
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+          >
+            {page + 1}
+          </button>
+        ))}
 
-  //             {/* 마지막 페이지로 */}
-  //             <button
-  //                 onClick={() => onPageChange(data.totalPages - 1)}
-  //                 disabled={pageIndex === data.totalPages - 1}
-  //                 className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
-  //             >
-  //                 <FaAngleDoubleRight />
-  //             </button>
-  //         </div>
-  //     );
+        {/* 다음 페이지로 */}
+        <button
+          onClick={() => onPageChange(pageIndex + 1)}
+          disabled={pageIndex === data.totalPages - 1}
+          className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
+        >
+          <FaAngleRight />
+        </button>
 
-  // };
+        {/* 마지막 페이지로 */}
+        <button
+          onClick={() => onPageChange(data.totalPages - 1)}
+          disabled={pageIndex === data.totalPages - 1}
+          className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 flex items-center"
+        >
+          <FaAngleDoubleRight />
+        </button>
+      </div>
+    );
+
+  };
 
   const userListClick = (rowId: string) => {
     const row = table.getRowModel().rows.find((r) => r.id === rowId);
@@ -258,6 +271,7 @@ const SettlementListComp: React.FC<SettlementListProps> = ({ data }) => {
           ))}
         </tbody>
       </table>
+      {renderPageControls()}
     </div>
   );
 };
