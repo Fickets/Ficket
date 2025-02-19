@@ -166,7 +166,7 @@ public class OrderController {
      * 변경 이력:
      * - 2024-12-22 오형상: 초기 작성
      */
-    @PostMapping("{eventScheduleId}/upload-face")
+    @PostMapping("/{eventScheduleId}/upload-face")
     public ResponseEntity<FaceApiResponse> uploadUserFace(@RequestPart MultipartFile userImg, @PathVariable Long eventScheduleId) {
         return ResponseEntity.ok(orderService.uploadUserFace(userImg, eventScheduleId));
     }
