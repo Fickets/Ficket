@@ -221,7 +221,7 @@ const SelectSeat = () => {
   };
 
   return (
-    <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
+    <div className="relative w-full h-full sm:h-auto sm:min-h-screen bg-[#F0F0F0] pb-[50px] sm:pb-0">
       <Helmet>
         <title>티켓팅 - 좌석 선택</title>
       </Helmet>
@@ -278,7 +278,7 @@ const SelectSeat = () => {
         </div>
       </div>
 
-      <div className="relative mt-[48px] sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 space-y-0 space-x-0 px-4 z-10">
+      <div className="relative h-[650px] sm:h-auto sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-0 px-4 z-10">
         <DraggableSeatMap
           eventStageImg={eventSummary.eventStageImg}
           reservationLimit={event.reservationLimit}
@@ -302,9 +302,9 @@ const SelectSeat = () => {
               selectedSeats={selectedSeats}
             />
           </div>
-          <div className="sm:w-[235px] sm:-mt-[25px] relative">
+          <div className="sm:w-[235px] sm:-mt-[15px] relative">
             <div className="hidden sm:block">
-              <div className="w-full mt-4">
+              <div className="w-full">
                 <button
                   onClick={handleNextStep}
                   className="bg-red-500 text-white w-full py-2 text-center border border-black"
@@ -359,11 +359,11 @@ const SelectSeat = () => {
 
               {detailsVisible && (
                 <>
-                  <div className="mt-4 space-y-2">
+                  <div className="space-y-2">
                     {selectedSeats.map((seat, index) => (
                       <div
                         key={index}
-                        className="flex justify-between items-center text-sm border-b border-gray-600 pb-2"
+                        className="flex justify-between items-center text-sm border-b border-gray-600 pb-1 pt-1"
                       >
                         <span>
                           {seat.grade}석{" "}

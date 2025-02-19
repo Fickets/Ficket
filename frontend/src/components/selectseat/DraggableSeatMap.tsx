@@ -11,11 +11,9 @@ const DraggableSeatMap = ({
 }: SeatMapProps) => {
   const seatMapRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef({ x: 0, y: 0 });
-
   const [dragging, setDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [scale, setScale] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
 
   const containerWidth = 630;
@@ -24,40 +22,45 @@ const DraggableSeatMap = ({
   const contentHeight = containerHeight;
 
   useEffect(() => {
-    const updateDraggableStatus = () => {
+    if (seatMapRef.current) {
+      setPosition({ x: 0, y: 0 });
+    }
+
+    const updateDeviceType = () => {
       setIsMobile(window.innerWidth <= 768);
     };
 
-    updateDraggableStatus();
-    window.addEventListener("resize", updateDraggableStatus);
+    updateDeviceType();
+    window.addEventListener("resize", updateDeviceType);
 
     return () => {
-      window.removeEventListener("resize", updateDraggableStatus);
+      window.removeEventListener("resize", updateDeviceType);
     };
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!isMobile || !seatMapRef.current) return;
-
     setDragging(true);
+    const touch = e.touches[0];
     const rect = seatMapRef.current.getBoundingClientRect();
-    offsetRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    setOffset({
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top,
+    });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!isMobile || !dragging || !containerRef.current) return;
 
-    const newX = e.clientX - offsetRef.current.x;
-    const newY = e.clientY - offsetRef.current.y;
-    const dragSpeed = 1;
+    const touch = e.touches[0];
+    const newX = touch.clientX - offset.x;
+    const newY = touch.clientY - offset.y;
+    const dragSpeed = 0.4;
 
     const maxX = containerWidth / 2;
-    const minX = -(contentWidth * scale - containerWidth / 2);
+    const minX = -(contentWidth - containerWidth / 2);
     const maxY = containerHeight / 2;
-    const minY = -(contentHeight * scale - containerHeight / 2);
+    const minY = -(contentHeight - containerHeight / 2);
 
     setPosition({
       x: Math.max(minX, Math.min(maxX, newX * dragSpeed)),
@@ -65,35 +68,9 @@ const DraggableSeatMap = ({
     });
   };
 
-  const handleMouseUp = () => {
-    setDragging(false);
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
-  };
-
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+  const handleTouchEnd = () => {
     if (!isMobile) return;
-    e.preventDefault();
-    const zoomFactor = 0.1;
-
-    setScale((prevScale) => {
-      const newScale =
-        e.deltaY > 0
-          ? Math.max(0.5, prevScale - zoomFactor)
-          : Math.min(2, prevScale + zoomFactor);
-
-      const maxX = containerWidth / 2;
-      const minX = -(contentWidth * newScale - containerWidth / 2);
-      const maxY = containerHeight / 2;
-      const minY = -(contentHeight * newScale - containerHeight / 2);
-
-      setPosition((prevPosition) => ({
-        x: Math.max(minX, Math.min(maxX, prevPosition.x)),
-        y: Math.max(minY, Math.min(maxY, prevPosition.y)),
-      }));
-
-      return newScale;
-    });
+    setDragging(false);
   };
 
   const calculateOriginalSize = (seats: SeatStatusResponse[]) => {
@@ -108,10 +85,9 @@ const DraggableSeatMap = ({
   const calculatePosition = (x: number, y: number) => {
     const xScaleFactor = 0.9;
     const yScaleFactor = 0.9;
-    return {
-      scaledX: (x / originalWidth) * containerWidth * xScaleFactor,
-      scaledY: (y / originalHeight) * containerHeight * yScaleFactor,
-    };
+    const scaledX = (x / originalWidth) * containerWidth * xScaleFactor;
+    const scaledY = (y / originalHeight) * containerHeight * yScaleFactor;
+    return { scaledX, scaledY };
   };
 
   const handleSeatClick = (seat: SeatStatusResponse) => {
@@ -144,15 +120,15 @@ const DraggableSeatMap = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-[400px] h-[460px] sm:w-[630px] sm:h-[460px] bg-white border border-gray-300 overflow-hidden"
+      className="relative w-full w-max-[400px] sm:w-[630px] h-[460px] bg-white border border-gray-300 overflow-hidden"
     >
       <div
         ref={seatMapRef}
-        onMouseDown={isMobile ? handleMouseDown : undefined}
-        onWheel={isMobile ? handleWheel : undefined}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{
-          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          transformOrigin: "center center",
+          transform: `translate(${position.x}px, ${position.y}px)`,
           cursor: isMobile ? (dragging ? "grabbing" : "grab") : "default",
           position: "absolute",
           width: `${contentWidth}px`,
@@ -160,13 +136,19 @@ const DraggableSeatMap = ({
         }}
       >
         <div className="relative w-[630px] h-[460px] bg-gray-200">
-          <img src={eventStageImg} alt="Stage" className="w-full h-full" />
-
+          <img
+            src={eventStageImg}
+            alt="Stage"
+            className="w-full h-full"
+            onContextMenu={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+          />
           {seatStatusResponse.map((seat) => {
             const { scaledX, scaledY } = calculatePosition(
               seat.seatX,
               seat.seatY,
             );
+
             const isSelected = selectedSeats.some(
               (s) => s.seatMappingId === seat.seatMappingId,
             );
@@ -175,12 +157,25 @@ const DraggableSeatMap = ({
               <div
                 key={seat.seatMappingId}
                 className={`absolute w-[8px] h-[8px] flex items-center justify-center cursor-pointer border ${
-                  isSelected ? "border-black" : "border-gray-300"
+                  seat.status === "LOCKED" || seat.status === "PURCHASED"
+                    ? "cursor-not-allowed"
+                    : isSelected
+                      ? "border-black"
+                      : "border-gray-300"
                 }`}
                 style={{
-                  backgroundColor: gradeColors[seat.seatGrade],
+                  backgroundColor:
+                    seat.status === "LOCKED" || seat.status === "PURCHASED"
+                      ? "#FFF"
+                      : isSelected
+                        ? "#000"
+                        : gradeColors[seat.seatGrade],
                   top: `${scaledY}px`,
                   left: `${scaledX}px`,
+                  pointerEvents:
+                    seat.status === "LOCKED" || seat.status === "PURCHASED"
+                      ? "none"
+                      : "auto",
                 }}
                 onClick={() => handleSeatClick(seat)}
               ></div>
