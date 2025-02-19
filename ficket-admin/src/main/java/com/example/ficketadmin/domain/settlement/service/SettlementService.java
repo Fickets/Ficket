@@ -46,22 +46,45 @@ public class SettlementService {
     @Transactional
     public void createSettlement(OrderSimpleDto orderSimpleDto){
 
+        /**
+         * 서비스료 = 장당 수수료 (2000원) + (거래가액 * N%)
+         * 거래가액 = 공급가액 + VAT(부가세) + 서비스료
+         * SupplyValue = NetSupplyValue + vat + serviceFee
+         * 정산금액 = 거래가액 - 서비스료
+         * settlementValue = SupplyValue - serviceFee
+         */
+
+        Long ticketNums = eventServiceClient.getBuyTicketCount(orderSimpleDto.getTicketId());
+
         Company company = companyRepository.findByCompanyId(orderSimpleDto.getCompanyId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMPANY_NOT_FOUND));
+
+        // 장당 수수료 2000 * N
+        BigDecimal ticketCharge = BigDecimal.valueOf(ticketNums * 2000);
         // 서비스료 비율
         BigDecimal benefit = company.getMembership().getBenefit();
-        // 거래가액
-        BigDecimal transactionAmount = orderSimpleDto.getOrderPrice().subtract(BigDecimal.valueOf(2000L));
         // VAT율 (10%)
         BigDecimal vatRate = BigDecimal.valueOf(0.1);
-        // 공급가액 계산
-        BigDecimal supplyAmount = transactionAmount.divide(BigDecimal.valueOf(1).add(vatRate), 2, RoundingMode.HALF_UP);
-        // VAT 계산
-        BigDecimal vat = supplyAmount.multiply(vatRate).setScale(2, RoundingMode.HALF_UP);
-        // 서비스료 계선
-        BigDecimal serviceFee = transactionAmount
+
+        // 거래가액
+        BigDecimal transactionAmount = orderSimpleDto.getOrderPrice(); //.subtract(BigDecimal.valueOf(2000L));
+
+        // 거래가액 - 장당수수료
+        BigDecimal tmpAmount = transactionAmount.subtract(ticketCharge);
+
+        // 회사 서비스 금액 계산
+        BigDecimal companyServiceFee = tmpAmount
                 .multiply(benefit.divide(BigDecimal.valueOf(100), 5, RoundingMode.HALF_UP)) // 비율 계산
                 .setScale(0, RoundingMode.DOWN); // 소수점 제거 (버림)
+        // 서비스료
+        BigDecimal serviceFee = companyServiceFee.add(ticketCharge);
+
+        // VAT 계산
+        BigDecimal vat = tmpAmount.multiply(vatRate).setScale(2, RoundingMode.HALF_UP);
+
+        // 공급가액 계산
+        BigDecimal supplyAmount = transactionAmount.subtract(serviceFee.add(vat));
+
         // 정산금액
         BigDecimal settlementValue = transactionAmount.subtract(serviceFee);
 
@@ -87,10 +110,10 @@ public class SettlementService {
         }
         // 정산
         settlementRecord.setTotalSettlementValue(settlementRecord.getTotalSettlementValue().add(settlementValue));
+        // 거래가액
+        settlementRecord.setTotalSupplyAmount(settlementRecord.getTotalSupplyAmount().add(transactionAmount));
         // 공급
         settlementRecord.setTotalNetSupplyAmount(settlementRecord.getTotalNetSupplyAmount().add(supplyAmount));
-        // 거래가액
-        settlementRecord.setTotalSupplyAmount(settlementRecord.getTotalSupplyAmount().add(supplyAmount));
         // 서비스료
         settlementRecord.setTotalServiceFee(settlementRecord.getTotalServiceFee().add(serviceFee));
         // 세금
@@ -170,7 +193,8 @@ public class SettlementService {
     }
 
     @Transactional
-    public void refundSettlement(Long orderId, BigDecimal refund){
+    public void refundSettlement(Long orderId, Long ticketId, BigDecimal refund){
+
         Settlement settlement = settlementRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_SETTMENT_RECORD));
         SettlementRecord record =  settlement.getSettlementRecord();
@@ -180,10 +204,19 @@ public class SettlementService {
 
         record.setTotalRefundValue(record.getTotalRefundValue().add(refund));
         record.setTotalSettlementValue(record.getTotalSettlementValue().subtract(refund));
+
         record.setTotalServiceFee(record.getTotalServiceFee().subtract(settlement.getServiceFee()));
 
-        settlement.setServiceFee(BigDecimal.ZERO);
-        log.info("REFUND + " + refund);
+        if (! ticketId.equals(0L)){
+            // 장당 수수료 2000 * N
+            Long ticketNums = eventServiceClient.getBuyTicketCount(ticketId);
+            BigDecimal ticketCharge = BigDecimal.valueOf(ticketNums * 2000);
+            settlement.setServiceFee(ticketCharge);
+            record.setTotalServiceFee(record.getTotalServiceFee().add(ticketCharge));
+        }else{
+            settlement.setServiceFee(BigDecimal.ZERO);
+        }
+
         settlementRepository.save(settlement);
         settlementRecordRepository.save(record);
     }

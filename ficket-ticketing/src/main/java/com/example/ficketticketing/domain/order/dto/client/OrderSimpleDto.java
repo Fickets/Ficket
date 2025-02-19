@@ -18,4 +18,5 @@ public class OrderSimpleDto {
     private BigDecimal refundPrice;
     private Long companyId;
     private Long eventId;
+    private Long ticketId;
 }

@@ -315,6 +315,8 @@ public class OrderService {
             throw new BusinessException(ErrorCode.ALREADY_WATCHED);
         }
 
+        Long ticketId = order.getTicket().getTicketId();
+
         // 관람일 정보 조회
         LocalDateTime eventDateTime = eventServiceClient.getEventDateTime(order.getTicket().getEventScheduleId());
         LocalDateTime orderDateTime = order.getCreatedAt(); // 주문 생성 시간
@@ -328,7 +330,7 @@ public class OrderService {
             executeWithCircuitBreaker(
                     circuitBreakerRegistry,
                     "refundSettlementCircuitBreaker",
-                    () -> adminServiceClient.refundSettlement(orderId, order.getOrderPrice())
+                    () -> adminServiceClient.refundSettlement(orderId,0L,  order.getOrderPrice())
             );
             return; // 환불 처리 완료 후 메서드 종료
         }
@@ -342,27 +344,27 @@ public class OrderService {
         String refundFeeDescription = determineRefundFee(refundPolicies, currentDateTime, orderDateTime, eventDateTime);
 
         Long ticketCounts = eventServiceClient.getBuyTicketCount(order.getTicket().getTicketId());
-        BigDecimal additionalAmount = BigDecimal.valueOf(ticketCounts * 1000);
+        BigDecimal additionalAmount = BigDecimal.valueOf(ticketCounts * 2000);
         // 수수료 적용 여부에 따라 환불 처리
         if (refundFeeDescription.equals("없음")) {
             // 수수료가 없는 경우 - 전체 금액 환불 처리
-            processFullRefund(order, order.getOrderPrice());
+            processFullRefund(order, order.getOrderPrice().subtract(additionalAmount));
             // settlement 수정
             executeWithCircuitBreaker(
                     circuitBreakerRegistry,
                     "refundSettlementCircuitBreaker",
-                    () -> adminServiceClient.refundSettlement(orderId, additionalAmount)
+                    () -> adminServiceClient.refundSettlement(orderId, ticketId, order.getOrderPrice().subtract(additionalAmount))
             );
 
         } else {
             // 수수료가 적용되는 경우 - 부분 환불 처리
-            BigDecimal refundAmount = calculateRefundAmount(order.getOrderPrice(), refundFeeDescription);
+            BigDecimal refundAmount = calculateRefundAmount(order.getOrderPrice().subtract(additionalAmount), refundFeeDescription);
             processPartialRefund(order, refundAmount);
             // settlement 수정
             executeWithCircuitBreaker(
                     circuitBreakerRegistry,
                     "refundSettlementCircuitBreaker",
-                    () -> adminServiceClient.refundSettlement(orderId, refundAmount.add(additionalAmount))
+                    () -> adminServiceClient.refundSettlement(orderId, ticketId, refundAmount)
             );
         }
     }
@@ -488,7 +490,7 @@ public class OrderService {
      * @param refundFeeDescription 환불 수수료 설명
      * @return 환불 금액
      */
-    private BigDecimal calculateRefundAmount(BigDecimal totalAmount, String refundFeeDescription) {
+    private BigDecimal  calculateRefundAmount(BigDecimal totalAmount, String refundFeeDescription) {
         if (refundFeeDescription.contains("장당")) {
             // 고정 금액 수수료 (예: "장당 4,000원")
             String fee = refundFeeDescription.replaceAll("[^0-9]", "");

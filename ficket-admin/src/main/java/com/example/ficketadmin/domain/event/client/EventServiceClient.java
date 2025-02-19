@@ -29,4 +29,7 @@ public interface EventServiceClient {
     @GetMapping("/api/v1/events/customer-ticket-info")
     TicketSimpleInfo getTicketSimpleInfo(@RequestParam Long ticketId);
 
+    @GetMapping("/api/v1/events/count-ticket/{ticketId}")
+    Long getBuyTicketCount(@PathVariable Long ticketId);
+
 }

@@ -55,8 +55,8 @@ public class SettlementController {
     }
 
     @GetMapping("/refund")
-    ResponseEntity<Void> refundSettlement(@RequestParam(name = "orderId") Long orderId, @RequestParam(name = "refund") BigDecimal refund){
-        settlementService.refundSettlement(orderId, refund);
+    ResponseEntity<Void> refundSettlement(@RequestParam(name = "orderId") Long orderId, @RequestParam(name = "ticketId") Long ticketId,@RequestParam(name = "refund") BigDecimal refund){
+        settlementService.refundSettlement(orderId, ticketId, refund);
         return ResponseEntity.noContent().build();
     }
 }

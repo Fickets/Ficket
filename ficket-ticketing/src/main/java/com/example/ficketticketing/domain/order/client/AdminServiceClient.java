@@ -18,5 +18,5 @@ public interface AdminServiceClient {
     ResponseEntity<Void> createSettlement(@RequestBody OrderSimpleDto orderSimpleDto);
 
     @GetMapping("api/v1/settlements/refund")
-    ResponseEntity<Void> refundSettlement(@RequestParam(name = "orderId") Long orderId, @RequestParam(name = "refund")BigDecimal refund);
+    ResponseEntity<Void> refundSettlement(@RequestParam(name = "orderId") Long orderId, @RequestParam(name = "ticketId") Long ticketId, @RequestParam(name = "refund")BigDecimal refund);
 }
