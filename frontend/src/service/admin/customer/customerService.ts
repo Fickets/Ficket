@@ -22,9 +22,9 @@ export const fetchCustomerListByCond = async (params = {}) => {
 
 
 // 고객 목록 조회 API
-export const fetchCustomers = async (): Promise<String[]> => {
+export const fetchCustomers = async (): Promise<string[]> => {
     try {
-        const response: AxiosResponse<String[]> =
+        const response: AxiosResponse<string[]> =
             await adminPrivateApi.get(`/${url}`);
         return response.data;
     } catch (error: any) {

@@ -13,10 +13,14 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
         startDate: null,
         endDate: null,
     });
-    const [customers, setCustomers] = useState<String[]>([]);
+    const [customers, setCustomers] = useState<string[]>([]);
+    const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
 
     useEffect(() => {
-        fetchCustomers().then((response) => setCustomers(response));
+        fetchCustomers().then((response) => {
+            setCustomers(response);
+            setFilteredCustomers(response.slice(0, 10))
+        });
     }, []);
 
     const handleInputChange = (
@@ -42,16 +46,14 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
         });
     };
 
-    const filterCustomers = (inputValue: string) => {
-        return customers
-            .filter((customer) =>
-                customer.toLowerCase().includes(inputValue.toLowerCase())
-            )
-            .slice(0, 10) // 10개만 반환
-            .map((customer) => ({
-                label: customer,
-                value: customer,
-            }));
+    // 공연 검색 기능 추가 (10개까지만 표시)
+    const handleSearchChange = (query: string) => {
+
+        const filtered = customers
+            .filter(customer => customer.toLowerCase().includes(query.toLowerCase()))
+            .slice(0, 10); // 검색된 결과 중 상위 10개만 유지
+
+        setFilteredCustomers(filtered);
     };
 
     return (
@@ -104,7 +106,10 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
                         고객 이름
                     </label>
                     <Select
-                        options={filterCustomers(localSearchParams.userName || '')}
+                        options={filteredCustomers.map((customer) => ({
+                            label: `${customer}`,
+                            value: String(customer), // 고객 이름을 value로 설정
+                        }))}
                         value={
                             localSearchParams.userName
                                 ? {
@@ -113,10 +118,9 @@ const CustomerSearchBar = ({ onSearch }: CustomerSearchBarProps) => {
                                 }
                                 : null
                         }
-                        onInputChange={(newValue) => {
-                            handleInputChange("userName", newValue || null); // 입력값 변경 시 userName 업데이트
-                        }}
+                        onInputChange={(inputValue) => handleSearchChange(inputValue)}
                         onChange={(option) => {
+                            // 고객 이름 선택 시 userId를 업데이트하지 않도록 설정
                             handleInputChange("userName", option?.value || null);
                         }}
                         placeholder="고객을 선택하세요"
