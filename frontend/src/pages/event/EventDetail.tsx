@@ -5,7 +5,7 @@ import moment from "moment";
 import { Bar } from "react-chartjs-2";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ChartOptions } from 'chart.js';
+import { ChartOptions } from "chart.js";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -52,7 +52,6 @@ const EventDetail: React.FC = () => {
     0, 0, 0, 0, 0, 0, 0,
   ]);
 
-
   const [activeTab, setActiveTab] = useState("performance");
   // const [selectedButton, setSelectedButton] = React.useState(null);
 
@@ -70,8 +69,7 @@ const EventDetail: React.FC = () => {
   const togglePrice = () => {
     setShowPrice((prev) => !prev);
   };
-  const { setEventId } =
-    useEventStore();
+  const { setEventId } = useEventStore();
 
   const chartData = {
     labels: ["10대", "20대", "30대", "40대", "50대"], // x축에 표시될 레이블
@@ -137,9 +135,6 @@ const EventDetail: React.FC = () => {
     },
   };
 
-
-
-
   // 여기부터 달력 함수 입니다 ------------------------------------------------
 
   const eventDates = Object.keys(event.scheduleMap);
@@ -153,12 +148,16 @@ const EventDetail: React.FC = () => {
 
   // 날짜 클릭 핸들러
   const handleDateClick = (value: Value) => {
-    if (value && value instanceof Date && availableDates.some((d) => d.toDateString() === value.toDateString())) {
+    if (
+      value &&
+      value instanceof Date &&
+      availableDates.some((d) => d.toDateString() === value.toDateString())
+    ) {
       // Date 객체를 string으로 저장
       setChoiceDate(value.toDateString());
 
       const formattedDate = value.toLocaleDateString("en-CA");
-      const selectedEventRounds = event.scheduleMap[formattedDate];  // store에서 event 데이터를 가져옴
+      const selectedEventRounds = event.scheduleMap[formattedDate]; // store에서 event 데이터를 가져옴
       event.setChoiceDate(formattedDate);
       event.setTicketingStep(true);
 
@@ -170,8 +169,6 @@ const EventDetail: React.FC = () => {
       event.setScheduleId(scheduleData.eventScheduleId);
     }
   };
-
-
 
   // 클릭 불가능한 날짜 설정
   const tileDisabled = ({ date, view }: { date: Date; view: string }) => {
@@ -187,7 +184,10 @@ const EventDetail: React.FC = () => {
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === "month") {
       // choiceDate가 string일 경우, Date 객체로 변환
-      if (choiceDate && new Date(choiceDate).toDateString() === date.toDateString()) {
+      if (
+        choiceDate &&
+        new Date(choiceDate).toDateString() === date.toDateString()
+      ) {
         return "selected-date"; // 선택된 날짜 스타일
       }
       if (
@@ -223,9 +223,9 @@ const EventDetail: React.FC = () => {
 
         // 문자열을 구분자로 분리해서 배열로 변환하고, 각 항목을 숫자로 변환
         const numericRes = res
-          .split(',') // 예시로 콤마(,)로 구분된 문자열로 가정
-          .map(item => parseInt(item, 10))
-          .filter(item => !isNaN(item));  // NaN인 값은 필터링
+          .split(",") // 예시로 콤마(,)로 구분된 문자열로 가정
+          .map((item) => parseInt(item, 10))
+          .filter((item) => !isNaN(item)); // NaN인 값은 필터링
 
         const statisticData = numericRes.slice(0, 2);
         const sum = statisticData.reduce(
@@ -239,20 +239,18 @@ const EventDetail: React.FC = () => {
         });
 
         setGenderStatisticData(statisticData);
-
       },
-      (_error) => { },
+      (_error) => {},
     );
   };
-
 
   const eventDetailGet = async () => {
     await eventDetail(
       Number(eventId),
       (response) => {
-        console.log(response)
+        console.log(response);
         const res = response.data;
-        console.log(res)
+        console.log(res);
         event.setEventId(eventId || "");
         event.setAdminId(res.adminId);
         event.setCompanyId(res.companyId);
@@ -278,7 +276,7 @@ const EventDetail: React.FC = () => {
         event.setScheduleMap(res.scheduleMap);
         setEventId(Number(eventId));
       },
-      (_error) => { },
+      (_error) => {},
     );
   };
 
@@ -310,7 +308,7 @@ const EventDetail: React.FC = () => {
         if (canEnter) {
           const occupied = await occupySlot(eventId as string);
           if (occupied) {
-            url = "/ticketing/select-seat";
+            url = "/ticketing/select-date";
           } else {
             alert("슬롯 점유 실패. 다시 시도해 주세요.");
             return;
@@ -332,9 +330,21 @@ const EventDetail: React.FC = () => {
   };
 
   const mobileGo = async () => {
-    console.log("FUCK YOU");
     if (user.isLogin) {
-      navi("/ticketing/select-date");
+      let url = "";
+      const canEnter = await canEnterTicketingPage(eventId as string);
+      if (canEnter) {
+        const occupied = await occupySlot(eventId as string);
+        if (occupied) {
+          url = "/ticketing/select-date";
+        } else {
+          alert("슬롯 점유 실패. 다시 시도해 주세요.");
+          return;
+        }
+      } else {
+        url = `/ticketing/queue/${eventId}`;
+      }
+      navi(url);
     } else {
       toast.error("로그인이 필요합니다.", {
         position: "top-center",
@@ -394,9 +404,7 @@ const EventDetail: React.FC = () => {
                 <h2 className="w-[90px]">장르</h2>
                 <p className="flex">
                   {event.genre.map((element, index) => (
-                    <p key={index}>
-                      {element.replace(/_/g, " ")}&nbsp;&nbsp;
-                    </p> // 각 항목을 <p> 태그로 렌더링
+                    <p key={index}>{element.replace(/_/g, " ")}&nbsp;&nbsp;</p> // 각 항목을 <p> 태그로 렌더링
                   ))}
                 </p>
               </div>
@@ -457,12 +465,13 @@ const EventDetail: React.FC = () => {
                       <button
                         key={index}
                         data-key={index}
-                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
-                          ? "bg-[#8E43E7] text-white"
-                          : "bg-white"
-                          }`}
+                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
+                          selectedButton === index
+                            ? "bg-[#8E43E7] text-white"
+                            : "bg-white"
+                        }`}
                         onClick={(e) => roundButtonClick(e)}
-                      // onClick={setSelectedButton(key)}
+                        // onClick={setSelectedButton(key)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
                         <p>
@@ -494,19 +503,21 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "performance"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "sales"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -873,19 +884,21 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "performance"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "sales"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
