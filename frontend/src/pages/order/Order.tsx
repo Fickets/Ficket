@@ -203,15 +203,15 @@ function Order() {
         <title>티켓팅 - 결제</title>
       </Helmet>
       {/* 헤더 */}
-      <div className="relative z-10 h-[192px] bg-black hidden sm:block">
+      <div className="relative z-10 h-[192px] sm:bg-black">
         <TicketingHeader step={4} />
       </div>
 
-      <div className="relative -mt-8 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-center px-4 z-10 space-y-8 sm:space-y-0">
+      <div className="relative -mt-20 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-center px-4 z-10 space-y-8 sm:space-y-0">
         <div className="max-w-[1200px] w-full bg-white border border-gray-300 rounded-lg shadow-lg">
           {/* 주문 정보 */}
           <div className="px-6 pb-6 space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
               <div className="mt-3">
                 <div className="text-sm text-gray-500">제목</div>
                 <div className="font-bold text-base">{eventTitle}</div>
@@ -247,7 +247,7 @@ function Order() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-2">
+            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4 border-t pt-4 sm:pt-2">
               <div>
                 <h2 className="text-sm text-gray-500">수수료</h2>
                 <p className="text-base">
@@ -255,7 +255,7 @@ function Order() {
                   {(selectedSeats.length * SEAT_FEE).toLocaleString()}원
                 </p>
               </div>
-              <div className="text-right mt-4">
+              <div className="flex flex-col sm:flex-row sm:justify-end mt-4">
                 <h2 className="text-lg font-semibold">
                   총 금액: {totalAmount.toLocaleString("ko-KR")}원
                 </h2>
@@ -264,7 +264,7 @@ function Order() {
           </div>
 
           {/* 결제 버튼 */}
-          <div className="p-4 -mt-8">
+          <div className="p-4 sm:-mt-8">
             <button
               onClick={handleSubmit}
               className="w-full bg-red-500 text-white py-3 border border-black font-semibold text-lg rounded-md"

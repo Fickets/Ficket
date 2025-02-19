@@ -153,12 +153,12 @@ function RegisterFace() {
         <title>티켓팅 - 얼굴 인식</title>
       </Helmet>
       {/* 상단 바 */}
-      <div className="relative z-10 h-[192px] bg-black hidden sm:block">
+      <div className="relative z-10 md:h-[192px] sm:bg-black">
         <TicketingHeader step={3} />
       </div>
 
       {/* 약관 및 이미지 박스 */}
-      <div className="relative -mt-8 sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-8 px-4 z-10">
+      <div className="relative sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-8 px-4 z-10">
         {/* PictureBox */}
         <div className="flex-1 max-w-[400px]">
           <PictureBox
@@ -173,7 +173,7 @@ function RegisterFace() {
       </div>
 
       {/* 하단 버튼 */}
-      <div className="w-full px-4 sm:px-8 py-3 mb-8 flex justify-between items-center border-gray-300 z-10">
+      <div className="w-full px-4 sm:px-8 py-3 flex justify-between items-center border-gray-300 z-10">
         <button
           className="bg-[#666666] w-[45%] sm:w-auto px-4 py-2 text-white border border-black text-sm"
           onClick={handleBeforeStep}
