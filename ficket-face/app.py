@@ -57,7 +57,7 @@ def initialize_services(app):
 
     # APScheduler 설정 (매일 0시 실행)
     scheduler = BackgroundScheduler()
-    scheduler.add_job(delete_faces_without_ticket, 'cron', hour=9, minute=33)
+    scheduler.add_job(delete_faces_without_ticket, 'cron', hour=0, minute=0)
     scheduler.start()
 
 
