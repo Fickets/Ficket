@@ -48,6 +48,8 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
             const formattedDate = selectedValue.toLocaleDateString("en-CA");
             onDateSelect(formattedDate);
             eventDetail.setChoiceDate(formattedDate);
+            const scheduleData = eventDetail.scheduleMap[formattedDate][1];
+            eventDetail.setScheduleId(scheduleData.eventScheduleId);
         }
     };
 

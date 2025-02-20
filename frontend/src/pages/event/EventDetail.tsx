@@ -240,7 +240,7 @@ const EventDetail: React.FC = () => {
 
         setGenderStatisticData(statisticData);
       },
-      (_error) => {},
+      (_error) => { },
     );
   };
 
@@ -274,9 +274,10 @@ const EventDetail: React.FC = () => {
         event.setPosterPcMainUrl(res.posterPcMainUrl);
         event.setPartitionPrice(res.partitionPrice);
         event.setScheduleMap(res.scheduleMap);
+        event.setScheduleId(0);
         setEventId(Number(eventId));
       },
-      (_error) => {},
+      (_error) => { },
     );
   };
 
@@ -465,13 +466,12 @@ const EventDetail: React.FC = () => {
                       <button
                         key={index}
                         data-key={index}
-                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
-                          selectedButton === index
+                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
                             ? "bg-[#8E43E7] text-white"
                             : "bg-white"
-                        }`}
+                          }`}
                         onClick={(e) => roundButtonClick(e)}
-                        // onClick={setSelectedButton(key)}
+                      // onClick={setSelectedButton(key)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
                         <p>
@@ -503,21 +503,19 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "performance"
+                className={`flex-1 text-center py-2 ${activeTab === "performance"
                     ? "border-b-2 border-black font-semibold"
                     : "text-gray-500"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "sales"
+                className={`flex-1 text-center py-2 ${activeTab === "sales"
                     ? "border-b-2 border-black font-semibold"
                     : "text-gray-500"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -884,21 +882,19 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "performance"
+                className={`flex-1 text-center py-2 ${activeTab === "performance"
                     ? "border-b-2 border-black font-semibold"
                     : "text-gray-500"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "sales"
+                className={`flex-1 text-center py-2 ${activeTab === "sales"
                     ? "border-b-2 border-black font-semibold"
                     : "text-gray-500"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
