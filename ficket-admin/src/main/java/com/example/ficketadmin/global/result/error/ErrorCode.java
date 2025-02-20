@@ -39,6 +39,7 @@ public enum ErrorCode {
 
     // SETTLEMENT
     NO_SETTMENT_RECORD(404, "정산테이블이 존재하지 않습니다."),
+
     ;
 
     private final int status;

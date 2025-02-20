@@ -401,4 +401,10 @@ public class EventController {
             return "Lock acquisition was interrupted.";
         }
     }
+
+
+    @GetMapping("/companyId/{eventId}")
+    public Long getCompanyIdByEventId(@PathVariable(name = "eventId") Long eventId){
+        return eventService.getCompanyByEvent(eventId);
+    }
 }

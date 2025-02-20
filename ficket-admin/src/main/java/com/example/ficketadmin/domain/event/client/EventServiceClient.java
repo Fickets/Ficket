@@ -32,4 +32,6 @@ public interface EventServiceClient {
     @GetMapping("/api/v1/events/count-ticket/{ticketId}")
     Long getBuyTicketCount(@PathVariable Long ticketId);
 
+    @GetMapping("/api/v1/events/companyId/{eventId}")
+    Long getCompanyByEvent(@PathVariable Long eventId);
 }

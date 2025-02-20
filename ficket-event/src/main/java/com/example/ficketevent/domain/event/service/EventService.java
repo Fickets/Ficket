@@ -1177,4 +1177,11 @@ public class EventService {
         return res;
     }
 
+
+    public Long getCompanyByEvent(Long eventId){
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+        return event.getCompanyId();
+    }
+
 }

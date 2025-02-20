@@ -1,6 +1,8 @@
 package com.example.ficketadmin.domain.settlement.service;
 
 
+import com.example.ficketadmin.domain.account.entity.Account;
+import com.example.ficketadmin.domain.account.repository.AccountRepository;
 import com.example.ficketadmin.domain.company.entity.Company;
 import com.example.ficketadmin.domain.company.repository.CompanyRepository;
 import com.example.ficketadmin.domain.event.client.EventServiceClient;
@@ -17,7 +19,6 @@ import com.example.ficketadmin.domain.settlement.repository.SettlementRecordRepo
 import com.example.ficketadmin.domain.settlement.repository.SettlementRepository;
 import com.example.ficketadmin.global.result.error.ErrorCode;
 import com.example.ficketadmin.global.result.error.exception.BusinessException;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +41,10 @@ public class SettlementService {
     private final SettlementRepository settlementRepository;
     private final SettlementRecordRepository settlementRecordRepository;
     private final SettlementCustomRepository settlementCustomRepository;
+    private final AccountRepository accountRepository;
 
     private final EventServiceClient eventServiceClient;
+
 
     @Transactional
     public void createSettlement(OrderSimpleDto orderSimpleDto){
@@ -174,9 +177,19 @@ public class SettlementService {
 
     @Transactional
     public void settlementClear(Long eventId){
+
+        Long companyId = eventServiceClient.getCompanyByEvent(eventId);
+
+        Company company = companyRepository.findByCompanyId(companyId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMPANY_NOT_FOUND));
+
+        Account account = company.getAccount();
+
         SettlementRecord record = settlementRecordRepository.findByEventId(eventId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_SETTMENT_RECORD));
-        List<Settlement> settlements = settlementCustomRepository.findSettlementByEventIdAndStatus(eventId, SettlementStatus.SETTLEMENT);
+
+        List<Settlement> settlements = settlementCustomRepository.findSettlementByEventIdAndStatus(eventId, SettlementStatus.UNSETTLED);
+
         for (Settlement settlement : settlements) {
             record.setTotalNetSupplyAmount(record.getTotalNetSupplyAmount().add(settlement.getNetSupplyAmount()));
             record.setTotalVat(record.getTotalVat().add(settlement.getVat()));
@@ -187,9 +200,12 @@ public class SettlementService {
             BigDecimal updatedSettlementValue = record.getTotalSettlementValue().subtract(settlement.getRefundValue());
             record.setTotalSettlementValue(updatedSettlementValue);
             settlement.setSettlementStatus(SettlementStatus.SETTLEMENT);
+
+            account.setBalance(account.getBalance().add(settlement.getSettlementValue()));
         }
         record.setSettlementStatus(SettlementStatus.SETTLEMENT);
         settlementRecordRepository.save(record);
+        accountRepository.save(account);
     }
 
     @Transactional
