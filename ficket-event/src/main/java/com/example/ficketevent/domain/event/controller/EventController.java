@@ -407,4 +407,16 @@ public class EventController {
     public Long getCompanyIdByEventId(@PathVariable(name = "eventId") Long eventId){
         return eventService.getCompanyByEvent(eventId);
     }
+
+    @GetMapping("/check-time/{eventId}")
+    public ResponseEntity<Boolean> checkEventTicketingTime(@PathVariable(name = "eventId") Long eventId){
+        Boolean result = eventService.getCheckTicketingTime(eventId);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/check-schedule/{scheduleId}")
+    public ResponseEntity<Boolean> checkEventScheduleTime(@PathVariable(name = "scheduleId") Long scheduleId){
+        Boolean Result = eventService.getCheckScheduleTime(scheduleId);
+        return ResponseEntity.ok(Result);
+    }
 }

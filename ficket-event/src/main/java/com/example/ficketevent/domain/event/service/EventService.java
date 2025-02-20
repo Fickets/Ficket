@@ -1184,4 +1184,16 @@ public class EventService {
         return event.getCompanyId();
     }
 
+    public Boolean getCheckTicketingTime(Long eventId){
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+        return event.getTicketingTime().isBefore(LocalDateTime.now());
+    }
+
+    public Boolean getCheckScheduleTime(Long scheduleId){
+        EventSchedule eventSchedule = eventScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+        return eventSchedule.getEventDate().isAfter(LocalDateTime.now());
+    }
+
 }
