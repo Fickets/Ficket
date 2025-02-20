@@ -42,14 +42,17 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ onDateSelect }) => {
     const handleDateClick = (value: Value | [Date, Date] | null, _event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         // value가 배열(날짜 범위)인지 확인 후 첫 번째 날짜 선택
         const selectedValue = Array.isArray(value) ? value[0] : value;
-
+        console.log("TEST START DATE")
         if (selectedValue && availableDates.some((d: Date) => d.toDateString() === selectedValue.toDateString())) {
             setSelectedDate(selectedValue);
             const formattedDate = selectedValue.toLocaleDateString("en-CA");
             onDateSelect(formattedDate);
             eventDetail.setChoiceDate(formattedDate);
             const scheduleData = eventDetail.scheduleMap[formattedDate][1];
+            console.log(scheduleData.eventScheduleId + " TEST DATA ")
             eventDetail.setScheduleId(scheduleData.eventScheduleId);
+        } else {
+            console.log("FAIL FAIL FAIL")
         }
     };
 
