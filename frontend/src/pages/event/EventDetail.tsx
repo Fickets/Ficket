@@ -23,6 +23,8 @@ import {
   checkEnterTicketing,
   eventDetail,
   genderStatistic,
+  checkEventTime,
+  checkScheduleTime
 } from "../../service/event/eventApi";
 import { eventDetailStore } from "../../stores/EventStore";
 import { useEventStore } from "../../types/StoreType/EventState";
@@ -283,28 +285,67 @@ const EventDetail: React.FC = () => {
 
   const goTicketing = async () => {
     if (user.isLogin) {
-      let url = "";
-      if (event.ticketingStep) {
-        try {
-          const availableCount = await checkEnterTicketing(event.scheduleId);
-          event.setReservationLimit(availableCount);
-          const canEnter = await canEnterTicketingPage(eventId as string);
-          if (canEnter) {
-            const occupied = await occupySlot(eventId as string);
-            if (occupied) {
+
+      const checkTime = await checkEventTime(event.eventId)
+      if (checkTime) {
+
+        let url = "";
+        if (event.ticketingStep) {
+          const checkSchedule = await checkScheduleTime(event.scheduleId)
+          if (checkSchedule) {
+
+            try {
+              const availableCount = await checkEnterTicketing(event.scheduleId);
+              event.setReservationLimit(availableCount);
               url = "/ticketing/select-seat";
-            } else {
-              alert("슬롯 점유 실패. 다시 시도해 주세요.");
-              return;
+            } catch (error: any) {
+              alert(`${error.message}`); // API에서 에러 발생 시 처리
+              return; // 에러 발생 시 새 창 열기를 중단
             }
+
           } else {
-            url = `/ticketing/queue/${eventId}`;
+            alert("예매가 불가능한 날짜 입니다.")
+            return;
           }
-        } catch (error: any) {
-          alert(`${error.message}`); // API에서 에러 발생 시 처리
-          return; // 에러 발생 시 새 창 열기를 중단
+
+        } else {
+          url = "/ticketing/select-date";
         }
+
+        const canEnter = await canEnterTicketingPage(eventId as string);
+        if (canEnter) {
+          const occupied = await occupySlot(eventId as string);
+          if (!occupied) {
+            alert("슬롯 점유 실패. 다시 시도해 주세요.");
+            return;
+          }
+        } else {
+          url = `/ticketing/queue/${eventId}`;
+        }
+        window.open(
+          url,
+          "_blank", // 새 창 이름
+          `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`,
+        );
+
+
       } else {
+        alert("예매 시간이 되지 않았습니다.")
+      }
+
+    } else {
+      if (event.choiceDate && event.round) {
+        navi("/users/login");
+      }
+    }
+  };
+
+  const mobileGo = async () => {
+    if (user.isLogin) {
+
+      const checkTime = await checkEventTime(event.eventId)
+      if (checkTime) {
+        let url = "";
         const canEnter = await canEnterTicketingPage(eventId as string);
         if (canEnter) {
           const occupied = await occupySlot(eventId as string);
@@ -317,35 +358,12 @@ const EventDetail: React.FC = () => {
         } else {
           url = `/ticketing/queue/${eventId}`;
         }
-      }
-      window.open(
-        url,
-        "_blank", // 새 창 이름
-        `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`,
-      );
-    } else {
-      if (event.choiceDate && event.round) {
-        navi("/users/login");
-      }
-    }
-  };
-
-  const mobileGo = async () => {
-    if (user.isLogin) {
-      let url = "";
-      const canEnter = await canEnterTicketingPage(eventId as string);
-      if (canEnter) {
-        const occupied = await occupySlot(eventId as string);
-        if (occupied) {
-          url = "/ticketing/select-date";
-        } else {
-          alert("슬롯 점유 실패. 다시 시도해 주세요.");
-          return;
-        }
+        navi(url);
       } else {
-        url = `/ticketing/queue/${eventId}`;
+        alert("예매 시간이 되지 않았습니다.")
+        return;
       }
-      navi(url);
+
     } else {
       toast.error("로그인이 필요합니다.", {
         position: "top-center",
@@ -467,8 +485,8 @@ const EventDetail: React.FC = () => {
                         key={index}
                         data-key={index}
                         className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
-                            ? "bg-[#8E43E7] text-white"
-                            : "bg-white"
+                          ? "bg-[#8E43E7] text-white"
+                          : "bg-white"
                           }`}
                         onClick={(e) => roundButtonClick(e)}
                       // onClick={setSelectedButton(key)}
@@ -504,8 +522,8 @@ const EventDetail: React.FC = () => {
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
                 className={`flex-1 text-center py-2 ${activeTab === "performance"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
                   }`}
                 onClick={() => setActiveTab("performance")}
               >
@@ -513,8 +531,8 @@ const EventDetail: React.FC = () => {
               </button>
               <button
                 className={`flex-1 text-center py-2 ${activeTab === "sales"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
                   }`}
                 onClick={() => setActiveTab("sales")}
               >
@@ -883,8 +901,8 @@ const EventDetail: React.FC = () => {
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
                 className={`flex-1 text-center py-2 ${activeTab === "performance"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
                   }`}
                 onClick={() => setActiveTab("performance")}
               >
@@ -892,8 +910,8 @@ const EventDetail: React.FC = () => {
               </button>
               <button
                 className={`flex-1 text-center py-2 ${activeTab === "sales"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
                   }`}
                 onClick={() => setActiveTab("sales")}
               >

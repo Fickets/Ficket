@@ -38,3 +38,37 @@ export const checkEnterTicketing = async (
     throw error;
   }
 };
+
+export const checkEventTime = async (
+  eventId: string,
+): Promise<boolean> => {
+  try {
+    // API 호출
+    const response: AxiosResponse<boolean> = await privateApi.get(
+      `/${url}/check-time/${eventId}`
+    );
+
+    // 서버 응답 데이터 반환
+    return response.data;
+  } catch (error) {
+    // 오류 발생 시 에러 처리
+    throw error;
+  }
+};
+
+export const checkScheduleTime = async (
+  scheduleId: number,
+): Promise<boolean> => {
+  try {
+    // API 호출
+    const response: AxiosResponse<boolean> = await privateApi.get(
+      `/${url}/check-schedule/${scheduleId}`
+    );
+
+    // 서버 응답 데이터 반환
+    return response.data;
+  } catch (error) {
+    // 오류 발생 시 에러 처리
+    throw error;
+  }
+};
