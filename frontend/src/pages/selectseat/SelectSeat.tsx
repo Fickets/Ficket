@@ -90,8 +90,6 @@ const SelectSeat = () => {
     ws.onmessage = (event: MessageEvent) => {
       const handleMessage = async () => {
         try {
-          console.log("WebSocket 메시지 수신:", event.data);
-
           if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
             await releaseSlot(eventId);
             alert("세션이 만료되었습니다. 창을 닫습니다.");

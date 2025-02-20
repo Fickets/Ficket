@@ -29,7 +29,6 @@ const MobileEventOpenList = () => {
   // 새로운 데이터를 가져오는 로직
   const fetchEvents = async (params: SearchParams) => {
     try {
-      console.log("Fetching events with params:", params);
       const fetchedResponse = await searchEventScheduledOpen(params);
 
       setResponse((prev) => {

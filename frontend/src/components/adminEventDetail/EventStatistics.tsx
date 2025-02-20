@@ -117,7 +117,7 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
     await genderStatistic(
       Number(eventId),
       (response) => {
-
+        console.log(response); // 데이터 확인
         const res: string = response.data;
 
         if (!Array.isArray(res)) {
@@ -142,10 +142,10 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
         });
 
         setGenderStatisticData(statisticData);
-
+        console.log(statisticData);
       },
-      (_error: any) => {
-
+      (error: any) => {
+        console.log(error.message);
       }
     );
   };

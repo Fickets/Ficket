@@ -23,7 +23,7 @@ const EditUserModal = ({ onClose }: EditUserModalProps) => {
       birth: updatedBirth,
       gender: updatedGender,
     };
-    console.log(requestData) 
+
     try {
       // API 요청
       const response = await updateUser(requestData);

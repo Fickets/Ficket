@@ -54,7 +54,6 @@ function Order() {
     setWaitingPayment(true);
 
     const paymentId = randomId();
-    console.log(`Generated paymentId: ${paymentId}`);
 
     try {
       console.log("Creating order...");
@@ -77,8 +76,7 @@ function Order() {
         ).map((item) => JSON.parse(item)),
       };
 
-      const orderDetails = await createOrder(createOrderRequest);
-      console.log("Order created successfully:", orderDetails);
+      await createOrder(createOrderRequest);
 
       console.log("Sending payment request to PortOne...");
       await PortOne.requestPayment({
