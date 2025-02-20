@@ -1,13 +1,11 @@
-from flask import request, Blueprint, current_app
+from flask import request, Blueprint
 from flask_restx import Api, Resource, fields
 from werkzeug.datastructures import FileStorage
 from face_app.models.model import Face
 from utils import get_face_embedding, cosine_similarity, encrypt_vector, decrypt_vector, upload_file_to_s3, \
     delete_file_from_s3, generate_presigned_url
 from database import db
-from config import logger
 from face_app.schemas.response import ResponseSchema
-from apscheduler.schedulers.background import BackgroundScheduler
 from urllib.parse import urlparse
 
 # Blueprint 생성
@@ -52,31 +50,6 @@ file_upload_parser.add_argument("event_schedule_id", location="form", type=int, 
 match_parser = api.parser()
 match_parser.add_argument("file", location="files", type=FileStorage, required=True, help="Face image file")
 match_parser.add_argument("event_schedule_id", location="form", type=int, required=True, help="Event schedule ID")
-
-
-# 매일 자정에 ticket_id가 NULL인 Face 삭제
-def delete_null_ticket_faces():
-    with current_app.app_context():  # ✅ Flask 애플리케이션 컨텍스트 설정
-        try:
-            faces_to_delete = Face.query.filter(Face.ticket_id == None).all()
-            if faces_to_delete:
-                for face in faces_to_delete:
-                    delete_file_from_s3(face.face_img)
-                    db.session.delete(face)
-                db.session.commit()
-                logger.info(f"{len(faces_to_delete)} face(s) with NULL ticket_id deleted successfully.")
-            else:
-                logger.warning("No faces with NULL ticket_id found.")
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"Error occurred while deleting faces with NULL ticket_id: {e}")
-
-
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(delete_null_ticket_faces, 'cron', hour=0, minute=0)
-scheduler.start()
-
 
 # API 리소스 정의
 @api.route("/upload")
