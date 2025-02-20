@@ -5,7 +5,7 @@ import {
   FaAngleRight,
   FaAngleDoubleRight,
 } from "react-icons/fa";
-import { useEffect, useMemo, useState } from "react";
+import {  useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -21,11 +21,6 @@ import {
 import SettlementDetailModal from "./SettlementDetail";
 const SettlementListComp: React.FC<SettlementListProps> = ({ data, onPageChange }) => {
   const [selectedData, setSelectedData] = useState<any>(null); // 선택된 고객 데이터
-
-  useEffect(() => {
-    console.log("TEST FUCK");
-    console.log(data);
-  }, []);
 
   const columns: ColumnDef<SettlementRecord>[] = useMemo(
     () => [

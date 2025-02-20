@@ -25,7 +25,7 @@ const GenreRank = () => {
     try {
       const data = await genreRank(param);
       setRankGenre(data);
-      console.log("Fetched data:", data); // 필요 시 데이터 확인
+
     } catch (error) {
       console.error("Error while fetching open recent events:", error);
     }

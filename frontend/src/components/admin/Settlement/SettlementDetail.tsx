@@ -17,7 +17,6 @@ const SettlementDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) 
     if (!isOpen) return null;
     const [settlementInfo, setSettlementInfo] = useState<Settlement[]>([]);
     useEffect(() => {
-        console.log(data)
         if (data.eventId) {
             getSettlementList();
         }
@@ -27,14 +26,14 @@ const SettlementDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) 
         await settlementsList(
             data.eventId,
             (response) => {
-                console.log(response.data)
+
                 setSettlementInfo(response.data);
             }, () => { },
         )
     }
 
     const clearSettlements = async () => {
-        console.log("TEST START")
+
         try {
             const eventId = data.eventId;
             await clearSettlement(eventId

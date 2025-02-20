@@ -76,7 +76,7 @@ const EditEvent = ({ eventId }: { eventId: string }) => {
     }
 
     try {
-      console.log(mergedData);
+
       await updateEvent(numericEventId, formData);
       alert("행사가 성공적으로 수정되었습니다.");
       navigate(`/admin/event-detail/${eventId}`); // 수정 후 리스트 페이지로 이동

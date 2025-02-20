@@ -14,11 +14,7 @@ const SelectDate: React.FC = () => {
   const eventDate = Object.keys(eventDetail.scheduleMap);
   const [round, setRound] = useState<number | null>(null); // 선택된 날짜 상태
   const navi = useNavigate();
-  useEffect(() => {
-    console.log("TTAT", eventDetail.posterPcUrl);
-    const t2 = Object.keys(eventDetail.scheduleMap);
-    console.log(t2);
-  });
+
 
   const handleRoundSelect = (round: number) => {
     setRound(round); // 날짜 선택 시 choiceDate 상태 업데이트

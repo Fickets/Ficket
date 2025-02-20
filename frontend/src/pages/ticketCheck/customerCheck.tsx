@@ -122,7 +122,7 @@ const FaceDetectionPage: React.FC = () => {
 
   const sendImageToServer = async (base64Image: string) => {
     try {
-      console.log(base64Image);
+
       const fileImage = dataUrlToFile(base64Image, "image.png");
       const response = await checkFace(
         fileImage,

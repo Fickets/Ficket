@@ -15,7 +15,7 @@ const OpenGenre = ({ genre }: { genre: string }) => {
   const secondRow = open6.slice(3);
 
   const getOpenRecent = async () => {
-    console.log(genre);
+
     try {
       let data; // 조건문 밖에서 선언
       if (genre === "") {
@@ -24,7 +24,7 @@ const OpenGenre = ({ genre }: { genre: string }) => {
         data = await openRecent(genre); // genre로 호출
       }
       setopen6(data); // 데이터를 상태에 저장
-      console.log("Fetched data:", data); // 필요 시 데이터 확인
+
     } catch (error) {
       console.error("Error while fetching open recent events:", error);
     }

@@ -16,7 +16,7 @@ const AdminLoginComponent: React.FC = () => {
   const [adminPw, setPw] = useState("");
 
   const submitBtn = async (event: { preventDefault: () => void; }) => {
-    console.log("TEST START")
+
     event.preventDefault();
     const requestData = {
       id: adminId,
@@ -30,8 +30,6 @@ const AdminLoginComponent: React.FC = () => {
         // JSON.parse로 response.data.data를 파싱해야 함
         const resData = (response.data);  // response.data.data를 JSON.parse로 파싱
 
-        console.log(resData);  // 이제 resData에서 adminId, adminName을 사용할 수 있음
-
         // adminId와 adminName 추출
         admin.setAccessToken(response.headers["authorization"]);
         admin.setAdminId(resData.adminId);
@@ -40,7 +38,7 @@ const AdminLoginComponent: React.FC = () => {
 
         navi("/admin/event-list");
       },
-      (_error) => { console.log("TEST LOGIN FAILED") },
+      (_error) => {},
     );
   };
 

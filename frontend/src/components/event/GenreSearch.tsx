@@ -25,7 +25,7 @@ const GenreSearch = ({ genre }: { genre: string }) => {
     };
 
     const areaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        console.log("AREA CHAGNE", e.target.value, " : ", page)
+
         setArea(e.target.value);
     };
 
@@ -41,7 +41,7 @@ const GenreSearch = ({ genre }: { genre: string }) => {
     }, [page]); // page가 변경될 때마다 실행
 
     useEffect(() => {
-        console.log("CHANGE", area, period, genre);
+
         setPage(0); // 페이지 리셋
         setEvents([]); // 이벤트 초기화
 
@@ -72,7 +72,7 @@ const GenreSearch = ({ genre }: { genre: string }) => {
     }, [isLoading, page]); // page나 isLoading 상태 변경 시에만 동작하도록 설정
 
     const genreChoiceList = async () => {
-        console.log("PAGE" + page)
+
         if (page === -1) {
             return; // 마지막 페이지일 경우 더 이상 요청하지 않음
         }

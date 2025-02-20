@@ -49,8 +49,8 @@ const CustomerDetailModal: React.FC<ModalProps> = ({ isOpen, onClose, data }) =>
                 alert("유저가 제거 되었습니다.");
                 onClose();
                 window.location.reload();
-            }, (error) => {
-                console.log(error);
+            }, (_error) => {
+
                 alert("모든 예약을 취소해 주세요.");
             })
     }
