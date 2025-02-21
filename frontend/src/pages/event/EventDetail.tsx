@@ -930,10 +930,10 @@ const EventDetail: React.FC = () => {
                         <div className="flex chart-placeholder mb-[50px] h-[150px] rounded-md flex items-center justify-center">
                           <img src={manImg} className="w-[45px]" alt="" />
                           <div className="flex flex-col">
-                            <p className="mt-[0px]">
+                            <p className="mt-[0px] text-[13px]">
                               남자
                             </p>
-                            <p className="mt-[0px]">
+                            <p className="mt-[0px] text-[14px]">
                               {genderStatisticData[0]}명
                             </p>
                             <p className="text-[14px] text-[#5B4DFF]">
@@ -946,10 +946,10 @@ const EventDetail: React.FC = () => {
                           </div>
                           <img src={womanImg} className="w-[45px]" alt="" />
                           <div className="flex flex-col">
-                            <p className="mt-[0px]">
+                            <p className="mt-[0px] text-[13px]">
                               여자
                             </p>
-                            <p className="mt-[0px]">
+                            <p className="mt-[0px] text-[14px]">
                               {genderStatisticData[0]}명
                             </p>
                             <p className="text-[14px] text-[#5B4DFF]">
