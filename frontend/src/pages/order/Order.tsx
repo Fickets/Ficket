@@ -16,6 +16,7 @@ const STORE_ID: string = import.meta.env.VITE_STORE_ID;
 const CHANNEL_KEY: string = import.meta.env.VITE_CHANNEL_KEY;
 const PORTONE_WEBHOOK_URL: string = import.meta.env.VITE_PORTONE_WEBHOOK_URL;
 const WORK_WEBSOCKET_URL: string = import.meta.env.VITE_WORK_WEBSOCKET_URL;
+const REDIRECT_URL: string = import.meta.env.VITE_REDIRECT_URL;
 
 function Order() {
   const navigate = useNavigate();
@@ -89,6 +90,7 @@ function Order() {
         currency: "CURRENCY_KRW",
         channelKey: CHANNEL_KEY,
         payMethod: "EASY_PAY",
+        redirectUrl: REDIRECT_URL,
         easyPay: {
           easyPayProvider: "EASY_PAY_PROVIDER_KAKAOPAY",
         },
