@@ -117,32 +117,17 @@ const EventStatistics = ({ eventId }: { eventId: string }) => {
     await genderStatistic(
       Number(eventId),
       (response) => {
-        console.log(response); // 데이터 확인
-        const res: string = response.data;
 
-        if (!Array.isArray(res)) {
-          console.error('API 응답 데이터가 배열이 아닙니다.', res);
-          return;
-        }
+        const numericRes = response.data.map((item: any) => Number(item)).filter((item) => !isNaN(item)); // 숫자로 변환하고 NaN 제거
 
-        const numericRes = res
-          .split(',') // 예시로 콤마(,)로 구분된 문자열로 가정
-          .map(item => parseInt(item, 10))
-          .filter(item => !isNaN(item));  // NaN인 값은 필터링
-
-        const statisticData = numericRes.slice(0, 2);
-        const sum = statisticData.reduce(
-          (acc, currentValue) => acc + currentValue,
-          0,
-        );
+        const statisticData = numericRes.slice(0, 2); // 첫 두 항목만 추출
+        const sum = statisticData.reduce((acc, currentValue) => acc + currentValue, 0); // 합계 계산
 
         numericRes.slice(2).forEach((value) => {
           const ageStatistic = (value / sum) * 100;
           statisticData.push(ageStatistic);
         });
-
         setGenderStatisticData(statisticData);
-        console.log(statisticData);
       },
       (error: any) => {
         console.log(error.message);

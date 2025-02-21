@@ -14,7 +14,7 @@ export const eventDetail = async (
 
 export const genderStatistic = async (
   eventId: number,
-  Response: (Response: AxiosResponse<string>) => void,
+  Response: (Response: AxiosResponse<string[]>) => void,
   Error: (Error: AxiosResponse<ResponseData>) => void,
 ) => {
   await publicApi

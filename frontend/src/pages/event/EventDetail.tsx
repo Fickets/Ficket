@@ -221,22 +221,15 @@ const EventDetail: React.FC = () => {
     await genderStatistic(
       Number(eventId),
       (response) => {
-        const res: string = response.data;
 
-        // 문자열을 구분자로 분리해서 배열로 변환하고, 각 항목을 숫자로 변환
-        const numericRes = res
-          .split(",") // 예시로 콤마(,)로 구분된 문자열로 가정
-          .map((item) => parseInt(item, 10))
-          .filter((item) => !isNaN(item)); // NaN인 값은 필터링
+        // response.data가 이미 배열이므로 split을 사용할 필요 없이 바로 배열을 사용
+        const numericRes = response.data.map((item: any) => Number(item)).filter((item) => !isNaN(item)); // 숫자로 변환하고 NaN 제거
 
-        const statisticData = numericRes.slice(0, 2);
-        const sum = statisticData.reduce(
-          (acc, currentValue) => acc + currentValue,
-          0,
-        );
+        const statisticData = numericRes.slice(0, 2); // 첫 두 항목만 추출
+        const sum = statisticData.reduce((acc, currentValue) => acc + currentValue, 0); // 합계 계산
 
         numericRes.slice(2).forEach((value) => {
-          const ageStatistic = (value / sum) * 100;
+          const ageStatistic = Math.floor((value / sum) * 100);;
           statisticData.push(ageStatistic);
         });
 
@@ -830,7 +823,7 @@ const EventDetail: React.FC = () => {
           </div>
           <div className="flex">
             <img src={event.posterMobileUrl} alt="" />
-            <div className="ml-[30px] mt-[20px] min-w-[500px] max-w-[500px]">
+            <div className="ml-[30px] mt-[20px]">
               <div className="flex mb-[10px]">
                 <img src={mappin} alt="" />
                 <p className="ml-[5px] text-[12px]">{event.stageName}</p>
