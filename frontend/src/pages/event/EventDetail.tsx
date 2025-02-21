@@ -927,32 +927,33 @@ const EventDetail: React.FC = () => {
                       <div className="age-stat  p-4 rounded-md w-1/2 shadow-md border">
                         <h4 className="text-md font-medium mb-2">연령 통계</h4>
                         {/* 연령 통계 차트 이미지 또는 컴포넌트 */}
-                        <div className="flex chart-placeholder mb-[50px] h-[150px] rounded-md flex items-center justify-center">
-                          <img src={manImg} className="w-[50px]" alt="" />
-                          <div className="flex flex-col">
-                            <p className="mt-[0px]">
-                              남자 {genderStatisticData[0]}명
-                            </p>
-                            <p className="text-[15px] text-[#5B4DFF]">
-                              {(genderStatisticData[0] /
-                                (genderStatisticData[0] +
-                                  genderStatisticData[1])) *
-                                100}
-                              %
-                            </p>
+                        <div className="flex chart-placeholder mb-[50px] h-[150px] rounded-md items-center justify-between">
+                          {/* 남자 */}
+                          <div className="flex items-center">
+                            <img src={manImg} className="w-[40px] h-[40px] object-contain" alt="남자" />
+                            <div className="flex flex-col ml-[10px]">
+                              <p className="mt-[0px] text-[14px]">{`남자 ${genderStatisticData[0]}명`}</p>
+                              <p className="text-[12px] text-[#5B4DFF]">
+                                {Math.floor(
+                                  (genderStatisticData[0] / (genderStatisticData[0] + genderStatisticData[1])) * 100
+                                )}
+                                %
+                              </p>
+                            </div>
                           </div>
-                          <img src={womanImg} className="w-[50px]" alt="" />
-                          <div className="flex flex-col">
-                            <p className="mt-[0px]">
-                              여자 {genderStatisticData[1]}명
-                            </p>
-                            <p className="text-[15px] text-[#5B4DFF]">
-                              {(genderStatisticData[1] /
-                                (genderStatisticData[0] +
-                                  genderStatisticData[1])) *
-                                100}
-                              %
-                            </p>
+
+                          {/* 여자 */}
+                          <div className="flex items-center">
+                            <img src={womanImg} className="w-[40px] h-[40px] object-contain" alt="여자" />
+                            <div className="flex flex-col ml-[10px]">
+                              <p className="mt-[0px] text-[14px]">{`여자 ${genderStatisticData[1]}명`}</p>
+                              <p className="text-[12px] text-[#5B4DFF]">
+                                {Math.floor(
+                                  (genderStatisticData[1] / (genderStatisticData[0] + genderStatisticData[1])) * 100
+                                )}
+                                %
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1190,6 +1191,7 @@ const EventDetail: React.FC = () => {
           </div>
         </div>
         {/** 예매하기 버튼 */}
+        <div className="mt-[80px]"></div>
         <div>
           <button
             className="fixed bottom-0 left-0 w-full bg-[#8E43E7] text-white py-4 text-center"
