@@ -50,10 +50,10 @@ public class UserService {
     private final UserCustomRepository userCustomRepository;
 
     @Value("${login.cookie.domain}")
-    private final String COOKIE_DOMAIN;
+    private String COOKIE_DOMAIN;
 
     @Value("${login.secure}")
-    private final boolean isSecure;
+    private boolean isSecure;
 
     @Value("${jwt.refresh.header}")
     private String REFRESH_HEADER;
