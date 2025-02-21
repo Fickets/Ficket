@@ -27,12 +27,12 @@ const SelectDate: React.FC = () => {
   };
 
   const nextClick = async () => {
-    const checkSchedule = await checkScheduleTime(eventDetail.scheduleId)
+    const checkSchedule = await checkScheduleTime(eventDetail.scheduleId);
     if (checkSchedule) {
       notifyNavigation("NEXT_STEP");
       navi("/ticketing/select-seat");
     } else {
-      alert("예약 마감된 날짜입니다.")
+      alert("예약 마감된 날짜입니다.");
     }
   };
 
@@ -59,7 +59,7 @@ const SelectDate: React.FC = () => {
       const handleMessage = async () => {
         try {
           if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-            await releaseSlot(eventId);
+            await releaseSlot();
             alert("세션이 만료되었습니다. 창을 닫습니다.");
             ws.close();
             window.close();

@@ -103,7 +103,7 @@ function RegisterFace() {
       const handleMessage = async () => {
         try {
           if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-            await releaseSlot(eventId);
+            await releaseSlot();
             const payload = {
               eventScheduleId: eventScheduleId,
               seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
