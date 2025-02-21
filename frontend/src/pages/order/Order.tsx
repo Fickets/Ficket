@@ -33,6 +33,8 @@ function Order() {
   const eventStage = event.stageName;
   const eventDate = event.choiceDate;
   const eventTime = event.choiceTime;
+  const setPersistFaceId = event.setFaceId;
+  const setPersistFaceImg = event.setFaceImg;
 
   const [isWaitingPayment, setWaitingPayment] = useState<boolean>(false);
   const SEAT_FEE = 2000; // 수수료 per seat1
@@ -110,9 +112,27 @@ function Order() {
     }
   };
 
+  let wsInstance: WebSocket | null = null;
+
+  // 페이지 이동 시 웹소켓 메시지 전송
+  const notifyNavigation = (message: string) => {
+    if (wsInstance?.readyState === WebSocket.OPEN) {
+      wsInstance.send(message);
+    }
+  };
+
+  const handleBeforeStep = async () => {
+    setPersistFaceId(0);
+    setPersistFaceImg("");
+
+    notifyNavigation("BEFORE_STEP");
+
+    navigate(`/ticketing/register-face`);
+  };
+
   const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}/${eventScheduleId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {
@@ -122,8 +142,6 @@ function Order() {
     ws.onmessage = (event: MessageEvent) => {
       const handleMessage = async () => {
         try {
-          console.log("WebSocket 메시지 수신:", event.data);
-
           if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
             await releaseSlot(eventId);
             const payload = {
@@ -175,23 +193,10 @@ function Order() {
   };
 
   useEffect(() => {
-    let ws = connectWebSocket();
-
-    const handleUnload = async () => {
-      const payload = {
-        eventScheduleId: eventScheduleId,
-        seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
-      };
-      await unLockSeats(payload); // 좌석 선점 해제 API 호출
-    };
-
-    // 창 닫힘 이벤트 추가
-    window.addEventListener("unload", handleUnload);
+    wsInstance = connectWebSocket();
 
     return () => {
-      // 컴포넌트 언마운트 시 WebSocket 종료 및 이벤트 제거
-      ws.close();
-      window.removeEventListener("unload", handleUnload);
+      wsInstance?.close();
     };
   }, []);
 
@@ -261,11 +266,17 @@ function Order() {
             </div>
           </div>
 
-          {/* 결제 버튼 */}
-          <div className="p-4 sm:-mt-8">
+          <div className="p-4 flex justify-between sm:-mt-5">
+            <button
+              onClick={handleBeforeStep}
+              className="bg-[#666666] w-[45%] sm:w-auto px-4 py-2 text-white border border-black text-sm"
+            >
+              이전 단계
+            </button>
+
             <button
               onClick={handleSubmit}
-              className="w-full bg-red-500 text-white py-3 border border-black font-semibold text-lg rounded-md"
+              className="bg-[#CF1212] w-[45%] sm:w-auto px-4 py-2 text-white border border-black text-sm"
               disabled={isWaitingPayment}
             >
               {isWaitingPayment ? "결제 진행 중..." : "결제하기"}

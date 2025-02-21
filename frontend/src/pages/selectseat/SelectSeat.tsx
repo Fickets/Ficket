@@ -78,9 +78,19 @@ const SelectSeat = () => {
     return colors;
   };
 
+  let wsInstance: WebSocket | null = null;
+
+  // 페이지 이동 시 웹소켓 메시지 전송
+  const notifyNavigation = (message: string) => {
+    if (wsInstance?.readyState === WebSocket.OPEN) {
+      wsInstance.send(message);
+      console.log("WebSocket 이동 메시지 전송:", message);
+    }
+  };
+
   const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}/${eventScheduleId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {
@@ -143,18 +153,10 @@ const SelectSeat = () => {
   useEffect(() => {
     loadEventData();
 
-    // WebSocket 연결
-    let ws = connectWebSocket();
-
-    const handleBeforeUnload = () => {
-      ws.close();
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    wsInstance = connectWebSocket();
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      ws.close();
+      wsInstance?.close();
     };
   }, [eventScheduleId]);
 
@@ -203,6 +205,8 @@ const SelectSeat = () => {
 
         setSelectedSeats(selectedSeats);
 
+        notifyNavigation("NEXT_STEP");
+
         navigate("/ticketing/register-face");
       } catch (error: any) {
         alert(`${error.message}`);
@@ -211,6 +215,7 @@ const SelectSeat = () => {
   };
 
   const handleBeforeStep = () => {
+    notifyNavigation("BEFORE_STEP");
     navigate("/ticketing/select-date");
   };
 

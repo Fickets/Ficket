@@ -43,6 +43,8 @@ function RegisterFace() {
       setPersistFaceId(0);
       setPersistFaceImg("");
 
+      notifyNavigation("BEFORE_STEP");
+
       navigate(`/ticketing/select-seat`);
     } catch (error) {
       console.error("Error locking seats:", error);
@@ -71,15 +73,26 @@ function RegisterFace() {
       setPersistFaceId(faceId);
       setPersistFaceImg(faceUrl);
 
+      notifyNavigation("NEXT_STEP");
+
       navigate("/ticketing/order");
     } catch (error: any) {
       alert(error.message);
     }
   };
 
+  let wsInstance: WebSocket | null = null;
+
+  // 페이지 이동 시 웹소켓 메시지 전송
+  const notifyNavigation = (message: string) => {
+    if (wsInstance?.readyState === WebSocket.OPEN) {
+      wsInstance.send(message);
+    }
+  };
+
   const connectWebSocket = () => {
     const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}?Authorization=${encodedToken}`;
+    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}/${eventScheduleId}?Authorization=${encodedToken}`;
     const ws = new WebSocket(WEBSOCKET_URL);
 
     ws.onopen = () => {
@@ -125,23 +138,10 @@ function RegisterFace() {
   };
 
   useEffect(() => {
-    let ws = connectWebSocket();
-
-    const handleUnload = async () => {
-      const payload = {
-        eventScheduleId: eventScheduleId,
-        seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
-      };
-      await unLockSeats(payload); // 좌석 선점 해제 API 호출
-    };
-
-    // 창 닫힘 이벤트 추가
-    window.addEventListener("unload", handleUnload);
+    wsInstance = connectWebSocket();
 
     return () => {
-      // 컴포넌트 언마운트 시 WebSocket 종료 및 이벤트 제거
-      ws.close();
-      window.removeEventListener("unload", handleUnload);
+      wsInstance?.close();
     };
   }, []);
 

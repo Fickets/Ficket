@@ -8,37 +8,81 @@ import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { releaseSlot } from "../../service/queue/api.ts";
 import { Helmet } from "react-helmet-async";
+import { WorkStatus } from "../../types/queue.ts";
+import { userStore } from "../../stores/UserStore.tsx";
+
+const WORK_WEBSOCKET_URL: string = import.meta.env.VITE_WORK_WEBSOCKET_URL;
 
 const SelectDate: React.FC = () => {
   const eventDetail = useStore(eventDetailStore);
   const eventDate = Object.keys(eventDetail.scheduleMap);
   const [round, setRound] = useState<number | null>(null); // 선택된 날짜 상태
   const navi = useNavigate();
-
+  const eventId = eventDetail.eventId;
+  const eventScheduleId = eventDetail.scheduleId;
+  const user = useStore(userStore);
 
   const handleRoundSelect = (round: number) => {
     setRound(round); // 날짜 선택 시 choiceDate 상태 업데이트
   };
 
   const nextClick = () => {
+    notifyNavigation("NEXT_STEP");
     navi("/ticketing/select-seat");
   };
 
-  useEffect(() => {
-    // 창 닫힘 이벤트 처리
-    const handleReleaseSlot = async () => {
-      try {
-        await releaseSlot(eventDetail.eventId);
-        console.log("Slot released successfully.");
-      } catch (error) {
-        console.error("Error releasing slot:", error);
-      }
+  let wsInstance: WebSocket | null = null;
+
+  // 페이지 이동 시 웹소켓 메시지 전송
+  const notifyNavigation = (message: string) => {
+    if (wsInstance?.readyState === WebSocket.OPEN) {
+      wsInstance.send(message);
+      console.log("WebSocket 이동 메시지 전송:", message);
+    }
+  };
+
+  const connectWebSocket = () => {
+    const encodedToken = encodeURIComponent(user.accessToken);
+    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}/${eventScheduleId}?Authorization=${encodedToken}`;
+    const ws = new WebSocket(WEBSOCKET_URL);
+
+    ws.onopen = () => {
+      console.log("WebSocket 연결 성공");
     };
 
-    window.addEventListener("unload", handleReleaseSlot);
+    ws.onmessage = (event: MessageEvent) => {
+      const handleMessage = async () => {
+        try {
+          if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
+            await releaseSlot(eventId);
+            alert("세션이 만료되었습니다. 창을 닫습니다.");
+            ws.close();
+            window.close();
+          }
+        } catch (error) {
+          console.error("WebSocket 메시지 처리 중 오류 발생:", error);
+        }
+      };
+
+      handleMessage();
+    };
+
+    ws.onclose = (event: CloseEvent) => {
+      console.log("WebSocket 연결 종료:", event.reason);
+    };
+
+    ws.onerror = (error: Event) => {
+      console.error("WebSocket 오류:", error);
+    };
+
+    return ws;
+  };
+
+  useEffect(() => {
+    wsInstance = connectWebSocket();
 
     return () => {
-      window.removeEventListener("unload", handleReleaseSlot);
+      wsInstance?.close();
     };
   }, []);
 
