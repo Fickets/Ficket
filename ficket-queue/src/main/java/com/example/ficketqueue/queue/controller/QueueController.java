@@ -43,7 +43,7 @@ public class QueueController {
      * 변경 이력:
      * - 2024-12-17 오형상: 초기 작성
      */
-    @GetMapping("{eventId}/my-status")
+    @GetMapping("/{eventId}/my-status")
     public Mono<MyQueueStatusResponse> getQueueStatus(@RequestHeader("X-User-Id") String userId,
                                                       @PathVariable String eventId) {
         return queueService.getMyQueueStatus(userId, eventId);
@@ -119,16 +119,17 @@ public class QueueController {
     }
 
     /**
-     * 해당 이벤트의 슬롯 해체 API (테스트용)
+     * 해당 이벤트의 슬롯 해체 API 
      * <p>
      * 작업자: 오형상
      * 작업 날짜: 2024-12-19
      * 변경 이력:
      * - 2024-12-19 오형상: 초기 작성
+     * - 2025-02-21 오형상: eventId 인수 추가 및 함수 수정
      */
-    @DeleteMapping("/release-slot")
-    public Mono<Void> releaseSlot(@RequestHeader("X-User-Id") String userId) {
-        return slotService.releaseSlotByUserId(userId);
+    @DeleteMapping("/{eventId}/release-slot")
+    public Mono<Void> releaseSlot(@PathVariable String eventId, @RequestHeader("X-User-Id") String userId) {
+        return slotService.releaseSlotByEventIdAndUserId(eventId, userId);
     }
 
     /**

@@ -115,26 +115,6 @@ public class SlotService {
         }).then();
     }
 
-    /**
-     * 슬롯 해제 (사용자 기반).
-     *
-     * @param userId 사용자 ID
-     */
-    public Mono<Void> releaseSlotByUserId(String userId) {
-        return findEventIdByUserId(userId)
-                .flatMap(eventId -> {
-                    if (eventId == null) {
-                        log.warn("releaseSlotByUserId: userId={}에 대한 eventId를 찾을 수 없음", userId);
-                        return Mono.empty(); // eventId가 없으면 아무 작업도 수행하지 않음
-                    }
-
-                    String workspaceKey = KeyHelper.getFicketWorkSpace(eventId, userId);
-
-                    return releaseSlot(eventId)
-                            .then(deleteWorkSpace(workspaceKey)); // Lua 스크립트를 사용해 워크스페이스 삭제
-                });
-    }
-
     public Mono<Void> releaseSlotByEventIdAndUserId(String eventId, String userId) {
         String workSpaceKey = KeyHelper.getFicketWorkSpace(eventId, userId);
 
@@ -179,14 +159,6 @@ public class SlotService {
                 .singleOrEmpty() // Flux<Long> -> Mono<Long>
                 .map(result -> result != null && result == 1) // 결과 값이 1이면 true 반환
                 .defaultIfEmpty(false); // 결과 값이 없으면 false 반환
-    }
-
-    private Mono<String> findEventIdByUserId(String userId) {
-        return workReactiveRedisTemplate.keys("ficket:workspace:*:" + userId)
-                .collectList() // Flux<String> -> Mono<List<String>>
-                .filter(keys -> !keys.isEmpty()) // 빈 리스트는 필터링
-                .map(keys -> keys.get(0).split(":")[2]) // 첫 번째 키에서 eventId 추출
-                .defaultIfEmpty(null); // 키가 없을 경우 null 반환
     }
 
     /**
