@@ -166,6 +166,7 @@ function Order() {
             ws.close();
             navigate(`/ticketing/register-face`);
           } else if (event.data === WorkStatus.ORDER_PAID) {
+            await releaseSlot(eventId);
             const payload = {
               eventScheduleId: eventScheduleId,
               seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
