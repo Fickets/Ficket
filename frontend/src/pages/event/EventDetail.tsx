@@ -925,43 +925,48 @@ const EventDetail: React.FC = () => {
                     <h3 className="text-lg font-medium mb-4">예매자 통계</h3>
                     <div className="stats-container flex gap-6">
                       <div className="age-stat  p-4 rounded-md w-1/2 shadow-md border">
-                        <h4 className="text-md font-medium mb-2">연령 통계</h4>
+                        <h4 className="text-md font-medium mb-2">성별 통계</h4>
                         {/* 연령 통계 차트 이미지 또는 컴포넌트 */}
-                        <div className="flex chart-placeholder mb-[50px] h-[150px] rounded-md items-center justify-between">
-                          {/* 남자 */}
-                          <div className="flex items-center">
-                            <img src={manImg} className="w-[40px] h-[40px] object-contain" alt="남자" />
-                            <div className="flex flex-col ml-[10px]">
-                              <p className="mt-[0px] text-[14px]">{`남자 ${genderStatisticData[0]}명`}</p>
-                              <p className="text-[12px] text-[#5B4DFF]">
-                                {Math.floor(
-                                  (genderStatisticData[0] / (genderStatisticData[0] + genderStatisticData[1])) * 100
-                                )}
-                                %
-                              </p>
-                            </div>
+                        <div className="flex chart-placeholder mb-[50px] h-[150px] rounded-md flex items-center justify-center">
+                          <img src={manImg} className="w-[45px]" alt="" />
+                          <div className="flex flex-col">
+                            <p className="mt-[0px]">
+                              남자
+                            </p>
+                            <p className="mt-[0px]">
+                              {genderStatisticData[0]}명
+                            </p>
+                            <p className="text-[14px] text-[#5B4DFF]">
+                              {(genderStatisticData[0] /
+                                (genderStatisticData[0] +
+                                  genderStatisticData[1])) *
+                                100}
+                              %
+                            </p>
                           </div>
-
-                          {/* 여자 */}
-                          <div className="flex items-center">
-                            <img src={womanImg} className="w-[40px] h-[40px] object-contain" alt="여자" />
-                            <div className="flex flex-col ml-[10px]">
-                              <p className="mt-[0px] text-[14px]">{`여자 ${genderStatisticData[1]}명`}</p>
-                              <p className="text-[12px] text-[#5B4DFF]">
-                                {Math.floor(
-                                  (genderStatisticData[1] / (genderStatisticData[0] + genderStatisticData[1])) * 100
-                                )}
-                                %
-                              </p>
-                            </div>
+                          <img src={womanImg} className="w-[45px]" alt="" />
+                          <div className="flex flex-col">
+                            <p className="mt-[0px]">
+                              여자
+                            </p>
+                            <p className="mt-[0px]">
+                              {genderStatisticData[0]}명
+                            </p>
+                            <p className="text-[14px] text-[#5B4DFF]">
+                              {(genderStatisticData[1] /
+                                (genderStatisticData[0] +
+                                  genderStatisticData[1])) *
+                                100}
+                              %
+                            </p>
                           </div>
                         </div>
                       </div>
-                      <div className="gender-stat p-4 rounded-md w-1/2 shadow-md border">
-                        <h4 className="text-md font-medium mb-2">성별 통계</h4>
+                      <div className="gender-stat rounded-md w-1/2 shadow-md border">
+                        <h4 className="text-md font-medium mb-2 pl-4 pt-4">연령 통계</h4>
                         {/* 성별 통계 차트 이미지 또는 컴포넌트 */}
-                        <div className="chart-placeholder h-[150px] rounded-md flex items-center justify-center">
-                          <Bar data={chartData} options={chartOptions} />
+                        <div className="chart-placeholder  h-[150px] rounded-md flex items-center justify-center">
+                          <Bar data={chartData} options={chartOptions} height={1000} width={1300} />
                         </div>
                       </div>
                     </div>
