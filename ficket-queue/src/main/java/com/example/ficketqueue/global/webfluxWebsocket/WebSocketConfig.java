@@ -26,7 +26,7 @@ public class WebSocketConfig {
         Map<String, Object> handlerMap = new HashMap<>();
 
         // 동적 Path 지원
-        handlerMap.put("/work-status/{eventId}", workWebSocketHandler);
+        handlerMap.put("/work-status/{eventId}/{eventScheduleId}", workWebSocketHandler);
         handlerMap.put("/queue-status/{eventId}", queueStatusWebSocketHandler);
 
         SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();

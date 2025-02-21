@@ -26,4 +26,15 @@ public class WebSocketUrlParser {
 
         return parts[parts.length - 1]; // 마지막 부분을 이벤트 ID로 반환
     }
+
+    public static String[] getEventAndScheduleFromUri(WebSocketSession session) {
+        String path = session.getHandshakeInfo().getUri().getPath();
+        String[] pathSegments = path.split("/");
+
+        if (pathSegments.length < 4) {
+            return null; // "/work-status/{eventId}/{eventScheduleId}" 형태가 아니면 null 반환
+        }
+
+        return new String[]{pathSegments[2], pathSegments[3]}; // [eventId, eventScheduleId] 반환
+    }
 }

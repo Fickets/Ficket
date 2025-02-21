@@ -9,7 +9,6 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
@@ -31,6 +30,7 @@ public class SlotService {
     private final ReactiveRedisTemplate<String, String> workReactiveRedisTemplate;
     @Qualifier("slotReactiveRedisTemplate")
     private final ReactiveRedisTemplate<String, String> slotReactiveRedisTemplate;
+    private final EventServiceClient eventServiceClient;
 
     private static final String OCCUPY_SLOT_SCRIPT = LuaScriptLoader.loadScript("lua/occupy_slot.lua");
     private static final String RELEASE_SLOT_SCRIPT = LuaScriptLoader.loadScript("lua/release_slot.lua");
@@ -222,4 +222,11 @@ public class SlotService {
                 });
     }
 
+    public Mono<Void> unLockSeats(String eventScheduleId, String userId) {
+        return eventServiceClient.unLockSeatByEventScheduleIdAndUserId(eventScheduleId, userId);
+    }
+
+    public Mono<String> getUserIdBySeatLock(String eventScheduleId, String seatMappingId) {
+        return eventServiceClient.getUserIdBySeatLock(eventScheduleId, seatMappingId);
+    }
 }

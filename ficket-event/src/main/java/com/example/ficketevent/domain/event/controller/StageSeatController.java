@@ -73,7 +73,7 @@ public class StageSeatController {
      * - 2024-11-28 오형상: 초기 작성
      */
     @PostMapping("/seat/lock")
-    public ResponseEntity<Void> lockSeats (@RequestBody SelectSeat req, @RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<Void> lockSeats(@RequestBody SelectSeat req, @RequestHeader("X-User-Id") String userId) {
         preoccupyService.lockSeat(req, Long.parseLong(userId));
         return ResponseEntity.ok().build();
     }
@@ -156,12 +156,43 @@ public class StageSeatController {
      * - 2024-12-19 최용수: 초기 작성
      */
     @GetMapping("/customer-ticket-info")
-    public TicketSimpleInfo getTicketSimpleInfo(@RequestParam Long ticketId){
-        return  stageSeatService.getTicketSimpleInfo(ticketId);
+    public TicketSimpleInfo getTicketSimpleInfo(@RequestParam Long ticketId) {
+        return stageSeatService.getTicketSimpleInfo(ticketId);
     }
 
     @GetMapping("/count-ticket/{ticketId}")
-    public Long getBuyTicketCount(@PathVariable Long ticketId){
+    public Long getBuyTicketCount(@PathVariable Long ticketId) {
         return stageSeatService.ticketSeatCount(ticketId);
+    }
+
+    /**
+     * 해당 유저의 좌석 선점 해제 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2025-02-20
+     * 변경 이력:
+     * - 2025-02-20 오형상: 초기 작성
+     */
+    @DeleteMapping("/unlock-seats")
+    ResponseEntity<Void> unLockSeatByEventScheduleIdAndUserId(
+            @RequestParam("eventScheduleId") String eventScheduleId,
+            @RequestParam("userId") String userId) {
+        preoccupyService.unLockSeatByEventScheduleIdAndUserId(eventScheduleId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 좌석 락으로 부터 userId 조회 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2025-02-21
+     * 변경 이력:
+     * - 2025-02-21 오형상: 초기 작성
+     */
+    @GetMapping("/userId")
+    ResponseEntity<String> getUserIdBySeatLock(
+            @RequestParam("eventScheduleId") String eventScheduleId,
+            @RequestParam("seatMappingId") String seatMappingId) {
+        return ResponseEntity.ok(preoccupyService.getUserIdBySeatLock(eventScheduleId, seatMappingId));
     }
 }

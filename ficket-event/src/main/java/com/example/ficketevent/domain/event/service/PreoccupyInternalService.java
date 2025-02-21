@@ -5,7 +5,7 @@ import com.example.ficketevent.global.config.redisson.RedisTTLConstants;
 import com.example.ficketevent.global.utils.RedisKeyHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
@@ -49,29 +49,31 @@ public class PreoccupyInternalService {
     }
 
     private void storeSeatInfo(Long eventScheduleId, Long userId, Long seatMappingId, String seatGrade, BigDecimal seatPrice) {
-        String seatKey = RedisKeyHelper.getSeatKey(eventScheduleId);
-        RMap<String, String> seatStates = redissonClient.getMap(seatKey);
+        String seatKey = RedisKeyHelper.getSeatKey(eventScheduleId);  // "seat_{eventScheduleId}" 형태의 키 생성
+        RMapCache<String, String> seatStates = redissonClient.getMapCache(seatKey); // TTL 지원하는 MapCache 사용
 
-        String seatField = generateSeatField(seatMappingId);
-        String seatInfo = generateSeatInfo(userId, seatGrade, seatPrice);
-        seatStates.put(seatField, seatInfo);
+        String seatField = generateSeatField(seatMappingId);  // "seat_101" 형태의 필드명 생성
+        String seatInfo = generateSeatInfo(userId, seatGrade, seatPrice); // 좌석 정보 JSON 생성
 
-        setKeyExpiration(seatKey);
+        // 좌석 정보 저장 + 개별 TTL 설정 (9분 후 자동 만료)
+        seatStates.put(seatField, seatInfo, 540L, RedisTTLConstants.SEAT_LOCK_TIME_UNIT);
+
+        log.info("이벤트 {}의 좌석 {} 정보가 {}초 TTL과 함께 저장되었습니다.", eventScheduleId, seatMappingId, RedisTTLConstants.SEAT_LOCK_LEASE_TIME);
     }
 
     private void storeUserEventInfo(Long eventScheduleId, Long userId, Long seatMappingId) {
         String userKey = RedisKeyHelper.getUserKey(userId);
-        RMap<String, String> userEvents = redissonClient.getMap(userKey);
+        RMapCache<String, String> userEvents = redissonClient.getMapCache(userKey);
 
         String eventField = generateEventField(eventScheduleId);
-        userEvents.merge(eventField, formatSeatId(seatMappingId), (existing, newValue) -> mergeSeatIds(existing, seatMappingId));
 
-        setKeyExpiration(userKey);
+        userEvents.put(eventField, userEvents.compute(eventField,
+                        (key, existingSeats) -> mergeSeatIds(existingSeats, seatMappingId)),
+                540L, RedisTTLConstants.SEAT_LOCK_TIME_UNIT);
+
+        log.info("사용자 {}의 이벤트 {} 좌석 정보를 {}초 TTL과 함께 저장했습니다.", userId, eventScheduleId, RedisTTLConstants.SEAT_LOCK_LEASE_TIME);
     }
 
-    private void setKeyExpiration(String key) {
-        redissonClient.getBucket(key).expire(RedisTTLConstants.SEAT_LOCK_LEASE_TIME, RedisTTLConstants.SEAT_LOCK_TIME_UNIT);
-    }
 
     private String generateSeatField(Long seatMappingId) {
         return "seat_" + seatMappingId;
