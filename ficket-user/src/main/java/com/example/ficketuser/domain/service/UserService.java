@@ -49,6 +49,9 @@ public class UserService {
     private final TicketMapper ticketMapper;
     private final UserCustomRepository userCustomRepository;
 
+    @Value("${login.cookie.domain}")
+    private final String COOKIE_DOMAIN;
+
     @Value("${jwt.refresh.header}")
     private String REFRESH_HEADER;
 
@@ -144,11 +147,17 @@ public class UserService {
         // 쿠키 삭제
         Cookie cookie = new Cookie(REFRESH_HEADER, "");
         cookie.setMaxAge(0);
+        cookie.setSecure(true);
+        cookie.setDomain(COOKIE_DOMAIN);
+        cookie.setHttpOnly(false);
         cookie.setPath("/");
         response.addCookie(cookie);
         Cookie cookie2 = new Cookie("isLogin", "false");
         cookie2.setMaxAge(1209600000); // 2주
         cookie2.setPath("/");
+        cookie2.setSecure(true);
+        cookie2.setDomain(COOKIE_DOMAIN);
+        cookie2.setHttpOnly(false);
         response.addCookie(cookie2);
         // 로그아웃시 홈으로 보내버리기
         // response.redirect("HOME_ADDRESS") 이거 좋을듯
@@ -246,10 +255,16 @@ public class UserService {
         Cookie cookie = new Cookie(REFRESH_HEADER, "");
         cookie.setMaxAge(0);
         cookie.setPath("/");
+        cookie.setSecure(true);
+        cookie.setDomain(COOKIE_DOMAIN);
+        cookie.setHttpOnly(false);
         response.addCookie(cookie);
         Cookie cookie2 = new Cookie("isLogin", "false");
         cookie2.setMaxAge(1209600000); // 2주
         cookie2.setPath("/");
+        cookie2.setSecure(true);
+        cookie2.setDomain(COOKIE_DOMAIN);
+        cookie2.setHttpOnly(false);
         response.addCookie(cookie2);
 
         userRepository.delete(user);
