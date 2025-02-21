@@ -52,6 +52,9 @@ public class UserService {
     @Value("${login.cookie.domain}")
     private final String COOKIE_DOMAIN;
 
+    @Value("${login.secure}")
+    private final boolean isSecure;
+
     @Value("${jwt.refresh.header}")
     private String REFRESH_HEADER;
 
@@ -147,7 +150,7 @@ public class UserService {
         // 쿠키 삭제
         Cookie cookie = new Cookie(REFRESH_HEADER, "");
         cookie.setMaxAge(0);
-        cookie.setSecure(true);
+        cookie.setSecure(isSecure);
         cookie.setDomain(COOKIE_DOMAIN);
         cookie.setHttpOnly(false);
         cookie.setPath("/");
@@ -155,7 +158,7 @@ public class UserService {
         Cookie cookie2 = new Cookie("isLogin", "false");
         cookie2.setMaxAge(1209600000); // 2주
         cookie2.setPath("/");
-        cookie2.setSecure(true);
+        cookie2.setSecure(isSecure);
         cookie2.setDomain(COOKIE_DOMAIN);
         cookie2.setHttpOnly(false);
         response.addCookie(cookie2);
