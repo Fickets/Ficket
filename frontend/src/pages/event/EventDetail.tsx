@@ -924,8 +924,8 @@ const EventDetail: React.FC = () => {
                   <div className="stats-section">
                     <h3 className="text-lg font-medium mb-4">예매자 통계</h3>
                     <div className="stats-container flex gap-6">
-                      <div className="age-stat  p-4 rounded-md w-1/2 shadow-md border">
-                        <h4 className="text-md font-medium mb-2">성별 통계</h4>
+                      <div className="age-stat  rounded-md w-1/2 shadow-md border">
+                        <h4 className="text-md pl-4 pt-4 font-medium mb-2">성별 통계</h4>
                         {/* 연령 통계 차트 이미지 또는 컴포넌트 */}
                         <div className="flex chart-placeholder mb-[50px] h-[150px] rounded-md flex items-center justify-center">
                           <img src={manImg} className="w-[45px]" alt="" />
