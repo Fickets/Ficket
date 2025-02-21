@@ -24,7 +24,7 @@ import GenreChoice from "./pages/event/GenreChoice.tsx";
 import FaceDetectionPage from "./pages/ticketCheck/customerCheck.tsx";
 import EventCheckPage from "./pages/ticketCheck/eventCheck.tsx";
 import ManagerCheckPage from "./pages/ticketCheck/managerCheck.tsx";
-
+import OrderComplete from "./pages/order/OrderComplete.tsx";
 
 export default function Router() {
   return (
@@ -56,6 +56,7 @@ export default function Router() {
       <Route path="ticketing/select-seat" element={<SelectSeat />} />
       <Route path="ticketing/register-face" element={<RegisterFace />} />
       <Route path="ticketing/order" element={<Order />} />
+      <Route path="ticketing/order-complete" element={<OrderComplete />} />
 
       {/* FICKET USER EVENT  */}
       <Route path="events/detail/:eventId" element={<EventDetailPage />} />
