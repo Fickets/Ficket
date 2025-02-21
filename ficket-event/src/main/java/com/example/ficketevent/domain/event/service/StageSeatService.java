@@ -7,7 +7,6 @@ import com.example.ficketevent.domain.event.dto.request.SelectSeatInfo;
 import com.example.ficketevent.domain.event.dto.response.*;
 import com.example.ficketevent.domain.event.entity.*;
 import com.example.ficketevent.domain.event.enums.Genre;
-import com.example.ficketevent.domain.event.enums.Period;
 import com.example.ficketevent.domain.event.mapper.StageSeatMapper;
 import com.example.ficketevent.domain.event.messagequeue.SeatMappingProducer;
 import com.example.ficketevent.domain.event.repository.EventScheduleRepository;
@@ -19,7 +18,7 @@ import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.RedisKeyHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -150,7 +149,7 @@ public class StageSeatService {
         Set<Long> lockedSeatSet = new HashSet<>();
         try {
             String seatKey = RedisKeyHelper.getSeatKey(eventScheduleId); // 키 생성
-            RMap<String, String> seatStates = redissonClient.getMap(seatKey);
+            RMapCache<String, String> seatStates = redissonClient.getMapCache(seatKey);
 
             for (String seatField : seatStates.keySet()) {
                 try {
@@ -199,7 +198,7 @@ public class StageSeatService {
 
     public ReservedSeatsResponse getReservedSeats(Long userId, Long eventScheduleId) {
         String userKey = RedisKeyHelper.getUserKey(userId); // 키 생성
-        RMap<String, String> userEvents = redissonClient.getMap(userKey);
+        RMapCache<String, String> userEvents = redissonClient.getMapCache(userKey);
 
         String eventField = "event_" + eventScheduleId;
 
@@ -364,9 +363,9 @@ public class StageSeatService {
         return reservationLimit - count;
     }
 
-    public TicketSimpleInfo getTicketSimpleInfo(Long ticketId){
+    public TicketSimpleInfo getTicketSimpleInfo(Long ticketId) {
         List<SeatMapping> seatMappings = seatMappingRepository.findAllByTicketId(ticketId);
-        if (!seatMappings.isEmpty()){
+        if (!seatMappings.isEmpty()) {
             SeatMapping seatMapping = seatMappings.get(0);
             EventSchedule eventSchedule = seatMapping.getEventSchedule();
             Event event = eventSchedule.getEvent();
@@ -388,7 +387,7 @@ public class StageSeatService {
         return TicketSimpleInfo.builder().build();
     }
 
-    public Long ticketSeatCount(Long ticketId){
+    public Long ticketSeatCount(Long ticketId) {
         List<SeatMapping> seatMappings = seatMappingRepository.findAllByTicketId(ticketId);
         return (long) seatMappings.size();
     }
