@@ -36,6 +36,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final String SUSPENDED_URL;
     private final String ADDITIONAL_INFO_URL;
     private final String COOKIE_DOMAIN;
+    private final boolean SECURE;
 
 
     public CustomSuccessHandler(JwtUtils jwtUtils, UserTokenRedisRepository userTokenRedisRepository, UserRepository userRepository,
@@ -45,7 +46,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                 @Value("${login.redirect-url}") String redirectUrl,
                                 @Value("${login.suspended-url}") String suspendedUrl,
                                 @Value("${login.additional-info-url}") String additionalInfoUrl,
-                                @Value("${login.cookie.domain}") String domain
+                                @Value("${login.cookie.domain}") String domain,
+                                @Value("${login.secure}") boolean isSecure
     ) {
         this.jwtUtils = jwtUtils;
         this.userTokenRedisRepository = userTokenRedisRepository;
@@ -57,6 +59,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         this.SUSPENDED_URL = suspendedUrl;
         this.ADDITIONAL_INFO_URL = additionalInfoUrl;
         this.COOKIE_DOMAIN = domain;
+        this.SECURE = isSecure;
     }
 
 
@@ -107,7 +110,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
         cookie.setPath("/");
-        cookie.setSecure(true);
+        cookie.setSecure(SECURE);
         cookie.setDomain(COOKIE_DOMAIN);
         cookie.setHttpOnly(false);
         return cookie;
