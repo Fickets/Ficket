@@ -277,6 +277,7 @@ const EventDetail: React.FC = () => {
         event.setPartitionPrice(res.partitionPrice);
         event.setScheduleMap(res.scheduleMap);
         event.setScheduleId(0);
+        event.setTicketingStep(false);
         setEventId(Number(eventId));
       },
       (_error) => { },
