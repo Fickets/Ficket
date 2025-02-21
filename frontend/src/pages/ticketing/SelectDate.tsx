@@ -10,7 +10,7 @@ import { releaseSlot } from "../../service/queue/api.ts";
 import { Helmet } from "react-helmet-async";
 import { WorkStatus } from "../../types/queue.ts";
 import { userStore } from "../../stores/UserStore.tsx";
-
+import { checkScheduleTime } from "../../service/event/eventApi.ts";
 const WORK_WEBSOCKET_URL: string = import.meta.env.VITE_WORK_WEBSOCKET_URL;
 
 const SelectDate: React.FC = () => {
@@ -26,9 +26,14 @@ const SelectDate: React.FC = () => {
     setRound(round); // 날짜 선택 시 choiceDate 상태 업데이트
   };
 
-  const nextClick = () => {
-    notifyNavigation("NEXT_STEP");
-    navi("/ticketing/select-seat");
+  const nextClick = async () => {
+    const checkSchedule = await checkScheduleTime(eventDetail.scheduleId)
+    if (checkSchedule) {
+      notifyNavigation("NEXT_STEP");
+      navi("/ticketing/select-seat");
+    } else {
+      alert("예약 마감된 날짜입니다.")
+    }
   };
 
   let wsInstance: WebSocket | null = null;
