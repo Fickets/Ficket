@@ -55,6 +55,7 @@ function Order() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setWaitingPayment(true);
+    notifyNavigation("NEXT_STEP");
 
     const paymentId = randomId();
 
