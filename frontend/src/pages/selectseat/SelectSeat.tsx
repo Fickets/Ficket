@@ -101,7 +101,7 @@ const SelectSeat = () => {
       const handleMessage = async () => {
         try {
           if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-            await releaseSlot();
+            await releaseSlot(eventId);
             alert("세션이 만료되었습니다. 창을 닫습니다.");
             ws.close();
             window.close();

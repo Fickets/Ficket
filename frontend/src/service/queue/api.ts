@@ -32,11 +32,11 @@ export const occupySlot = async (eventId: string): Promise<boolean> => {
   }
 };
 
-export const releaseSlot = async (): Promise<void> => {
+export const releaseSlot = async (eventId: string): Promise<void> => {
   try {
-    await privateApi.delete(`/queues/release-slot`);
+    await privateApi.delete(`/queues/${eventId}/release-slot`);
   } catch (error) {
-    console.error(`Error occupying slot for event :`, error);
+    console.error(`Error occupying slot for event ${eventId}:`, error);
     throw error;
   }
 };

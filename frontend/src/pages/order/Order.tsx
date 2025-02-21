@@ -146,7 +146,7 @@ function Order() {
       const handleMessage = async () => {
         try {
           if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-            await releaseSlot();
+            await releaseSlot(eventId);
             const payload = {
               eventScheduleId: eventScheduleId,
               seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
@@ -166,7 +166,7 @@ function Order() {
             ws.close();
             navigate(`/ticketing/register-face`);
           } else if (event.data === WorkStatus.ORDER_PAID) {
-            await releaseSlot();
+            await releaseSlot(eventId);
             const payload = {
               eventScheduleId: eventScheduleId,
               seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
