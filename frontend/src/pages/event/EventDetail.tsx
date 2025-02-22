@@ -40,6 +40,7 @@ import mappin from "../../assets/detail/MapPin.png";
 import calendar from "../../assets/detail/Calendar.png";
 import calculator from "../../assets/detail/Calculator.png";
 import { Value } from "react-calendar/dist/esm/shared/types.js";
+import DOMPurify from "dompurify";
 const EventDetail: React.FC = () => {
   const { eventId } = useParams();
   const navi = useNavigate();
@@ -480,7 +481,6 @@ const EventDetail: React.FC = () => {
                             : "bg-white"
                         }`}
                         onClick={(e) => roundButtonClick(e)}
-                        // onClick={setSelectedButton(key)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
                         <p>
@@ -537,7 +537,14 @@ const EventDetail: React.FC = () => {
             <div className="mt-6">
               {activeTab === "performance" && (
                 <div>
-                  <div dangerouslySetInnerHTML={{ __html: event.content }} />
+                  <div
+                    className="prose"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(event.content, {
+                        FORBID_TAGS: ["svg", "math"],
+                      }),
+                    }}
+                  />
                   <br></br>
                   {/* 예매자 통계 영역 */}
                   <div className="stats-section">
@@ -921,7 +928,11 @@ const EventDetail: React.FC = () => {
                 <div>
                   <div
                     className="prose"
-                    dangerouslySetInnerHTML={{ __html: event.content }}
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(event.content, {
+                        FORBID_TAGS: ["svg", "math"],
+                      }),
+                    }}
                   />
                   <br></br>
                   {/* 예매자 통계 영역 */}
