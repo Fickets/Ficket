@@ -4,6 +4,7 @@ import com.example.ficketevent.domain.event.dto.request.EventUpdateReq;
 import com.example.ficketevent.global.common.BaseEntity;
 import com.example.ficketevent.domain.event.enums.Age;
 import com.example.ficketevent.domain.event.enums.Genre;
+import com.example.ficketevent.global.utils.XSSSanitizer;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -115,7 +116,7 @@ public class Event extends BaseEntity {
             this.age = req.getAge();
         }
         if (req.getContent() != null) {
-            this.content = req.getContent();
+            this.content = XSSSanitizer.sanitize(req.getContent());
         }
         if (req.getTitle() != null) {
             this.title = req.getTitle();

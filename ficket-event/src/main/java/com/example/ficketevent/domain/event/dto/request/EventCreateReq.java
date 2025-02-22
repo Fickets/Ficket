@@ -2,6 +2,7 @@ package com.example.ficketevent.domain.event.dto.request;
 
 import com.example.ficketevent.domain.event.enums.Age;
 import com.example.ficketevent.domain.event.enums.Genre;
+import com.example.ficketevent.global.utils.XSSSanitizer;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -22,4 +23,7 @@ public class EventCreateReq {
     private List<EventDateDto> eventDate; // 행사 날짜 정보
     private List<SeatDto> seats; // 좌석 정보
 
+    public void sanitizeContent() {
+        this.content = XSSSanitizer.sanitize(this.content);
+    }
 }
