@@ -93,6 +93,20 @@
                 <regexp value=".*"/>  <!-- ✅ 모든 값 허용 -->
             </regexp-list>
         </attribute>
+
+        <attribute name="width"
+                   description="The 'width' attribute specifies the width of an image">
+            <regexp-list>
+                <regexp value="[0-9]+(%|px|em|rem)?"/>  <!-- ✅ 숫자 또는 px, %, em 등 허용 -->
+            </regexp-list>
+        </attribute>
+
+        <attribute name="height"
+                   description="The 'height' attribute specifies the height of an image">
+            <regexp-list>
+                <regexp value="[0-9]+(%|px|em|rem)?"/>  <!-- ✅ 숫자 또는 px, %, em 등 허용 -->
+            </regexp-list>
+        </attribute>
     </common-attributes>
 
     <!-- This requires normal updates as browsers continue to diverge from the W3C and each other. As long as the browser wars continue this
@@ -104,6 +118,8 @@
         <attribute name="style"/>
         <attribute name="src"/>
         <attribute name="alt"/>
+        <attribute name="width"/>
+        <attribute name="height"/>
     </global-tag-attributes>
 
     <tags-to-encode>
