@@ -79,6 +79,13 @@
         </attribute>
         <attribute name="style"
                    description="The 'style' attribute provides the ability for users to change many attributes of the tag's contents using a strict syntax"/>
+
+        <attribute name="src"
+                   description="The 'src' attribute specifies the source URL of an image">
+            <regexp-list>
+                <regexp value="^$|^(https?|data):.*"/>  <!-- ✅ 빈 값, http, https, data:image 허용 -->
+            </regexp-list>
+        </attribute>
     </common-attributes>
 
     <!-- This requires normal updates as browsers continue to diverge from the W3C and each other. As long as the browser wars continue this
@@ -88,6 +95,7 @@
         <attribute name="title"/>
         <attribute name="lang"/>
         <attribute name="style"/>
+        <attribute name="src"/>
     </global-tag-attributes>
 
     <tags-to-encode>
@@ -123,6 +131,15 @@
         </tag>
         <tag name="div" action="validate"/>
         <tag name="span" action="validate"/>
+        <tag name="h1" action="validate"/>
+        <tag name="h2" action="validate"/>
+        <tag name="h3" action="validate"/>
+        <tag name="img" action="validate">
+            <attribute name="src" onInvalid="removeAttribute"/>  <!-- ✅ src 속성 유지 -->
+            <attribute name="alt"/>
+            <attribute name="width"/>
+            <attribute name="height"/>
+        </tag>
         <tag name="i" action="validate"/>
         <tag name="b" action="validate"/>
         <tag name="strong" action="validate"/>
