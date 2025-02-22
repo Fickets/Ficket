@@ -79,7 +79,6 @@ public class EventController {
     }
 
 
-
     /**
      * 해당 이벤트의 슬롯 초기화 API (ADMIN -> QUEUE)
      *
