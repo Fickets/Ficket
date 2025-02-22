@@ -86,6 +86,13 @@
                 <regexp value="^$|^(https?|data):.*"/>  <!-- ✅ 빈 값, http, https, data:image 허용 -->
             </regexp-list>
         </attribute>
+
+        <attribute name="alt"
+                   description="The 'alt' attribute specifies alternative text for an image">
+            <regexp-list>
+                <regexp value=".*"/>  <!-- ✅ 모든 값 허용 -->
+            </regexp-list>
+        </attribute>
     </common-attributes>
 
     <!-- This requires normal updates as browsers continue to diverge from the W3C and each other. As long as the browser wars continue this
@@ -96,6 +103,7 @@
         <attribute name="lang"/>
         <attribute name="style"/>
         <attribute name="src"/>
+        <attribute name="alt"/>
     </global-tag-attributes>
 
     <tags-to-encode>
