@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useStore } from 'zustand';
-
-import { eventDetail } from '../../service/event/eventApi';
-import { eventDetailStore } from '../../stores/EventStore';
-import '../../pages/event/CustomDetailCalendar.css';
-import 'react-calendar/dist/Calendar.css';
+import { useEffect, useState } from "react";
+import { useStore } from "zustand";
+import DOMPurify from "dompurify";
+import { eventDetail } from "../../service/event/eventApi";
+import { eventDetailStore } from "../../stores/EventStore";
+import "../../pages/event/CustomDetailCalendar.css";
+import "react-calendar/dist/Calendar.css";
 
 const AdminEventInfo = ({ eventId }: { eventId: string }) => {
   const event = useStore(eventDetailStore);
 
   const [showPrice, setShowPrice] = useState(false);
-  const [activeTab, setActiveTab] = useState('performance');
+  const [activeTab, setActiveTab] = useState("performance");
   const eventDates = Object.keys(event.scheduleMap);
 
   const togglePrice = () => {
@@ -46,7 +46,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
         event.setScheduleMap(res.scheduleMap);
         event.setEventId(eventId);
       },
-      (_error) => { }
+      (_error) => {},
     );
   };
 
@@ -73,14 +73,14 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
               <div className="flex mb-[20px]">
                 <p className="text-[16px] w-[90px]">공연기간</p>
                 <p className="text-[16px]">
-                  {(Object.keys(event.scheduleMap).at(-1) || '').replace(
+                  {(Object.keys(event.scheduleMap).at(-1) || "").replace(
                     /-/g,
-                    '.'
+                    ".",
                   ) +
-                    ' ~ ' +
-                    (Object.keys(event.scheduleMap)[0] || '').replace(
+                    " ~ " +
+                    (Object.keys(event.scheduleMap)[0] || "").replace(
                       /-/g,
-                      '.'
+                      ".",
                     )}
                 </p>
               </div>
@@ -90,17 +90,15 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
               </div>
               <div className="flex mb-[20px]">
                 <p className="text-[16px] w-[90px]">관람연령</p>
-                <p>{event.age.replace(/_/g, ' ')}</p>
+                <p>{event.age.replace(/_/g, " ")}</p>
               </div>
               <div className="flex mb-[20px]">
                 <h2 className="w-[90px]">장르</h2>
                 <div className="flex">
-                  {' '}
+                  {" "}
                   {/* 외부 <p>를 <div>로 변경 */}
                   {event.genre.map((element, index) => (
-                    <p key={index}>
-                      {element.replace(/_/g, '/')}&nbsp;&nbsp;
-                    </p>
+                    <p key={index}>{element.replace(/_/g, "/")}&nbsp;&nbsp;</p>
                   ))}
                 </div>
               </div>
@@ -120,12 +118,14 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
                       {event.partitionPrice.map((element, index) => (
                         <div className="flex" key={index}>
                           <p className=" my-[5px] ">
-                            {element['partitionName']}석&nbsp;
+                            {element["partitionName"]}석&nbsp;
                           </p>
                           <p className=" my-[5px]">
                             {Intl.NumberFormat().format(
-                              Number(element['partitionPrice'].replace(',', ''))
-                            )}{' '}
+                              Number(
+                                element["partitionPrice"].replace(",", ""),
+                              ),
+                            )}{" "}
                             원
                           </p>
                         </div>
@@ -146,20 +146,22 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${activeTab === 'performance'
-                  ? 'border-b-2 border-black font-semibold'
-                  : 'text-gray-500'
-                  }`}
-                onClick={() => setActiveTab('performance')}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${activeTab === 'sales'
-                  ? 'border-b-2 border-black font-semibold'
-                  : 'text-gray-500'
-                  }`}
-                onClick={() => setActiveTab('sales')}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
+                onClick={() => setActiveTab("sales")}
               >
                 판매 정보
               </button>
@@ -167,14 +169,21 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
 
             {/* Tab Content */}
             <div className="mt-6">
-              {activeTab === 'performance' && (
+              {activeTab === "performance" && (
                 <div>
-                  <div dangerouslySetInnerHTML={{ __html: event.content }} />
+                  <div
+                    className="prose"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(event.content, {
+                        FORBID_TAGS: ["svg", "math"],
+                      }),
+                    }}
+                  />
                   <br></br>
                 </div>
               )}
 
-              {activeTab === 'sales' && (
+              {activeTab === "sales" && (
                 <div>
                   <h2 className="text-xl font-bold">판매 정보</h2>
                   <div className="max-w-4xl">
@@ -213,7 +222,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
                                   관람연령
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] w-[300px] border">
-                                  {event.age.replace(/_/g, ' ')}
+                                  {event.age.replace(/_/g, " ")}
                                 </p>
                               </div>
                               <div className="flex">
@@ -227,7 +236,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
                                   공연장
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] w-[300px] border">
-                                  {event.sido} {event.sigungu} {event.street}{' '}
+                                  {event.sido} {event.sigungu} {event.street}{" "}
                                   {event.stageName}
                                 </p>
                               </div>
@@ -236,7 +245,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
                                   예매시작시간
                                 </p>
                                 <p className="px-4 py-2 text-black text-[14px] w-[300px] border">
-                                  {event.ticketingTime.replace('T', ' ')}
+                                  {event.ticketingTime.replace("T", " ")}
                                 </p>
                                 <p className="px-4 py-2 bg-gray-100 text-gray-500 font-semibold text-[14px] w-[120px] border">
                                   예매가능기간
@@ -349,7 +358,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
                                   환불안내
                                 </h2>
                                 <p className="ml-[20px] w-[820px] font-medium">
-                                  신용카드 결제의 경우{' '}
+                                  신용카드 결제의 경우{" "}
                                 </p>
                                 <p className="ml-[20px] w-[820px]">
                                   - 일반적으로 당사의 취소 처리가 완료되고 4~5일
@@ -363,7 +372,7 @@ const AdminEventInfo = ({ eventId }: { eventId: string }) => {
                                 <p className="ml-[20px] w-[820px]">
                                   &nbsp;&nbsp;예매 취소시 기존에 결제하였던
                                   내역을 취소하며 최초 결제하셨던 동일카드로
-                                  취소 시점에 따라 취소수수료와{' '}
+                                  취소 시점에 따라 취소수수료와{" "}
                                 </p>
                                 <p className="ml-[20px] w-[820px]">
                                   &nbsp;&nbsp;배송료를 재승인 합니다.

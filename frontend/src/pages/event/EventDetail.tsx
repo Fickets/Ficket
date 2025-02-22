@@ -24,7 +24,7 @@ import {
   eventDetail,
   genderStatistic,
   checkEventTime,
-  checkScheduleTime
+  checkScheduleTime,
 } from "../../service/event/eventApi";
 import { eventDetailStore } from "../../stores/EventStore";
 import { useEventStore } from "../../types/StoreType/EventState";
@@ -221,21 +221,25 @@ const EventDetail: React.FC = () => {
     await genderStatistic(
       Number(eventId),
       (response) => {
-
         // response.data가 이미 배열이므로 split을 사용할 필요 없이 바로 배열을 사용
-        const numericRes = response.data.map((item: any) => Number(item)).filter((item) => !isNaN(item)); // 숫자로 변환하고 NaN 제거
+        const numericRes = response.data
+          .map((item: any) => Number(item))
+          .filter((item) => !isNaN(item)); // 숫자로 변환하고 NaN 제거
 
         const statisticData = numericRes.slice(0, 2); // 첫 두 항목만 추출
-        const sum = statisticData.reduce((acc, currentValue) => acc + currentValue, 0); // 합계 계산
+        const sum = statisticData.reduce(
+          (acc, currentValue) => acc + currentValue,
+          0,
+        ); // 합계 계산
 
         numericRes.slice(2).forEach((value) => {
-          const ageStatistic = Math.floor((value / sum) * 100);;
+          const ageStatistic = Math.floor((value / sum) * 100);
           statisticData.push(ageStatistic);
         });
 
         setGenderStatisticData(statisticData);
       },
-      (_error) => { },
+      (_error) => {},
     );
   };
 
@@ -273,35 +277,32 @@ const EventDetail: React.FC = () => {
         event.setTicketingStep(false);
         setEventId(Number(eventId));
       },
-      (_error) => { },
+      (_error) => {},
     );
   };
 
   const goTicketing = async () => {
     if (user.isLogin) {
-
-      const checkTime = await checkEventTime(event.eventId)
+      const checkTime = await checkEventTime(event.eventId);
       if (checkTime) {
-
         let url = "";
         if (event.ticketingStep) {
-          const checkSchedule = await checkScheduleTime(event.scheduleId)
+          const checkSchedule = await checkScheduleTime(event.scheduleId);
           if (checkSchedule) {
-
             try {
-              const availableCount = await checkEnterTicketing(event.scheduleId);
+              const availableCount = await checkEnterTicketing(
+                event.scheduleId,
+              );
               event.setReservationLimit(availableCount);
               url = "/ticketing/select-seat";
             } catch (error: any) {
               alert(`${error.message}`); // API에서 에러 발생 시 처리
               return; // 에러 발생 시 새 창 열기를 중단
             }
-
           } else {
-            alert("예매가 불가능한 날짜 입니다.")
+            alert("예매가 불가능한 날짜 입니다.");
             return;
           }
-
         } else {
           url = "/ticketing/select-date";
         }
@@ -321,12 +322,9 @@ const EventDetail: React.FC = () => {
           "_blank", // 새 창 이름
           `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`,
         );
-
-
       } else {
-        alert("예매 시간이 되지 않았습니다.")
+        alert("예매 시간이 되지 않았습니다.");
       }
-
     } else {
       if (event.choiceDate && event.round) {
         navi("/users/login");
@@ -336,8 +334,7 @@ const EventDetail: React.FC = () => {
 
   const mobileGo = async () => {
     if (user.isLogin) {
-
-      const checkTime = await checkEventTime(event.eventId)
+      const checkTime = await checkEventTime(event.eventId);
       if (checkTime) {
         let url = "";
         const canEnter = await canEnterTicketingPage(eventId as string);
@@ -354,10 +351,9 @@ const EventDetail: React.FC = () => {
         }
         navi(url);
       } else {
-        alert("예매 시간이 되지 않았습니다.")
+        alert("예매 시간이 되지 않았습니다.");
         return;
       }
-
     } else {
       toast.error("로그인이 필요합니다.", {
         position: "top-center",
@@ -478,12 +474,13 @@ const EventDetail: React.FC = () => {
                       <button
                         key={index}
                         data-key={index}
-                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
-                          ? "bg-[#8E43E7] text-white"
-                          : "bg-white"
-                          }`}
+                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
+                          selectedButton === index
+                            ? "bg-[#8E43E7] text-white"
+                            : "bg-white"
+                        }`}
                         onClick={(e) => roundButtonClick(e)}
-                      // onClick={setSelectedButton(key)}
+                        // onClick={setSelectedButton(key)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
                         <p>
@@ -515,19 +512,21 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "performance"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "sales"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -894,19 +893,21 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "performance"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "sales"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -918,21 +919,24 @@ const EventDetail: React.FC = () => {
               {/** 공연정보 */}
               {activeTab === "performance" && (
                 <div>
-                  <div dangerouslySetInnerHTML={{ __html: event.content }} />
+                  <div
+                    className="prose"
+                    dangerouslySetInnerHTML={{ __html: event.content }}
+                  />
                   <br></br>
                   {/* 예매자 통계 영역 */}
                   <div className="stats-section">
                     <h3 className="text-lg font-medium mb-4">예매자 통계</h3>
                     <div className="stats-container flex gap-6">
                       <div className="age-stat  rounded-md w-1/2 shadow-md border">
-                        <h4 className="text-md pl-4 pt-4 font-medium mb-2">성별 통계</h4>
+                        <h4 className="text-md pl-4 pt-4 font-medium mb-2">
+                          성별 통계
+                        </h4>
                         {/* 연령 통계 차트 이미지 또는 컴포넌트 */}
                         <div className="flex chart-placeholder mb-[50px] h-[150px] rounded-md flex items-center justify-center">
                           <img src={manImg} className="w-[45px]" alt="" />
                           <div className="flex flex-col">
-                            <p className="mt-[0px] text-[13px]">
-                              남자
-                            </p>
+                            <p className="mt-[0px] text-[13px]">남자</p>
                             <p className="mt-[0px] text-[14px]">
                               {genderStatisticData[0]}명
                             </p>
@@ -946,9 +950,7 @@ const EventDetail: React.FC = () => {
                           </div>
                           <img src={womanImg} className="w-[45px]" alt="" />
                           <div className="flex flex-col">
-                            <p className="mt-[0px] text-[13px]">
-                              여자
-                            </p>
+                            <p className="mt-[0px] text-[13px]">여자</p>
                             <p className="mt-[0px] text-[14px]">
                               {genderStatisticData[0]}명
                             </p>
@@ -963,10 +965,17 @@ const EventDetail: React.FC = () => {
                         </div>
                       </div>
                       <div className="gender-stat rounded-md w-1/2 shadow-md border">
-                        <h4 className="text-md font-medium mb-2 pl-4 pt-4">연령 통계</h4>
+                        <h4 className="text-md font-medium mb-2 pl-4 pt-4">
+                          연령 통계
+                        </h4>
                         {/* 성별 통계 차트 이미지 또는 컴포넌트 */}
                         <div className="chart-placeholder  h-[150px] rounded-md flex items-center justify-center">
-                          <Bar data={chartData} options={chartOptions} height={1000} width={1300} />
+                          <Bar
+                            data={chartData}
+                            options={chartOptions}
+                            height={1000}
+                            width={1300}
+                          />
                         </div>
                       </div>
                     </div>
