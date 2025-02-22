@@ -330,7 +330,7 @@ public class OrderService {
             executeWithCircuitBreaker(
                     circuitBreakerRegistry,
                     "refundSettlementCircuitBreaker",
-                    () -> adminServiceClient.refundSettlement(orderId,0L,  order.getOrderPrice())
+                    () -> adminServiceClient.refundSettlement(orderId, 0L, order.getOrderPrice())
             );
             return; // 환불 처리 완료 후 메서드 종료
         }
@@ -490,7 +490,7 @@ public class OrderService {
      * @param refundFeeDescription 환불 수수료 설명
      * @return 환불 금액
      */
-    private BigDecimal  calculateRefundAmount(BigDecimal totalAmount, String refundFeeDescription) {
+    private BigDecimal calculateRefundAmount(BigDecimal totalAmount, String refundFeeDescription) {
         if (refundFeeDescription.contains("장당")) {
             // 고정 금액 수수료 (예: "장당 4,000원")
             String fee = refundFeeDescription.replaceAll("[^0-9]", "");
@@ -525,7 +525,6 @@ public class OrderService {
                 () -> eventServiceClient.getMyTicketInfo(new TicketInfoCreateDtoList(myTicketIds))
         );
     }
-
 
 
     /**

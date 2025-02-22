@@ -1,10 +1,7 @@
 package com.example.ficketevent.domain.event.entity;
 
-import com.example.ficketevent.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;

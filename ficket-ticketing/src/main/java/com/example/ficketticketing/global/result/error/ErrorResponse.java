@@ -37,7 +37,7 @@ public class ErrorResponse {
     }
 
     public static ErrorResponse of(final ErrorCode code,
-        final Set<ConstraintViolation<?>> constraintViolations) {
+                                   final Set<ConstraintViolation<?>> constraintViolations) {
         return new ErrorResponse(code, FieldError.of(constraintViolations));
     }
 
@@ -74,7 +74,7 @@ public class ErrorResponse {
         }
 
         public static List<FieldError> of(final String field, final String value,
-            final String reason) {
+                                          final String reason) {
             final List<FieldError> fieldErrors = new ArrayList<>();
             fieldErrors.add(new FieldError(field, value, reason));
             return fieldErrors;
@@ -83,25 +83,25 @@ public class ErrorResponse {
         private static List<FieldError> of(final BindingResult bindingResult) {
             final List<org.springframework.validation.FieldError> fieldErrors = bindingResult.getFieldErrors();
             return fieldErrors.stream()
-                .map(error -> new FieldError(
-                    error.getField(),
-                    error.getRejectedValue() == null ? "" : error.getRejectedValue().toString(),
-                    error.getDefaultMessage()))
-                .collect(Collectors.toList());
+                    .map(error -> new FieldError(
+                            error.getField(),
+                            error.getRejectedValue() == null ? "" : error.getRejectedValue().toString(),
+                            error.getDefaultMessage()))
+                    .collect(Collectors.toList());
         }
 
         private static List<FieldError> of(final Set<ConstraintViolation<?>> constraintViolations) {
             final List<ConstraintViolation<?>> lists = new ArrayList<>(constraintViolations);
             return lists.stream()
-                .map(error -> {
-                    final String invalidValue =
-                        error.getInvalidValue() == null ? "" : error.getInvalidValue().toString();
-                    final int index = error.getPropertyPath().toString().indexOf(".");
-                    final String propertyPath = error.getPropertyPath().toString()
-                        .substring(index + 1);
-                    return new FieldError(propertyPath, invalidValue, error.getMessage());
-                })
-                .collect(Collectors.toList());
+                    .map(error -> {
+                        final String invalidValue =
+                                error.getInvalidValue() == null ? "" : error.getInvalidValue().toString();
+                        final int index = error.getPropertyPath().toString().indexOf(".");
+                        final String propertyPath = error.getPropertyPath().toString()
+                                .substring(index + 1);
+                        return new FieldError(propertyPath, invalidValue, error.getMessage());
+                    })
+                    .collect(Collectors.toList());
         }
     }
 }

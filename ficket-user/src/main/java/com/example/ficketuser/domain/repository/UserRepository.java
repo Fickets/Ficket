@@ -12,10 +12,9 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findBySocialId(Long socialId);
     Optional<User> findByUserId(Long userId);
 
-    @Query(value= "SELECT * FROM user u WHERE u.social_id = :socialId", nativeQuery = true)
+    @Query(value = "SELECT * FROM user u WHERE u.social_id = :socialId", nativeQuery = true)
     Optional<User> findByDeletedSocialId(@Param("socialId") Long socialId);
 
     @Modifying

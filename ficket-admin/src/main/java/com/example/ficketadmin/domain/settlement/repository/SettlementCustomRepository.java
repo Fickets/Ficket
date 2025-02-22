@@ -4,9 +4,7 @@ import com.example.ficketadmin.domain.settlement.dto.common.EventTitleDto;
 import com.example.ficketadmin.domain.settlement.dto.request.SettlementReq;
 import com.example.ficketadmin.domain.settlement.dto.response.SettlementRecordDto;
 import com.example.ficketadmin.domain.settlement.entity.Settlement;
-import com.example.ficketadmin.domain.settlement.entity.SettlementRecord;
 import com.example.ficketadmin.domain.settlement.entity.SettlementStatus;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,6 +17,6 @@ public interface SettlementCustomRepository {
     List<Settlement> findSettlementByEventId(Long eventId);
 
     @Query("SELECT s FROM Settlement s WHERE s.eventId = :eventId AND s.settlementStatus != :status")
-    List<Settlement> findSettlementByEventIdAndStatus(@Param("eventId")Long eventId, @Param("status") SettlementStatus settlementStatus);
+    List<Settlement> findSettlementByEventIdAndStatus(@Param("eventId") Long eventId, @Param("status") SettlementStatus settlementStatus);
 
 }

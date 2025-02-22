@@ -33,6 +33,7 @@ public class JwtUtils {
 
     /**
      * AccessToken CREATE
+     *
      * @param adminInfo
      * @return AccessToken String
      */
@@ -42,6 +43,7 @@ public class JwtUtils {
 
     /**
      * RefreshToken CREATE
+     *
      * @param adminInfo
      * @return RefreshToken String
      */
@@ -51,6 +53,7 @@ public class JwtUtils {
 
     /**
      * JWT CREATE
+     *
      * @param adminInfo
      * @param exptime
      * @return
@@ -73,6 +76,7 @@ public class JwtUtils {
 
     /**
      * Admin PK GET
+     *
      * @param token
      * @return Admin PK
      */
@@ -82,6 +86,7 @@ public class JwtUtils {
 
     /**
      * Admin Role GET
+     *
      * @param token
      * @return Admin Role
      */
@@ -91,11 +96,12 @@ public class JwtUtils {
 
     /**
      * Validate JWT
+     *
      * @param token
      * @return Bool true/false
      */
     public boolean validateToken(String token) {
-        try{
+        try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
@@ -113,6 +119,7 @@ public class JwtUtils {
 
     /**
      * JWT Claims GET
+     *
      * @param token
      * @return JWT Claims
      */

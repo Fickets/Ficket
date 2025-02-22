@@ -34,7 +34,7 @@ public class CustomAdminDetails implements UserDetails {
         return admin.getAdminId();
     }
 
-    public String getLoginId(){
+    public String getLoginId() {
         return admin.getId();
     }
 

@@ -1,6 +1,5 @@
 package com.example.ficketevent.domain.event.dto.response;
 
-import com.example.ficketevent.domain.event.enums.Genre;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

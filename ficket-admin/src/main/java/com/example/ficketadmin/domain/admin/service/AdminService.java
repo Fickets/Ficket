@@ -50,10 +50,11 @@ public class AdminService {
 
     /**
      * 관리자 로그인
+     *
      * @param adminLoginReq
-     * @return access,refresh 토큰 반환
+     * @return access, refresh 토큰 반환
      */
-    public AdminDto login(AdminLoginReq adminLoginReq, HttpServletResponse response){
+    public AdminDto login(AdminLoginReq adminLoginReq, HttpServletResponse response) {
 
 
         // ID로  Admin 찾기
@@ -61,7 +62,7 @@ public class AdminService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_ADMIN_FOUND));
 
         // PW 비교
-        if(!encoder.matches(adminLoginReq.getPw(), admin.getPw())){
+        if (!encoder.matches(adminLoginReq.getPw(), admin.getPw())) {
             throw new BusinessException(ErrorCode.DIFFERENT_PASSWORD);
         }
 
@@ -93,37 +94,38 @@ public class AdminService {
 
     /**
      * 관리자 로그아웃
+     *
      * @param request
      * @param response
      */
-    public void logout(HttpServletRequest request, HttpServletResponse response){
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
 
         Cookie[] cookies = request.getCookies();
-        
+
         // Access Token 찾기
         String authorization = request.getHeader(ACCESS_HEADER);
         String access = null;
-        
-        if (authorization != null){
+
+        if (authorization != null) {
             access = authorization.substring(7);
         }
-        
+
         // Refresh TOKEN 찾기
         String refresh = null;
         for (Cookie cookie : cookies) {
-            if (cookie.getName().equals(REFRESH_HEADER)){
+            if (cookie.getName().equals(REFRESH_HEADER)) {
                 refresh = cookie.getValue();
                 break;
             }
         }
-        if (refresh == null){
+        if (refresh == null) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
         }
 
         // 양쪽 토큰 ID 비교
         Long accessId = jwtUtils.getAdminId(access);
         Long refreshId = jwtUtils.getAdminId(refresh);
-        if (!accessId.equals(refreshId)){
+        if (!accessId.equals(refreshId)) {
             throw new BusinessException(ErrorCode.DIFFERENT_BOTH_TOKEN_ID);
         }
 
@@ -141,6 +143,7 @@ public class AdminService {
 
     /**
      * Access TOKEN 재발금
+     *
      * @param request
      * @param response
      */
@@ -150,11 +153,11 @@ public class AdminService {
         // Refresh TOKEN 찾기
         String refresh = null;
         for (Cookie cookie : cookies) {
-            if(cookie.getName().equals(REFRESH_HEADER)){
+            if (cookie.getName().equals(REFRESH_HEADER)) {
                 refresh = cookie.getValue();
             }
         }
-        if (refresh == null){
+        if (refresh == null) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_NULL);
         }
 
@@ -164,12 +167,12 @@ public class AdminService {
         } catch (ExpiredJwtException e) {
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED);
         }
-        
+
         // Redis에 refresh 토큰 가져와서 비교
         Long refreshId = jwtUtils.getAdminId(refresh);
         AdminTokenRedis adminTokenRedis = adminTokenRedisRepository.findByAdminId(refreshId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFRESH_TOKEN_NULL));
-        if(!refresh.equals(adminTokenRedis.getRefreshToken())){
+        if (!refresh.equals(adminTokenRedis.getRefreshToken())) {
             throw new BusinessException(ErrorCode.DIFFERENT_REFRESH_TOKEN);
         }
 
@@ -186,7 +189,7 @@ public class AdminService {
     }
 
 
-    public AdminDto getAdmin(Long adminId){
+    public AdminDto getAdmin(Long adminId) {
         Admin admin = adminRepository.findByAdminId(adminId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_ADMIN_FOUND));
 

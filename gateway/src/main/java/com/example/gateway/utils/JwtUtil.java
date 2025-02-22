@@ -41,9 +41,9 @@ public class JwtUtil {
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token);
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.warn("유효하지 않은 JWT 토큰입니다.", e);
@@ -66,10 +66,10 @@ public class JwtUtil {
     public String extractUserId(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
             Long userId = claims.get("userId", Long.class);
             return String.valueOf(userId);
@@ -88,10 +88,10 @@ public class JwtUtil {
     public String extractAdminId(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
             Long adminId = claims.get("adminId", Long.class);
             return String.valueOf(adminId);
@@ -110,10 +110,10 @@ public class JwtUtil {
     public String extractUserRole(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
             return claims.get("role", String.class);
         } catch (Exception e) {
@@ -138,7 +138,7 @@ public class JwtUtil {
     /**
      * 사용자의 역할이 특정 역할과 일치하는지 확인합니다.
      *
-     * @param token JWT 토큰
+     * @param token        JWT 토큰
      * @param requiredRole 요구되는 역할
      * @return 사용자가 해당 역할을 가지고 있으면 true, 그렇지 않으면 false
      */

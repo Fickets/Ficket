@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.function.EntityResponse;
 
 import java.math.BigDecimal;
 
@@ -18,5 +17,5 @@ public interface AdminServiceClient {
     ResponseEntity<Void> createSettlement(@RequestBody OrderSimpleDto orderSimpleDto);
 
     @GetMapping("api/v1/settlements/refund")
-    ResponseEntity<Void> refundSettlement(@RequestParam(name = "orderId") Long orderId, @RequestParam(name = "ticketId") Long ticketId, @RequestParam(name = "refund")BigDecimal refund);
+    ResponseEntity<Void> refundSettlement(@RequestParam(name = "orderId") Long orderId, @RequestParam(name = "ticketId") Long ticketId, @RequestParam(name = "refund") BigDecimal refund);
 }

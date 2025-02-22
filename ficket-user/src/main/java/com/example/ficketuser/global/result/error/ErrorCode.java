@@ -32,7 +32,7 @@ public enum ErrorCode {
     TOKEN_EXPIRED(400, "토큰이 만료되었습니다."),
     DIFFERENT_REFRESH_TOKEN(400, "등록되지 않은 REFRESH_TOKEN 입니다."),
     NOT_ALLOW_USER(403, "정지된 사용자 입니다."),
-    COOKIE_NOT_FOUND(404,"쿠기가 없습니다."),
+    COOKIE_NOT_FOUND(404, "쿠기가 없습니다."),
 
     // TICKET
     EXIST_USER_EVENT(409, "예약한 이벤트가 존재 합니다."),

@@ -4,8 +4,6 @@ import com.example.ficketevent.domain.event.dto.request.EventDateDto;
 import com.example.ficketevent.domain.event.dto.request.SeatDto;
 import com.example.ficketevent.domain.event.dto.request.SessionDto;
 import com.example.ficketevent.domain.event.entity.Event;
-import com.example.ficketevent.domain.event.entity.EventSchedule;
-import com.example.ficketevent.domain.event.entity.StageSeat;
 import com.example.ficketevent.domain.event.enums.Age;
 import com.example.ficketevent.domain.event.enums.Genre;
 import lombok.AllArgsConstructor;

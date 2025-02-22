@@ -9,7 +9,6 @@ import com.example.ficketevent.domain.event.dto.response.SimpleEvent;
 import com.example.ficketevent.domain.event.entity.Event;
 import com.example.ficketevent.domain.event.enums.Genre;
 import com.example.ficketevent.domain.event.entity.QGenre;
-import com.example.ficketevent.domain.event.enums.Period;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
@@ -24,7 +23,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 
-import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -315,5 +313,5 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
     private BooleanExpression idNotIn(List<Long> ids) {
         return (ids == null || ids.isEmpty()) ? null : event.eventId.notIn(ids);
     }
-    
+
 }

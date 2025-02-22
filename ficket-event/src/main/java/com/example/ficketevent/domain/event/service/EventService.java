@@ -454,6 +454,7 @@ public class EventService {
 
     /**
      * 해당 행사를 삭제합니다.
+     *
      * @param eventId 삭제 대상 행사 ID
      */
     @Caching(evict = {
@@ -1030,7 +1031,7 @@ public class EventService {
     public List<Long> getCompanyId(Long ticketId) {
         List<Long> res = new ArrayList<>();
         List<SeatMapping> seatMappings = seatMappingRepository.findByTicketId(ticketId);
-        if(seatMappings.isEmpty()){
+        if (seatMappings.isEmpty()) {
             throw new BusinessException(ErrorCode.SEAT_NOT_FOUND);
         }
         SeatMapping seatMapping = seatMappings.get(0);
@@ -1169,7 +1170,7 @@ public class EventService {
         return indexingData;
     }
 
-    public List<Long> getScheduleId(Long eventId){
+    public List<Long> getScheduleId(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
         List<Long> res = event.getEventSchedules().stream().map(eventSchedule -> eventSchedule.getEventScheduleId()).toList();
@@ -1178,19 +1179,19 @@ public class EventService {
     }
 
 
-    public Long getCompanyByEvent(Long eventId){
+    public Long getCompanyByEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
         return event.getCompanyId();
     }
 
-    public Boolean getCheckTicketingTime(Long eventId){
+    public Boolean getCheckTicketingTime(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
         return event.getTicketingTime().isBefore(LocalDateTime.now());
     }
 
-    public Boolean getCheckScheduleTime(Long scheduleId){
+    public Boolean getCheckScheduleTime(Long scheduleId) {
         EventSchedule eventSchedule = eventScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
         return eventSchedule.getEventDate().isAfter(LocalDateTime.now());

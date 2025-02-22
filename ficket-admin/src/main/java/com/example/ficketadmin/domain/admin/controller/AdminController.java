@@ -32,7 +32,7 @@ public class AdminController {
      * - 2024-11-25 최용수: 초기 작성
      */
     @PostMapping("/login")
-    public ResponseEntity<AdminDto> login(@RequestBody AdminLoginReq adminRoginReq, HttpServletResponse response){
+    public ResponseEntity<AdminDto> login(@RequestBody AdminLoginReq adminRoginReq, HttpServletResponse response) {
 
         AdminDto res = adminService.login(adminRoginReq, response);
 
@@ -49,7 +49,7 @@ public class AdminController {
      */
     @GetMapping("/logout")
     @PreAuthorize("hasAnyRole('MANAGER', 'USER')") // 두 권한중 하나라도 있어야 사용 가능
-    public ResponseEntity<Integer> logout(HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<Integer> logout(HttpServletRequest request, HttpServletResponse response) {
 
         adminService.logout(request, response);
 
@@ -85,7 +85,7 @@ public class AdminController {
      * - 2024-11-28 최용수: 초기 작성
      */
     @GetMapping("/{adminId}")
-    public AdminDto getAdmin(@PathVariable Long adminId){
+    public AdminDto getAdmin(@PathVariable Long adminId) {
 
         return adminService.getAdmin(adminId);
     }

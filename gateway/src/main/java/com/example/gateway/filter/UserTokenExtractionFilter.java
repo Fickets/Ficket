@@ -1,7 +1,6 @@
 package com.example.gateway.filter;
 
 import com.example.gateway.utils.JwtUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -21,13 +20,14 @@ public class UserTokenExtractionFilter extends AbstractGatewayFilterFactory<User
     private final JwtUtil jwtUtil;
 
     public UserTokenExtractionFilter(JwtUtil jwtUtil) {
-      super(Config.class);
-      this.jwtUtil = jwtUtil;
+        super(Config.class);
+        this.jwtUtil = jwtUtil;
     }
 
-  public static class Config {
-    public Config() {}
-  }
+    public static class Config {
+        public Config() {
+        }
+    }
 
     @Override
     public GatewayFilter apply(Config config) {

@@ -3,7 +3,6 @@ package com.example.ficketticketing.domain.order.repository;
 import com.example.ficketticketing.domain.order.dto.client.DailyRevenueResponse;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
-import com.example.ficketticketing.domain.order.entity.OrderStatus;
 import com.example.ficketticketing.domain.order.entity.Orders;
 import com.example.ficketticketing.domain.order.entity.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,10 +28,6 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     @Modifying
     @Query("UPDATE Orders o SET o.orderStatus = 'CANCELLED' WHERE o.paymentId = :paymentId AND o.orderStatus = 'INPROGRESS'")
     void cancelByPaymentId(@Param("paymentId") String paymentId);
-
-//    @Modifying
-//    @Query("UPDATE Orders o SET o.orderStatus = :orderStatus WHERE o.orderId = :orderId")
-//    void updateOrderStatus(@Param("orderId") Long orderId, @Param("orderStatus") OrderStatus orderStatus);
 
     @Query("SELECT new com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse(o.orderStatus) FROM Orders o WHERE o.orderId = :orderId")
     Optional<OrderStatusResponse> findOrderStatusByOrderId(@Param("orderId") Long orderId);
@@ -82,9 +77,6 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
 
     @Query("SELECT o.userId FROM Orders o WHERE o.paymentId = :paymentId")
     Long findUserIdByPaymentId(@Param("paymentId") String paymentId);
-
-//    @Query("SELECT o.userId FROM Orders o WHERE o.orderId = :orderId")
-//    Long findUserIdByOrderId(@Param("orderId") Long orderId);
 
     @Query("SELECT o From Orders o WHERE o.orderId = :orderId")
     Optional<Orders> findByOrderId(@Param("orderId") Long orderId);

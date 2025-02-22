@@ -1,17 +1,13 @@
 package com.example.ficketticketing.domain.order.messagequeue;
 
 import com.example.ficketticketing.domain.order.dto.kafka.SeatMappingUpdatedEvent;
-import com.example.ficketticketing.domain.order.entity.OrderStatus;
-import com.example.ficketticketing.domain.order.repository.OrderRepository;
 import com.example.ficketticketing.domain.order.service.OrderService;
 import com.example.ficketticketing.global.result.error.ErrorCode;
 import com.example.ficketticketing.global.result.error.exception.BusinessException;
-import com.example.ficketticketing.infrastructure.payment.PortOneApiClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.query.Order;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

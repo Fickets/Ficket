@@ -1,7 +1,6 @@
 package com.example.ficketsearch.global.config.utils;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 
 import static com.example.ficketsearch.global.config.awsS3.AwsConstants.*;
 

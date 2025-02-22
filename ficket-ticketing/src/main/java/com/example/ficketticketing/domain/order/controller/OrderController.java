@@ -100,7 +100,7 @@ public class OrderController {
     }
 
     @PostMapping("/all-user-id")
-    public int[] getTicketingUserIdList(@RequestBody List<Long> scheduleId){
+    public int[] getTicketingUserIdList(@RequestBody List<Long> scheduleId) {
         int[] res = orderService.getTicketUserStatistic(scheduleId);
         return res;
     }
@@ -114,7 +114,7 @@ public class OrderController {
      * - 2024-12-12 오형상: 초기 작성
      */
     @GetMapping("/daily-revenue")
-    public ResponseEntity<List<DailyRevenueResponse>> calculateDailyRevenue(@RequestParam("ticketIds") Set<Long> ticketIds){
+    public ResponseEntity<List<DailyRevenueResponse>> calculateDailyRevenue(@RequestParam("ticketIds") Set<Long> ticketIds) {
         return ResponseEntity.ok(orderService.calculateDailyRevenue(ticketIds));
     }
 
@@ -127,7 +127,7 @@ public class OrderController {
      * - 2024-12-12 오형상: 초기 작성
      */
     @GetMapping("/day-count")
-    public ResponseEntity<DayCountResponse> calculateDayCount(@RequestParam("ticketIds") Set<Long> ticketIds){
+    public ResponseEntity<DayCountResponse> calculateDayCount(@RequestParam("ticketIds") Set<Long> ticketIds) {
         return ResponseEntity.ok(orderService.calculateDayCount(ticketIds));
     }
 
@@ -154,7 +154,7 @@ public class OrderController {
      * - 2024-12-19 최용수: 초기 작성
      */
     @GetMapping("/customer")
-    public List<OrderInfoDto> getCustomerTicket(@RequestParam Long userId){
+    public List<OrderInfoDto> getCustomerTicket(@RequestParam Long userId) {
         return orderService.getCustomerTickets(userId);
     }
 
@@ -172,12 +172,12 @@ public class OrderController {
     }
 
     @GetMapping("/getUserId")
-    public UserSimpleDto getUserIdByTicketId(@RequestParam(name = "ticketId")Long ticketId){
-        return  orderService.getUserIdByTicketId(ticketId);
+    public UserSimpleDto getUserIdByTicketId(@RequestParam(name = "ticketId") Long ticketId) {
+        return orderService.getUserIdByTicketId(ticketId);
     }
 
     @GetMapping("/ticket-watch")
-    public ResponseEntity<Void> ticketWatchedChange(@RequestParam(name = "ticketId")Long ticketId){
+    public ResponseEntity<Void> ticketWatchedChange(@RequestParam(name = "ticketId") Long ticketId) {
         orderService.changeTicketWatched(ticketId);
         return ResponseEntity.noContent().build();
     }

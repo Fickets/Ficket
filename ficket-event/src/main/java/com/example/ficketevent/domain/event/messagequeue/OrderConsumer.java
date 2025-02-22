@@ -2,11 +2,8 @@ package com.example.ficketevent.domain.event.messagequeue;
 
 import com.example.ficketevent.domain.event.dto.kafka.OrderDto;
 import com.example.ficketevent.domain.event.service.StageSeatService;
-import com.example.ficketevent.global.result.error.ErrorCode;
-import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -23,7 +20,7 @@ public class OrderConsumer {
 
     @Transactional
     @KafkaListener(topics = "order-events")
-    public void createOrder(String kafkaMessage){
+    public void createOrder(String kafkaMessage) {
 
         log.info("Kafka Message: -> " + kafkaMessage);
 

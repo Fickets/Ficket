@@ -25,7 +25,7 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                         user.gender,
                         user.userName,
                         user.socialId
-                        ))
+                ))
                 .from(user)
                 .where(
                         // userId 조건

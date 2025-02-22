@@ -1,8 +1,6 @@
 package com.example.ficketevent.domain.event.messagequeue;
 
 import com.example.ficketevent.domain.event.dto.kafka.SeatMappingUpdatedEvent;
-import com.example.ficketevent.global.result.error.ErrorCode;
-import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

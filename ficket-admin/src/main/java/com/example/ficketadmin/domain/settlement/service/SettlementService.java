@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Pageable;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -47,7 +48,7 @@ public class SettlementService {
 
 
     @Transactional
-    public void createSettlement(OrderSimpleDto orderSimpleDto){
+    public void createSettlement(OrderSimpleDto orderSimpleDto) {
 
         /**
          * 서비스료 = 장당 수수료 (2000원) + (거래가액 * N%)
@@ -108,7 +109,7 @@ public class SettlementService {
                 .build();
         settlementRepository.save(settlement);
 
-        if(settlementRecord.getSettlementStatus().equals(SettlementStatus.SETTLEMENT)){
+        if (settlementRecord.getSettlementStatus().equals(SettlementStatus.SETTLEMENT)) {
             settlementRecord.setSettlementStatus(SettlementStatus.PARTIAL_SETTLEMENT);
         }
         // 정산
@@ -124,7 +125,7 @@ public class SettlementService {
         settlementRecordRepository.save(settlementRecord);
     }
 
-    public void createTotalSettlement(Long eventId){
+    public void createTotalSettlement(Long eventId) {
         SettlementRecord settlementRecord = SettlementRecord.builder()
                 .eventId(eventId)
                 .totalSettlementValue(BigDecimal.ZERO)
@@ -138,9 +139,9 @@ public class SettlementService {
         settlementRecordRepository.save(settlementRecord);
     }
 
-    public PageResponse<SettlementRecordDto> getTotalSettlementList(SettlementReq settlementReq, Pageable pageable){
+    public PageResponse<SettlementRecordDto> getTotalSettlementList(SettlementReq settlementReq, Pageable pageable) {
         System.out.println("TEST " + settlementReq.toString());
-        if(settlementReq.getEventName() == null){
+        if (settlementReq.getEventName() == null) {
             settlementReq.setEventName("");
         }
         List<EventTitleDto> eventIds = getGetEventIdByTitleCircuitBreaker(settlementReq);
@@ -150,7 +151,7 @@ public class SettlementService {
             eventId.setCompanyName(company.getCompanyName());
         }
 
-        List<SettlementRecordDto> results =  settlementCustomRepository.getTotalSettlementPage(settlementReq, eventIds);
+        List<SettlementRecordDto> results = settlementCustomRepository.getTotalSettlementPage(settlementReq, eventIds);
 
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), results.size());
@@ -158,7 +159,7 @@ public class SettlementService {
 
         return new PageResponse<>(
                 pagedResults,
-                pageable. getPageNumber(),
+                pageable.getPageNumber(),
                 pageable.getPageSize(),
                 results.size(),
                 (int) Math.ceil((double) results.size() / pageable.getPageSize())
@@ -176,7 +177,7 @@ public class SettlementService {
     }
 
     @Transactional
-    public void settlementClear(Long eventId){
+    public void settlementClear(Long eventId) {
 
         Long companyId = eventServiceClient.getCompanyByEvent(eventId);
 
@@ -209,11 +210,11 @@ public class SettlementService {
     }
 
     @Transactional
-    public void refundSettlement(Long orderId, Long ticketId, BigDecimal refund){
+    public void refundSettlement(Long orderId, Long ticketId, BigDecimal refund) {
 
         Settlement settlement = settlementRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_SETTMENT_RECORD));
-        SettlementRecord record =  settlement.getSettlementRecord();
+        SettlementRecord record = settlement.getSettlementRecord();
 
         settlement.setRefundValue(refund);
         settlement.setSettlementValue(settlement.getSettlementValue().subtract(refund));
@@ -223,13 +224,13 @@ public class SettlementService {
 
         record.setTotalServiceFee(record.getTotalServiceFee().subtract(settlement.getServiceFee()));
 
-        if (! ticketId.equals(0L)){
+        if (!ticketId.equals(0L)) {
             // 장당 수수료 2000 * N
             Long ticketNums = eventServiceClient.getBuyTicketCount(ticketId);
             BigDecimal ticketCharge = BigDecimal.valueOf(ticketNums * 2000);
             settlement.setServiceFee(ticketCharge);
             record.setTotalServiceFee(record.getTotalServiceFee().add(ticketCharge));
-        }else{
+        } else {
             settlement.setServiceFee(BigDecimal.ZERO);
         }
 

@@ -17,10 +17,11 @@ public class CustomUserDetails implements UserDetails, Serializable {
         return user.getUserName();
     }
 
-    public Long getUserId(){
+    public Long getUserId() {
         return user.getUserId();
     }
-    public Long getSocialId(){
+
+    public Long getSocialId() {
         return user.getSocialId();
     }
 

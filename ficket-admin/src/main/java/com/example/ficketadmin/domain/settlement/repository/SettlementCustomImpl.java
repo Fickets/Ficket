@@ -20,7 +20,7 @@ import static com.example.ficketadmin.domain.settlement.entity.QSettlementRecord
 
 @RequiredArgsConstructor
 @Repository
-public class SettlementCustomImpl implements SettlementCustomRepository{
+public class SettlementCustomImpl implements SettlementCustomRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
@@ -29,20 +29,20 @@ public class SettlementCustomImpl implements SettlementCustomRepository{
                 .map(EventTitleDto::getEventId)
                 .toList();
 
-        List<SettlementRecordDto> settlementRecords =  queryFactory.select(new QSettlementRecordDto(
-                settlementRecord.eventId,
-                settlementRecord.createdAt,
-                settlementRecord.lastModifiedAt,
-                settlementRecord.totalNetSupplyAmount,
-                settlementRecord.totalServiceFee,
-                settlementRecord.totalSettlementValue,
-                settlementRecord.totalSupplyAmount,
-                settlementRecord.settlementStatus
+        List<SettlementRecordDto> settlementRecords = queryFactory.select(new QSettlementRecordDto(
+                        settlementRecord.eventId,
+                        settlementRecord.createdAt,
+                        settlementRecord.lastModifiedAt,
+                        settlementRecord.totalNetSupplyAmount,
+                        settlementRecord.totalServiceFee,
+                        settlementRecord.totalSettlementValue,
+                        settlementRecord.totalSupplyAmount,
+                        settlementRecord.settlementStatus
                 ))
                 .from(settlementRecord)
                 .where(
                         inEventIds(ids),
-                        req.getSettlementStatus() != null?settlementRecord.settlementStatus.eq(req.getSettlementStatus()): null,
+                        req.getSettlementStatus() != null ? settlementRecord.settlementStatus.eq(req.getSettlementStatus()) : null,
                         req.getStartDate() != null ? settlementRecord.createdAt.goe(req.getStartDate().atStartOfDay()) : null,
                         req.getEndDate() != null ? settlementRecord.createdAt.loe(req.getEndDate().atTime(23, 59, 59)) : null
                 ).fetch();

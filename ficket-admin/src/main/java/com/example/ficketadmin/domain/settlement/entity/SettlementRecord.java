@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 @ToString
 @Builder
 @Entity
-//@Table(name = "settlement_record")
 @SQLRestriction("deleted_at IS NULL")
 @SQLDelete(sql = "UPDATE settlement_record SET deleted_at = CURRENT_TIMESTAMP WHERE settlement_record_id = ?")
 public class SettlementRecord extends BaseEntity {

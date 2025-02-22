@@ -149,8 +149,8 @@ public class UserController {
             @RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(userService.getMyTicket(Long.parseLong(userId), page, size, sort, sidoFilter));
     }
-    
-    
+
+
     /**
      * 단체 유저 정보 조회
      * <p>
@@ -160,7 +160,7 @@ public class UserController {
      * - 2024-12-12 최용수: 초기 작성
      */
     @PostMapping("/all-ticketing-user")
-    public List<UserSimpleDto> getTicketingUsers(@RequestBody List<Long> userIds){
+    public List<UserSimpleDto> getTicketingUsers(@RequestBody List<Long> userIds) {
         List<UserSimpleDto> res = userService.getTicketingUsers(userIds);
         return res;
     }
@@ -174,7 +174,7 @@ public class UserController {
      * - 2024-12-17 최용수: 초기 작성
      */
     @GetMapping()
-    public List<String> findALlUser(){
+    public List<String> findALlUser() {
         return userService.getAllUser();
     }
 
@@ -201,13 +201,13 @@ public class UserController {
      * - 2024-12-18 최용수: 초기 작성
      */
     @GetMapping("/customers/ticket/{userId}")
-    public ResponseEntity<List<OrderInfoDto>> getCustomersTicket(@PathVariable Long userId){
+    public ResponseEntity<List<OrderInfoDto>> getCustomersTicket(@PathVariable Long userId) {
         List<OrderInfoDto> res = userService.getCustomerTicket(userId);
         return ResponseEntity.ok(res);
     }
 
     @DeleteMapping("/customers/delete/{userId}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long userId){
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long userId) {
         userService.customerDelete(userId);
 
         return ResponseEntity.noContent().build();

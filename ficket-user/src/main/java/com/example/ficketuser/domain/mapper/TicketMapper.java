@@ -17,6 +17,7 @@ public interface TicketMapper {
     MySeatInfo toMySeatInfo(TicketInfoDto ticketInfoDto);
 
     // TicketInfoDto -> MyTicketResponse 변환 (그룹화 전)
-    @Mapping(target = "mySeatInfoList", ignore = true) // mySeatInfoList는 그룹화 후 별도로 매핑
+    @Mapping(target = "mySeatInfoList", ignore = true)
+    // mySeatInfoList는 그룹화 후 별도로 매핑
     MyTicketResponse toMyTicketResponse(TicketInfoDto ticketInfoDto);
 }

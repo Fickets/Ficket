@@ -15,12 +15,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 
 @Configuration
@@ -53,7 +47,7 @@ public class SecurityConfig {
 
         // JWT 필터 추가
         http
-            .addFilterBefore(new JwtFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class);
 
 
         // oauth2
@@ -65,8 +59,8 @@ public class SecurityConfig {
                         .successHandler(customSuccessHandler));
 
         http
-            .authorizeHttpRequests((auth) -> auth
-            .requestMatchers("/oauth2/**","/api/v1/users/**","/user-swagger/v3/api-docs", "/actuator/**").permitAll()
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/oauth2/**", "/api/v1/users/**", "/user-swagger/v3/api-docs", "/actuator/**").permitAll()
                         .anyRequest().authenticated());
 
         return http.build();

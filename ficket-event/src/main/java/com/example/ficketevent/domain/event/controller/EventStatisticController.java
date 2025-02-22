@@ -17,7 +17,7 @@ public class EventStatisticController {
     private final EventStatisticService eventStatisticService;
 
     @GetMapping("/statistic/gender/{eventId}")
-    public ResponseEntity<int[]> userStatistic(@PathVariable Long eventId){
+    public ResponseEntity<int[]> userStatistic(@PathVariable Long eventId) {
         int[] res = eventStatisticService.getGenderDistributionChart(eventId);
 
         return ResponseEntity.ok(res);
@@ -32,7 +32,7 @@ public class EventStatisticController {
      * - 2024-12-12 오형상: 초기 작성
      */
     @GetMapping("/{eventId}/daily-revenue")
-    public ResponseEntity<List<DailyRevenueResponse>> calculateDailyRevenue(@PathVariable Long eventId){
+    public ResponseEntity<List<DailyRevenueResponse>> calculateDailyRevenue(@PathVariable Long eventId) {
         return ResponseEntity.ok(eventStatisticService.calculateDailyRevenue(eventId));
     }
 

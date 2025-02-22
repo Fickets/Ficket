@@ -18,7 +18,7 @@ public class CheckController {
 
     @PostMapping("/{eventId}/{connectId}/user-match")
     public ResponseEntity<Void> userMatch(@RequestPart MultipartFile userImg, @PathVariable(name = "eventId") Long eventId, @PathVariable(name = "connectId") Long connectId) {
-        checkService.matchFace(userImg,eventId, connectId);
+        checkService.matchFace(userImg, eventId, connectId);
         return ResponseEntity.noContent().build();
     }
 
@@ -32,9 +32,9 @@ public class CheckController {
      * - 2024-12-14 최용수: 초기 작성
      */
     @GetMapping("/ticket-watch/{ticketId}")
-    public ResponseEntity<Void> ticketWatchedChange(@PathVariable(name = "ticketId")Long ticketId,
-                                                    @RequestParam(name = "eventId")Long eventId,
-                                                    @RequestParam(name = "connectId")Long connectId) {
+    public ResponseEntity<Void> ticketWatchedChange(@PathVariable(name = "ticketId") Long ticketId,
+                                                    @RequestParam(name = "eventId") Long eventId,
+                                                    @RequestParam(name = "connectId") Long connectId) {
         checkService.changeTicketWatched(ticketId, eventId, connectId);
         return ResponseEntity.noContent().build();
     }

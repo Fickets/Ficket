@@ -119,7 +119,7 @@ public class QueueController {
     }
 
     /**
-     * 해당 이벤트의 슬롯 해체 API 
+     * 해당 이벤트의 슬롯 해체 API
      * <p>
      * 작업자: 오형상
      * 작업 날짜: 2024-12-19

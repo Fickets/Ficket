@@ -6,16 +6,12 @@ import com.example.ficketevent.domain.event.dto.response.EventScheduledOpenRespo
 import com.example.ficketevent.domain.event.dto.response.EventSearchRes;
 import com.example.ficketevent.domain.event.dto.response.SimpleEvent;
 import com.example.ficketevent.domain.event.entity.Event;
-import com.example.ficketevent.domain.event.entity.EventSchedule;
 import com.example.ficketevent.domain.event.enums.Genre;
-import com.example.ficketevent.domain.event.enums.Period;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface EventCustomRepository {

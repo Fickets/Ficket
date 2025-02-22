@@ -11,8 +11,8 @@ public class CircuitBreakerUtils {
         // 유틸리티 클래스는 인스턴스화 금지
     }
 
-    public static <T> T executeWithCircuitBreaker(CircuitBreakerRegistry circuitBreakerRegistry, 
-                                                  String breakerName, 
+    public static <T> T executeWithCircuitBreaker(CircuitBreakerRegistry circuitBreakerRegistry,
+                                                  String breakerName,
                                                   Supplier<T> supplier) {
         CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker(breakerName);
         return circuitBreaker.executeSupplier(supplier);

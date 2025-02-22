@@ -58,7 +58,7 @@ public class Orders extends BaseEntity {
                 .orderPrice(createOrderRequest.getSelectSeatInfoList().stream()
                         .map(SelectSeatInfo::getSeatPrice)
                         .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .add(SEAT_FEE.multiply(new BigDecimal(createOrderRequest.getSelectSeatInfoList().size()))))
+                        .add(SEAT_FEE.multiply(new BigDecimal(createOrderRequest.getSelectSeatInfoList().size()))))
                 .userId(userId)
                 .build();
 

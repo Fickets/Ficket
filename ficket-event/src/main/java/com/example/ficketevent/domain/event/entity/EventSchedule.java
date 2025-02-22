@@ -22,7 +22,7 @@ public class EventSchedule extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column( nullable = false)
+    @Column(nullable = false)
     private Long eventScheduleId; // 행사 날짜 ID
 
     @Setter
@@ -30,7 +30,7 @@ public class EventSchedule extends BaseEntity {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event; // 이벤트 ID 참조
 
-    @Column( nullable = false)
+    @Column(nullable = false)
     private Integer round; // 회차
 
     @Column(nullable = false, columnDefinition = "TIMESTAMP")

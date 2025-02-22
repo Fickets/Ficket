@@ -18,8 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +37,7 @@ public class CheckService {
     private final SimpMessageSendingOperations template;
 
 
-    public void sendMessage(Long eventId, Long connectId, CheckDto message){
+    public void sendMessage(Long eventId, Long connectId, CheckDto message) {
         String destination = String.format("/sub/check/%d/%d", eventId, connectId);
         template.convertAndSend(destination, message);
     }
@@ -54,12 +52,12 @@ public class CheckService {
         log.info("EVENT IDS FIND : " + eventScheduleIds.size());
         for (Long eventScheduleId : eventScheduleIds) {
             FaceApiResponse faceApiResponse = null;
-            try{
+            try {
                 faceApiResponse = executeWithCircuitBreaker(circuitBreakerRegistry,
                         "postMatchUserFaceImgCircuitBreaker",
                         () -> faceServiceClient.matchFace(userFaceImage, eventScheduleId)
                 );
-            } catch (Exception e){
+            } catch (Exception e) {
                 log.info(e.toString());
             }
 
@@ -91,7 +89,7 @@ public class CheckService {
 
 
     @CircuitBreaker(name = "changeTicketToWatched")
-    public void changeTicketWatched(Long ticketId, Long eventId, Long connectId){
+    public void changeTicketWatched(Long ticketId, Long eventId, Long connectId) {
         ticketingServiceClient.changeTicketWatched(ticketId);
 
         Map<String, String> message = new HashMap<>();

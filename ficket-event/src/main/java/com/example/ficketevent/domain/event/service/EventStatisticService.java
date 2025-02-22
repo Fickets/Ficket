@@ -4,8 +4,6 @@ import com.example.ficketevent.domain.event.client.TicketingServiceClient;
 import com.example.ficketevent.domain.event.dto.common.DailyRevenueResponse;
 import com.example.ficketevent.domain.event.dto.common.DayCountResponse;
 import com.example.ficketevent.domain.event.repository.EventRepository;
-import com.example.ficketevent.global.result.error.ErrorCode;
-import com.example.ficketevent.global.result.error.exception.BusinessException;
 import com.example.ficketevent.global.utils.CircuitBreakerUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.AllArgsConstructor;
@@ -24,7 +22,7 @@ public class EventStatisticService {
     private final TicketingServiceClient ticketingServiceClient;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
 
-    public int[] getGenderDistributionChart(Long eventId){
+    public int[] getGenderDistributionChart(Long eventId) {
 
         List<Long> eventSchedules = eventRepository.getEventScheduleByEventId(eventId);
         int[] userStatistic = ticketingServiceClient.getTicketUserStatistic(eventSchedules);
@@ -32,7 +30,7 @@ public class EventStatisticService {
         return userStatistic;
     }
 
-    public List<DailyRevenueResponse> calculateDailyRevenue(Long eventId){
+    public List<DailyRevenueResponse> calculateDailyRevenue(Long eventId) {
 
         Set<Long> ticketIds = eventRepository.getTicketIdsByEventId(eventId);
 
@@ -46,7 +44,7 @@ public class EventStatisticService {
     }
 
 
-    public DayCountResponse calculateDayCount(Long eventId){
+    public DayCountResponse calculateDayCount(Long eventId) {
         Set<Long> ticketIds = eventRepository.getTicketIdsByEventId(eventId);
 
         log.info("요일별 예매수 - 티켓 리스트 : ticketIds: {}", ticketIds);

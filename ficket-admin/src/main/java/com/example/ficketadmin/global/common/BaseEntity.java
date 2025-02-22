@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class BaseEntity {
 
     @CreatedDate
-    @Column(updatable = false,name = "CREATED_AT")
+    @Column(updatable = false, name = "CREATED_AT")
     private LocalDateTime createdAt; // 생성일
 
     @LastModifiedDate

@@ -2,11 +2,8 @@ package com.example.ficketadmin.domain.company.entity;
 
 import com.example.ficketadmin.domain.account.entity.Account;
 import com.example.ficketadmin.domain.membership.entity.Membership;
-import com.example.ficketadmin.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 

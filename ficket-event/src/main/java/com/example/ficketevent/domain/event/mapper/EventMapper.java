@@ -49,17 +49,16 @@ public interface EventMapper {
     EventImage toEventImage(String posterOriginUrl, String bannerOriginUrl, String posterMobileUrl, String posterPcUrl, String posterPcMain1Url, String posterPcMain2Url, String bannerPcUrl, String bannerMobileUrl);
 
 
-
-    default List<SimpleEvent> toSimpleEventList(List<Event> eventList){
+    default List<SimpleEvent> toSimpleEventList(List<Event> eventList) {
         return eventList.stream().map(event -> {
             List<EventSchedule> schedules = event.getEventSchedules();
             String date = event.getTicketingTime().toString().split("T")[0];
-            if(!schedules.isEmpty()){
+            if (!schedules.isEmpty()) {
                 EventSchedule first = schedules.get(0);
-                EventSchedule second = schedules.get(schedules.size()-1);
+                EventSchedule second = schedules.get(schedules.size() - 1);
                 String firstDate = first.getEventDate().toString().split("T")[0];
                 String secondDate = second.getEventDate().toString().split("T")[0];
-                date = firstDate+"~"+secondDate;
+                date = firstDate + "~" + secondDate;
             }
 
 

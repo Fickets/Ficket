@@ -35,22 +35,22 @@ public class SettlementRecordDto {
         this.totalNetSupplyAmount = totalNetSupplyAmount;
         this.totalServiceFee = totalServiceFee;
         this.totalSettlementValue = totalSettlementValue;
-        this.totalSupplyAmount=totalSupplyAmount;
+        this.totalSupplyAmount = totalSupplyAmount;
         this.settlementStatus = settlementStatus;
         this.title = title;
-        this.companyId=companyId;
-        this.companyName=companyName;
+        this.companyId = companyId;
+        this.companyName = companyName;
     }
 
     @QueryProjection
-    public SettlementRecordDto(Long eventId, LocalDateTime createdAt, LocalDateTime lastModifiedAt,BigDecimal totalNetSupplyAmount,BigDecimal totalServiceFee,BigDecimal totalSettlementValue, BigDecimal totalSupplyAmount, SettlementStatus settlementStatus){
-        this.eventId=eventId;
-        this.createdAt=createdAt;
-        this.lastModifiedAt=lastModifiedAt;
-        this.totalNetSupplyAmount=totalNetSupplyAmount;
-        this.totalServiceFee=totalServiceFee;
-        this.totalSettlementValue=totalSettlementValue;
+    public SettlementRecordDto(Long eventId, LocalDateTime createdAt, LocalDateTime lastModifiedAt, BigDecimal totalNetSupplyAmount, BigDecimal totalServiceFee, BigDecimal totalSettlementValue, BigDecimal totalSupplyAmount, SettlementStatus settlementStatus) {
+        this.eventId = eventId;
+        this.createdAt = createdAt;
+        this.lastModifiedAt = lastModifiedAt;
+        this.totalNetSupplyAmount = totalNetSupplyAmount;
+        this.totalServiceFee = totalServiceFee;
+        this.totalSettlementValue = totalSettlementValue;
         this.totalSupplyAmount = totalSupplyAmount;
-        this.settlementStatus=settlementStatus;
+        this.settlementStatus = settlementStatus;
     }
 }

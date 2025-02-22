@@ -33,6 +33,7 @@ public class JwtUtils {
 
     /**
      * AccessToken CREATE
+     *
      * @param customOAuth2User
      * @return AccessToken String
      */
@@ -42,6 +43,7 @@ public class JwtUtils {
 
     /**
      * RefreshToken CREATE
+     *
      * @param customOAuth2User
      * @return RefreshToken String
      */
@@ -51,6 +53,7 @@ public class JwtUtils {
 
     /**
      * JWT CREATE
+     *
      * @param customOAuth2User
      * @param exptime
      * @return
@@ -76,6 +79,7 @@ public class JwtUtils {
 
     /**
      * User PK GET
+     *
      * @param token
      * @return User PK
      */
@@ -85,6 +89,7 @@ public class JwtUtils {
 
     /**
      * User userName GET
+     *
      * @param token
      * @return userName
      */
@@ -94,6 +99,7 @@ public class JwtUtils {
 
     /**
      * User socialId GET
+     *
      * @param token
      * @return socialId
      */
@@ -104,11 +110,12 @@ public class JwtUtils {
 
     /**
      * Validate JWT
+     *
      * @param token
      * @return Bool true/false
      */
     public boolean validateToken(String token) {
-        try{
+        try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
@@ -126,6 +133,7 @@ public class JwtUtils {
 
     /**
      * JWT Claims GET
+     *
      * @param token
      * @return JWT Claims
      */

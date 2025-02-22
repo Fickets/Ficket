@@ -2,7 +2,6 @@ package com.example.ficketevent.domain.event.client;
 
 import com.example.ficketevent.domain.event.dto.common.AdminDto;
 import com.example.ficketevent.domain.event.dto.common.CompanyResponse;
-import org.apache.kafka.shaded.io.opentelemetry.proto.trace.v1.Status;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

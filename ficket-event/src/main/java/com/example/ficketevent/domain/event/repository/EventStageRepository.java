@@ -10,10 +10,6 @@ import java.util.List;
 @Repository
 public interface EventStageRepository extends JpaRepository<EventStage, Long> {
 
-//    @Query("SELECT new com.example.ficketevent.domain.event.dto.response.SimpleEventStageDto(e.stageId, e.stageName) " +
-//            "FROM EventStage e")
-//    List<SimpleEventStageDto> findAllSimpleStages();
-
     @Query("SELECT DISTINCT e.sido FROM EventStage e")
     List<String> findAllSido();
 }

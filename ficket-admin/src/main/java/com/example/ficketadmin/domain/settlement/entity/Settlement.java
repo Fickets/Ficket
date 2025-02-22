@@ -31,7 +31,7 @@ public class Settlement extends BaseEntity {
     private BigDecimal vat; // 세금 > 공급가액 10%
 
     @Column(name = "supply_value", nullable = false)
-    private BigDecimal supplyValue ; // 거래가액 > 공급가액 + 세금
+    private BigDecimal supplyValue; // 거래가액 > 공급가액 + 세금
 
     @Column(name = "service_fee", nullable = false)
     private BigDecimal serviceFee; // 서비스료 > 거래가액 * 멤버쉽GRADE %

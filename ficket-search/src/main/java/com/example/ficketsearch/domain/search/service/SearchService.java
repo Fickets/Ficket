@@ -25,12 +25,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static co.elastic.clients.elasticsearch._types.SortOptionsBuilders.doc;
-
 
 /**
  * 검색 서비스 클래스
- *
+ * <p>
  * Elasticsearch를 활용하여 자동완성, 이벤트 검색 기능을 제공합니다.
  */
 @Slf4j
@@ -68,7 +66,7 @@ public class SearchService {
      * 판매 상태 필터를 위한 Elasticsearch Query를 생성합니다.
      *
      * @param saleType 판매 상태
-     * @param now 현재 시간
+     * @param now      현재 시간
      * @return 생성된 Query
      */
     private Query createSaleTypeQuery(SaleType saleType, LocalDateTime now) {
@@ -116,20 +114,20 @@ public class SearchService {
     /**
      * 이벤트 검색 기능
      *
-     * @param title       이벤트 제목 필터
-     * @param genreList   장르 필터 목록
+     * @param title        이벤트 제목 필터
+     * @param genreList    장르 필터 목록
      * @param locationList 지역 필터 목록
      * @param saleTypeList 판매 상태 필터 목록
-     * @param startDate   시작 날짜 필터
-     * @param endDate     종료 날짜 필터
-     * @param sortBy      정렬 기준 (정확도순, 마감임박순 등)
-     * @param pageNumber  페이지 번호 (1부터 시작)
-     * @param pageSize    한 페이지에 보여질 데이터 개수
+     * @param startDate    시작 날짜 필터
+     * @param endDate      종료 날짜 필터
+     * @param sortBy       정렬 기준 (정확도순, 마감임박순 등)
+     * @param pageNumber   페이지 번호 (1부터 시작)
+     * @param pageSize     한 페이지에 보여질 데이터 개수
      * @return 검색 결과 객체(SearchResult)
      */
     public SearchResult searchEventsByFilter(String title, List<Genre> genreList, List<Location> locationList,
-                                     List<SaleType> saleTypeList, String startDate, String endDate,
-                                     SortBy sortBy, int pageNumber, int pageSize) {
+                                             List<SaleType> saleTypeList, String startDate, String endDate,
+                                             SortBy sortBy, int pageNumber, int pageSize) {
         List<Query> mustQueries = new ArrayList<>();
         int from = (pageNumber - 1) * pageSize;
 
@@ -155,7 +153,7 @@ public class SearchService {
         }
 
         // 날짜 필터
-        if (startDate != null && !startDate.isEmpty() &&  endDate != null && !endDate.isEmpty()) {
+        if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
             mustQueries.add(Query.of(q -> q.nested(n -> n
                     .path("Schedules")
                     .query(query -> query.range(r -> r

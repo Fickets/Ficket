@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -66,12 +65,12 @@ public class EventController {
      * - 2024-11-27 오형상: seatMapping 연관 관계 적용
      * - 2024-11-30 오형상: admin feign client 적용
      * - 2024-12-26 오형상: event 생성시 오픈 티켓 캐시 삭제 적용
+     * - 2025-02-22 오형상: xss 필터링 적용
      */
     @PostMapping("/admins/event")
     public ResponseEntity<String> registerEvent(@RequestHeader("X-Admin-Id") String adminId, @RequestPart EventCreateReq req, @RequestPart MultipartFile poster, @RequestPart MultipartFile banner) {
-
+        req.sanitizeContent(); // XSS 필터 적용
         eventService.createEvent(Long.parseLong(adminId), req, poster, banner);
-
         return ResponseEntity.ok("행사 등록에 성공했습니다.");
     }
 
@@ -87,6 +86,7 @@ public class EventController {
      * - 2024-12-21 오형상: 수동 캐시 삭제 적용
      * - 2024-12-24 오형상: 페이징 캐시 삭제 적용
      * - 2024-12-30 오형상: 스케쥴, 좌석 매칭 오류 해결
+     * - 2025-02-22 오형상: xss 필터링 적용
      */
     @PatchMapping("/admins/event/{eventId}")
     public ResponseEntity<String> modifyEvent(@RequestHeader("X-Admin-Id") String adminId, @PathVariable Long eventId, @RequestPart EventUpdateReq req, @RequestPart(required = false) MultipartFile poster, @RequestPart(required = false) MultipartFile banner) {
@@ -299,7 +299,7 @@ public class EventController {
      * - 2024-12-26 최용수: 초기 작성
      */
     @GetMapping("/company-id")
-    public List<Long> getCompanyId(@RequestParam Long ticketId){
+    public List<Long> getCompanyId(@RequestParam Long ticketId) {
         return eventService.getCompanyId(ticketId);
     }
 
@@ -312,7 +312,7 @@ public class EventController {
      * - 2024-12-26 최용수: 초기 작성
      */
     @GetMapping("/search-ids")
-    public List<EventTitleDto> searchIds(@RequestParam String title){
+    public List<EventTitleDto> searchIds(@RequestParam String title) {
         return eventService.getTitleIds(title);
     }
 
@@ -339,20 +339,20 @@ public class EventController {
      * - 2024-12-28 최용수: 장르선택 적용
      */
     @GetMapping("/open-recent")
-    public ResponseEntity<List<SimpleEvent>> getOpenRecent(@RequestParam(name = "genre", required = false)String genre){
+    public ResponseEntity<List<SimpleEvent>> getOpenRecent(@RequestParam(name = "genre", required = false) String genre) {
         List<SimpleEvent> res = eventService.getOpenRecent(genre);
         return ResponseEntity.ok(res);
     }
 
     @GetMapping("/genre-rank")
-    public ResponseEntity<List<SimpleEvent>> getGenreRank(@RequestParam(name = "genre") String genre){
+    public ResponseEntity<List<SimpleEvent>> getGenreRank(@RequestParam(name = "genre") String genre) {
         List<SimpleEvent> res = eventService.getGenreRank(genre);
         return ResponseEntity.ok(res);
     }
 
     @GetMapping("/area")
-    public ResponseEntity<List<String>> getAllArea(){
-        List<String> res  = eventService.allArea();
+    public ResponseEntity<List<String>> getAllArea() {
+        List<String> res = eventService.allArea();
         return ResponseEntity.ok(res);
     }
 
@@ -363,11 +363,11 @@ public class EventController {
             @RequestParam(defaultValue = "DAILY") Period period,
             @PageableDefault(page = 0, size = 10, sort = "eventDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ResponseEntity.ok(eventService.getGenreList(genre,area, period, pageable));
+        return ResponseEntity.ok(eventService.getGenreList(genre, area, period, pageable));
     }
 
     @GetMapping("/events/getScheduleId")
-    List<Long> getScheduledId(@RequestParam Long eventId){
+    List<Long> getScheduledId(@RequestParam Long eventId) {
         return eventService.getScheduleId(eventId);
     }
 
@@ -404,18 +404,18 @@ public class EventController {
 
 
     @GetMapping("/companyId/{eventId}")
-    public Long getCompanyIdByEventId(@PathVariable(name = "eventId") Long eventId){
+    public Long getCompanyIdByEventId(@PathVariable(name = "eventId") Long eventId) {
         return eventService.getCompanyByEvent(eventId);
     }
 
     @GetMapping("/check-time/{eventId}")
-    public ResponseEntity<Boolean> checkEventTicketingTime(@PathVariable(name = "eventId") Long eventId){
+    public ResponseEntity<Boolean> checkEventTicketingTime(@PathVariable(name = "eventId") Long eventId) {
         Boolean result = eventService.getCheckTicketingTime(eventId);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/check-schedule/{scheduleId}")
-    public ResponseEntity<Boolean> checkEventScheduleTime(@PathVariable(name = "scheduleId") Long scheduleId){
+    public ResponseEntity<Boolean> checkEventScheduleTime(@PathVariable(name = "scheduleId") Long scheduleId) {
         Boolean Result = eventService.getCheckScheduleTime(scheduleId);
         return ResponseEntity.ok(Result);
     }

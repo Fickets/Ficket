@@ -1,7 +1,6 @@
 package com.example.gateway.filter;
 
 import com.example.gateway.utils.JwtUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -27,7 +26,8 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     }
 
     public static class Config {
-        public Config() {}
+        public Config() {
+        }
     }
 
     @Override
