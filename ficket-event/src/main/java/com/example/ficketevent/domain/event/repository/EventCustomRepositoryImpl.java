@@ -211,7 +211,7 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                             .title(event.getTitle())
                             .date(event.getTicketingTime().toString())
                             .pcImg(event.getEventImage().getPosterPcMain2Url())
-                            .mobileImg(event.getEventImage().getPosterMobileUrl())
+                            .mobileImg(event.getEventImage().getPosterPcMain1Url())
                             .build();
                 })
                 .toList();
