@@ -613,7 +613,7 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
 
-        // 6. 변환 및 캐시에 저장
+        // 6. 변환 및 캐시에 저장 
         EventDetailRes eventDetailRes = EventDetailRes.toEventDetailRes(event, "TEST");
         redisTemplate.opsForValue().set(cacheKey, eventDetailRes, Duration.ofHours(24)); // 24시간 TTL
 
