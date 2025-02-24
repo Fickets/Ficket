@@ -391,15 +391,17 @@ const EventDetail: React.FC = () => {
               <div className="flex mb-[20px]">
                 <p className="text-[16px] w-[90px]">공연기간</p>
                 <p className="text-[16px]">
-                  {(Object.keys(event.scheduleMap).at(-1) || "").replace(
+                  {(Object.keys(event.scheduleMap)[0] || "").replace(
                     /-/g,
                     ".",
                   ) +
                     " ~ " +
-                    (Object.keys(event.scheduleMap)[0] || "").replace(
+                    (Object.keys(event.scheduleMap).at(-1) || "").replace(
                       /-/g,
                       ".",
-                    )}
+                    )
+
+                  }
                 </p>
               </div>
               <div className="flex mb-[20px]">
