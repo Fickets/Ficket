@@ -186,8 +186,9 @@ const GenreSearch = ({ genre }: { genre: string }) => {
                                     onClick={() => { navi(`/events/detail/${event.eventId}`) }}
                                 >
                                     <img src={event.mobileImg} alt="" className="w-[90px]" />
-                                    <div className="flex flex-col m-[30px]">
-                                        <h3 className="font-bold text-lg">{event.title}</h3>
+                                    <div className="flex flex-col ml-[10px] mt-[5px] w-full">
+                                        <h3 className="font-bold text-base truncate max-w-[200px] overflow-hidden whitespace-nowrap block">
+                                            {event.title} </h3>
                                         <p className="text-sm text-gray-500">{event.eventStage}</p>
                                         <p className="text-sm text-gray-500">{event.date}</p>
                                     </div>

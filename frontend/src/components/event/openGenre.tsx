@@ -69,26 +69,24 @@ const OpenGenre = ({ genre }: { genre: string }) => {
           </div>
         ) : (
           <div>
-            {/* 첫 번째 줄 */}
-            <div className="flex mx-[300px]">
+            {/* 이벤트 목록 */}
+            <div className="grid grid-cols-3 gap-6 mx-[300px]">
               {firstRow.map((event, index) => (
                 <div
                   key={index}
-                  className="  rounded shadow w-1/3 mx-[15px] border"
+                  className="rounded shadow border p-4"
                   onClick={() => open6Click(event.eventId)}
                 >
                   <div className="flex">
                     <img src={event.pcImg} alt="" />
-                    <div className="flex flex-col ">
+                    <div className="flex flex-col">
                       <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]">
                         {formatDate(event.date)}
                       </p>
                       <p className="ml-[30px] mt-[20px] font-bold text-[18px]">
                         {event.title}
                       </p>
-                      <p className="ml-[30px] mt-[10px] text-[#666666]">
-                        일반예매
-                      </p>
+                      <p className="ml-[30px] mt-[10px] text-[#666666]">일반예매</p>
                     </div>
                   </div>
                 </div>
@@ -96,25 +94,23 @@ const OpenGenre = ({ genre }: { genre: string }) => {
             </div>
 
             {/* 두 번째 줄 */}
-            <div className="flex mx-[300px]">
+            <div className="grid grid-cols-3 gap-6 mx-[300px]">
               {secondRow.map((event, index) => (
                 <div
                   key={index}
-                  className="  rounded shadow w-1/3 mx-[15px] border"
+                  className="rounded shadow border p-4"
                   onClick={() => open6Click(event.eventId)}
                 >
                   <div className="flex">
                     <img src={event.pcImg} alt="" />
-                    <div className="flex flex-col ">
+                    <div className="flex flex-col">
                       <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]">
                         {formatDate(event.date)}
                       </p>
                       <p className="ml-[30px] mt-[20px] font-bold text-[18px]">
                         {event.title}
                       </p>
-                      <p className="ml-[30px] mt-[10px] text-[#666666]">
-                        일반예매
-                      </p>
+                      <p className="ml-[30px] mt-[10px] text-[#666666]">일반예매</p>
                     </div>
                   </div>
                 </div>
