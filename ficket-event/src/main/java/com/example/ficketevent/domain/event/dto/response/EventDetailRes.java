@@ -9,10 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -48,7 +45,7 @@ public class EventDetailRes {
     private Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap;
 
     public static EventDetailRes toEventDetailRes(Event event, String compName){
-        Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap = new HashMap<>();
+        Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap = new TreeMap<>();
         List<Map<String, String>> partitionList = new ArrayList<>();
         event.getStagePartitions().forEach(partition -> {
             Map<String, String> partitionTmp = new HashMap<>();
