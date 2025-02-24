@@ -168,7 +168,7 @@ const FaceDetectionPage: React.FC = () => {
               (message) => {
                 try {
                   const parsedMessage: SocketMessage = JSON.parse(message.body);
-                  if (parsedMessage.data.message != null) {
+                  if (parsedMessage.data.message == null) {
                     setSocketMessage(parsedMessage);
                   } else {
                     setSocketMessage(null);
