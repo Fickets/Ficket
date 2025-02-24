@@ -34,14 +34,13 @@ const OpenGenre = ({ genre }: { genre: string }) => {
     const inputDate = new Date(dateString); // 입력된 날짜
     const now = new Date(); // 현재 시간
 
-    // 오늘인지 확인 (연, 월, 일 비교)
-
     // 현재 시간과 비교
     if (inputDate > now) {
-      // 입력된 시간이 현재 시간 이후라면 "오늘 HH시 mm분" 반환
+      const month = (inputDate.getMonth() + 1).toString().padStart(2, "0");
+      const dates = inputDate.getDate().toString().padStart(2, "0");
       const hours = inputDate.getHours().toString().padStart(2, "0");
       const minutes = inputDate.getMinutes().toString().padStart(2, "0");
-      return `오늘 ${hours}시 ${minutes}분`;
+      return `${month}월 ${dates}일 ${hours}시 ${minutes}분`;
     } else {
       // 입력된 시간이 현재 시간 이전이라면 "예매 가능" 반환
       return "예매 가능";
