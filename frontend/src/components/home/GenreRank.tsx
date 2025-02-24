@@ -70,7 +70,7 @@ const GenreRank = () => {
                   <img
                     src={event.pcImg}
                     alt=""
-                    className="rounded-lg object-cover h-[321px] w-[244px]"
+                    className="rounded-lg object-cover h-min-[321px] w-min-[244px]"
                   />
                   {/* Index 표시 */}
                   <div className="">
