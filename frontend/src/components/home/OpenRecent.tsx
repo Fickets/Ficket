@@ -133,11 +133,7 @@ const OpenRecent = ({ genre }: { genre: string }) => {
                 onClick={() => open6Click(event.eventId)}
               >
                 <div className="flex">
-                  <img
-                    src={event.mobileImg}
-                    alt=""
-                    className="w-[90px] h-[120px] object-cover"
-                  />
+                  <img src={event.mobileSmallImg} alt="" />
                   <div className="flex flex-col text-ellipsis overflow-hidden">
                     <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]">
                       {formatDate(event.date)}
@@ -161,7 +157,7 @@ const OpenRecent = ({ genre }: { genre: string }) => {
                 onClick={() => open6Click(event.eventId)}
               >
                 <div className="flex text-ellipsis overflow-hidden">
-                  <img src={event.mobileImg} alt="" />
+                  <img src={event.mobileSmallImg} alt="" />
                   <div className="flex flex-col">
                     <p className="text-[#8E43E7] font-bold text-[18px] mt-[30px] ml-[30px]">
                       {formatDate(event.date)}

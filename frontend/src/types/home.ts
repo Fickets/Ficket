@@ -8,19 +8,19 @@ export interface ViewRankResponse {
   eventDateList: string[];
 }
 
-
 export interface SimpleEvent {
   eventId: number;
   title: string;
   date: string;
   pcImg: string;
-  mobileImg: string
-  eventStage: string
+  mobileImg: string;
+  mobileSmallImg: string;
+  eventStage: string;
 }
 
 export interface SimplePageRes {
   content: SimpleEvent[];
   page: number;
   size: number;
-  last: boolean
+  last: boolean;
 }
