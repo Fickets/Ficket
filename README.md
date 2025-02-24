@@ -70,69 +70,60 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
     <br>
     <img src="https://img.shields.io/badge/css3-1572B6?style=for-the-badge&logo=css3&logoColor=white">
     <img src="https://img.shields.io/badge/stomp js-000000?style=for-the-badge&logo=webSocket&logoColor=white">
-    
   </div>
-
-
-<h3>💾  BackEnd</h3>
-<div>
-  <img src="https://img.shields.io/badge/Java-000000?style=for-the-badge&logo=openjdk&logoColor=white">
-  <img src="https://img.shields.io/badge/spring boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
-  <img src="https://img.shields.io/badge/spring webclient-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
-  <img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
-  <br/>
-  <img src="https://img.shields.io/badge/redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
-  <img src="https://img.shields.io/badge/amazons3-569A31?style=for-the-badge&logo=amazons3&logoColor=white">
-  <img src="https://img.shields.io/badge/mongodb-47A248?style=for-the-badge&logo=mongodb&logoColor=white">
-  <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
-  <img src="https://img.shields.io/badge/hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white">
-  <img src="https://img.shields.io/badge/stomp js-000000?style=for-the-badge&logo=webSocket&logoColor=white">
-
-</div>
-
-<h3>🤖  AI</h3>
-<div>
-  <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white">
-  <img src="https://img.shields.io/badge/opencv-ffffff?style=for-the-badge&logo=opencv&logoColor=red">
-  <img src="https://img.shields.io/badge/dlib-ffffff?style=for-the-badge&logo=dlib&logoColor=green">
-  <img src="https://img.shields.io/badge/flask-3A8693?style=for-the-badge&logo=flask&logoColor=black">
-  <img src="https://img.shields.io/badge/boto3-FFCB05?style=for-the-badge&logo=boto3&logoColor=white">
-    
-</div>
-
-<h3>💻  Infra</h3>
-<div>
-  <img src="https://img.shields.io/badge/jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white">
-  <img src="https://img.shields.io/badge/amazonec2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white">
-  <img src="https://img.shields.io/badge/nginx-009639?style=for-the-badge&logo=nginx&logoColor=white">
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
-</div>
-
-<h3>💬  Cooperation</h3>
+  <h3>⚙  BackEnd</h3>
   <div>
-    <img src="https://img.shields.io/badge/gitlab-FC6D26?style=for-the-badge&logo=gitlab&logoColor=white">
-    <img src="https://img.shields.io/badge/jirasoftware-0052CC?style=for-the-badge&logo=jirasoftware&logoColor=white">
-    <img src="https://img.shields.io/badge/mattermost-0058CC?style=for-the-badge&logo=mattermost&logoColor=white">
-    <img src="https://img.shields.io/badge/gerrit-ffffff?style=for-the-badge&logo=gerrit&logoColor=blue">
+      <img src="https://img.shields.io/badge/Java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white">
+      <img src="https://img.shields.io/badge/spring boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
+      <img src="https://img.shields.io/badge/spring webclient-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
+      <img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
+      <br>
+      <img src="https://img.shields.io/badge/Feign-0075A8?style=for-the-badge&logo=apachekafka&logoColor=white">
+      <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring&logoColor=white">
+      <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white">
+      <img src="https://img.shields.io/badge/OAuth-0081CB?style=for-the-badge&logo=auth0&logoColor=white">
+      <img src="https://img.shields.io/badge/Spring%20Cloud-6DB33F?style=for-the-badge&logo=spring&logoColor=white">
+      <img src="https://img.shields.io/badge/Resilience4j-FF9E0F?style=for-the-badge&logo=java&logoColor=white">
+      <br>
+      <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white">
+      <img src="https://img.shields.io/badge/InsightFace-EAEAEA?style=for-the-badge&logo=opencv&logoColor=black">
+      <img src="https://img.shields.io/badge/Flask-DDDDDD?style=for-the-badge&logo=flask&logoColor=black">
+      <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white">
+      <img src="https://img.shields.io/badge/boto3-FFCB05?style=for-the-badge&logo=boto3&logoColor=white">
   </div>
-</div>
-## 4. 기술 스택 🛠
-
-- **Language:** `Java`, `TypeScript`, `Python`
-- **Framework:** `Spring Boot`, `React`, `Flask`
-- **Build Tool:** `Gradle`, `Vite`
-- **DB:** `MySQL`, `Redis`, `MongoDB`
-- **Server:** `AWS EC2`, `AWS Lambda`
-- **Storage:** `AWS S3`
-- **Search Engine:** `Elasticsearch`
-- **Containerization & Orchestration:** `Docker`, `Kubernetes`
-- **Messaging:** `Kafka`, `RabbitMQ`
-- **Microservices Architecture**: `Spring Cloud`, `Feign`, `Eureka`, `Resilience4j`
-- **Authentication/Authorization:** `JWT`, `OAuth`, `Spring Security`
-- **Monitoring/Tracing:** `Prometheus`, `Grafana`, `Zipkin`
-- **Load Testing:** `Locust`
-- **Other Tools:** `GitHub`, `Jira`, `Figma`, `Swagger`, `Notion`
-
+  <h3>💾  Database & Caching</h3>
+  <div>
+    <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+    <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white">
+    <img src="https://img.shields.io/badge/Elasticsearch-005571?style=for-the-badge&logo=elasticsearch&logoColor=white">
+    <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
+  </div>
+  <h3>🏠  Cloud & Infrastructure</h3>
+  <div>
+    <img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white">
+    <img src="https://img.shields.io/badge/AWS%20Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white">
+    <img src="https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white">
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+    <img src="https://img.shields.io/badge/Eureka-7B42BC?style=for-the-badge&logo=spring&logoColor=white">
+  </div>
+  <h3>✉  Monitoring & Logging</h3>
+  <div>
+    <img src="https://img.shields.io/badge/Apache%20Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white">
+    <img src="https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white">
+  </div>
+  <h3>🎮  Performance Testing & Load Testing</h3>
+  <div>
+    <img src="https://img.shields.io/badge/Locust-000000?style=for-the-badge&logo=locust&logoColor=white">
+  </div>
+  <h3>>💬  Cooperation</h3>
+  <div>
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white">
+    <img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white">
+    <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white">
+    <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black">
+    <img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white">
+  </div>
+    
 ---
 
 ## 5. 아키텍처 📃
