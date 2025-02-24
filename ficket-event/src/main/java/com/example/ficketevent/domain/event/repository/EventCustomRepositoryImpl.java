@@ -194,14 +194,7 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
         LocalDateTime tomorrowMidnight = currentDateTime.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
         builder.and(event.ticketingTime.before(tomorrowMidnight));
         // 조건 추가: genre가 포함되는 경우
-        if(genre == null){
-            log.info("genre is null");
-        } else if (genre.equals("")) {
-            log.info("genre is ''");
-        }else{
-            log.info("genre is " + genre);
-        }
-        if (genre != null) {
+        if (!genre.isEmpty()) {
             builder.and(event.genre.any().stringValue().eq(genre));
         }
 
