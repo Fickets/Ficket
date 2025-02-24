@@ -163,7 +163,6 @@ const FaceDetectionPage: React.FC = () => {
             Authorization: token,
           },
           onConnect: () => {
-            const newClient = new Client();
             newClient.subscribe(
               `/sub/check/${eventId}/${connectId}`,
               (message) => {
