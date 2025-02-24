@@ -18,4 +18,5 @@ public class SimpleEvent {
 
     private String pcImg;
     private String mobileImg;
+    private String mobileSmallImg;
 }
