@@ -115,7 +115,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
   <div>
     <img src="https://img.shields.io/badge/Locust-000000?style=for-the-badge&logo=locust&logoColor=white">
   </div>
-  <h3>>💬  Cooperation</h3>
+  <h3>💬  Cooperation</h3>
   <div>
     <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white">
     <img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white">
