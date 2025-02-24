@@ -240,7 +240,7 @@ const EventDetail: React.FC = () => {
 
         setGenderStatisticData(statisticData);
       },
-      (_error) => {},
+      (_error) => { },
     );
   };
 
@@ -278,7 +278,7 @@ const EventDetail: React.FC = () => {
         event.setTicketingStep(false);
         setEventId(Number(eventId));
       },
-      (_error) => {},
+      (_error) => { },
     );
   };
 
@@ -475,11 +475,10 @@ const EventDetail: React.FC = () => {
                       <button
                         key={index}
                         data-key={index}
-                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
-                          selectedButton === index
-                            ? "bg-[#8E43E7] text-white"
-                            : "bg-white"
-                        }`}
+                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
+                          ? "bg-[#8E43E7] text-white"
+                          : "bg-white"
+                          }`}
                         onClick={(e) => roundButtonClick(e)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
@@ -512,21 +511,19 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "performance"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "performance"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "sales"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "sales"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -560,11 +557,10 @@ const EventDetail: React.FC = () => {
                               남자 {genderStatisticData[0]}명
                             </p>
                             <p className="text-[30px] text-[#5B4DFF]">
-                              {(genderStatisticData[0] /
-                                (genderStatisticData[0] +
-                                  genderStatisticData[1])) *
-                                100}
-                              %
+                              {(() => {
+                                const total = genderStatisticData[0] + genderStatisticData[1];
+                                return total === 0 ? "0" : `${((genderStatisticData[0] / total) * 100).toFixed(0)}%`;
+                              })()}
                             </p>
                           </div>
                           <img src={womanImg} className="w-[100px]" alt="" />
@@ -573,11 +569,10 @@ const EventDetail: React.FC = () => {
                               여자 {genderStatisticData[1]}명
                             </p>
                             <p className="text-[30px] text-[#5B4DFF]">
-                              {(genderStatisticData[1] /
-                                (genderStatisticData[0] +
-                                  genderStatisticData[1])) *
-                                100}
-                              %
+                              {(() => {
+                                const total = genderStatisticData[0] + genderStatisticData[1];
+                                return total === 0 ? "0" : `${((genderStatisticData[1] / total) * 100).toFixed(0)}%`;
+                              })()}
                             </p>
                           </div>
                         </div>
@@ -900,21 +895,19 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "performance"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "performance"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${
-                  activeTab === "sales"
-                    ? "border-b-2 border-black font-semibold"
-                    : "text-gray-500"
-                }`}
+                className={`flex-1 text-center py-2 ${activeTab === "sales"
+                  ? "border-b-2 border-black font-semibold"
+                  : "text-gray-500"
+                  }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -952,11 +945,10 @@ const EventDetail: React.FC = () => {
                               {genderStatisticData[0]}명
                             </p>
                             <p className="text-[14px] text-[#5B4DFF]">
-                              {(genderStatisticData[0] /
-                                (genderStatisticData[0] +
-                                  genderStatisticData[1])) *
-                                100}
-                              %
+                              {(() => {
+                                const total = genderStatisticData[0] + genderStatisticData[1];
+                                return total === 0 ? "0" : `${((genderStatisticData[0] / total) * 100).toFixed(0)}%`;
+                              })()}
                             </p>
                           </div>
                           <img src={womanImg} className="w-[45px]" alt="" />
@@ -966,11 +958,10 @@ const EventDetail: React.FC = () => {
                               {genderStatisticData[0]}명
                             </p>
                             <p className="text-[14px] text-[#5B4DFF]">
-                              {(genderStatisticData[1] /
-                                (genderStatisticData[0] +
-                                  genderStatisticData[1])) *
-                                100}
-                              %
+                              {(() => {
+                                const total = genderStatisticData[0] + genderStatisticData[1];
+                                return total === 0 ? "0" : `${((genderStatisticData[1] / total) * 100).toFixed(0)}%`;
+                              })()}
                             </p>
                           </div>
                         </div>
