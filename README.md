@@ -1,35 +1,12 @@
-# [Ficket - 얼굴 인식 기반 티켓팅 플랫폼](http://ec2-43-201-23-107.ap-northeast-2.compute.amazonaws.com/)
+# Ficket - 얼굴 인식 기반 티켓팅 플랫폼
 
 ## 1. 프로젝트 소개 🚀
 
-### 배경
+Ficket은 얼굴 인식을 활용한 티켓 예매 및 검증 서비스입니다.
+사용자는 티켓 예매 시 얼굴 정보를 등록하고, 입장 시 얼굴 인식만으로 빠르고 안전하게 검증을 완료할 수 있습니다.
+별도의 실물 티켓이나 추가 인증 없이 간편하게 이용할 수 있으며, 실시간 검증 시스템을 통해 원활한 이벤트 운영을 지원합니다.
 
-1. **비대면 환경의 확산**
-    - COVID-19 팬데믹 이후, 비대면 서비스와 디지털화된 검증 시스템에 대한 수요가 증가하였습니다.
-    - 기존의 QR코드, 바코드 등 물리적 티켓 검증 방식은 위조 및 유실 위험이 존재합니다.
-
-2. **보안성과 편리성의 필요성**
-    - 이벤트 및 공연 현장에서의 티켓 위조 방지와 신속한 입장 관리가 중요한 과제가 되었으며, 이를 해결하기 위해 보다 높은 보안성을 제공하는 기술이 요구되었습니다.
-
-3. **AI 및 생체인식 기술의 발전**
-    - 얼굴인식 기술의 발전으로 인해 실시간으로 높은 정확도를 가진 생체인식 검증 시스템을 구축할 수 있는 환경이 마련되었습니다.
-
-### 목적
-
-1. **티켓 검증의 간소화**
-    - 사용자 얼굴 정보를 통해 빠르고 정확하게 티켓을 발급하고 입장을 확인합니다.
-    - 추가적인 신분증, QR코드 또는 티켓의 소지가 필요하지 않아, 사용자의 편리성을 극대화합니다.
-
-2. **보안 강화**
-    - 얼굴인식을 통해 티켓의 위조 및 중복 사용을 방지하고, 개인화된 검증 시스템을 제공합니다.
-    - AES 암호화와 S3 저장소를 활용하여 사용자의 민감한 데이터를 안전하게 보호합니다.
-
-3. **운영 효율성 개선**
-    - 이벤트 운영자에게 실시간 검증 데이터를 제공하여 입장 관리 및 고객 경험을 개선합니다.
-    - 자동화된 프로세스를 통해 인력 및 운영 비용을 절감합니다.
-
-4. **통합 경험 제공**
-    - 사용자 등록, 티켓 발급, 입장 검증까지의 모든 과정을 하나의 시스템에서 제공하여 통합된 고객 경험을 제공합니다.
+[Ficket 바로 가기](https://ficket.shop)
 
 ---
 
@@ -47,15 +24,17 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 3. 제작기간 && 팀원소개 🏃‍🏃‍♀️💨
 
-### 2024-11-21 ~ 2024-01-20🔥
+### 2024-11-21 ~ 2024-02-25🔥
 
-| 이름                                 | 담당 기능                                                                             |
-|------------------------------------|-----------------------------------------------------------------------------------|
-| [최용수](https://github.com/TutiTuti) | Jenkins, CI/CD, OAuth2 인증/인가, 정산, 메인페이지, 티켓 검사, 회원 관리, 날짜 선택, 공연 조회 등 |
-| [오형상](https://github.com/ohy1023)  | MSA 구성, 좌석 선점, 얼굴 인식, 랭킹, 대기열, Locust 부하 테스트 ,PortOne 결제, 마이티켓, 공연 관리 등           |
+| 이름                                 | 담당 기능                                                                   |
+|------------------------------------|-------------------------------------------------------------------------|
+| [최용수](https://github.com/TutiTuti) | Jenkins, CI/CD, OAuth2 인증/인가, 정산, 메인페이지, 티켓 검사, 회원 관리, 날짜 선택, 공연 조회 등   |
+| [오형상](https://github.com/ohy1023)  | MSA 구성, 좌석 선점, 얼굴 인식, 랭킹, 대기열, Locust 부하 테스트 ,PortOne 결제, 마이티켓, 공연 관리 등 |
 
 ---
+
 ## 4. 🛠 기술 스택
+
 <div align=middle>
   <h3>🎨  FrontEnd</h3>
   <div>
@@ -123,7 +102,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
     <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black">
     <img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white">
   </div>
-    
+</div>
 ---
 
 ## 5. 아키텍처 📃
@@ -134,7 +113,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 6. API 명세서 📡
 
-- Swagger: [http://ec2-52-78-23-203.ap-northeast-2.compute.amazonaws.com:9000/swagger-ui/index.html](http://ec2-52-78-23-203.ap-northeast-2.compute.amazonaws.com:9000/swagger-ui/index.html)
+- Swagger: [https://api.ficket.shop](https://api.ficket.shop)
 - Notion: [API 명세서 바로가기](https://www.notion.so/API-125cb8b3a5cf81dbbff3cec772823e6a?pvs=4)
 
 ---
@@ -146,7 +125,8 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 ---
 
 ## 8. 주요 기술 ✨
-- 쿠버네티스 
+
+- 쿠버네티스
     - [??]()
 - MSA
     - [Eureka Server & Eureka Client & Gateway 설정](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-1-Eureka-Server-Eureka-Client-Gateway-%EC%84%A4%EC%A0%95)
