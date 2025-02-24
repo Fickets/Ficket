@@ -45,7 +45,7 @@ public class EventDetailRes {
     private Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap;
 
     public static EventDetailRes toEventDetailRes(Event event, String compName){
-        Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap = new TreeMap<>();
+        Map<String, HashMap<Integer, EventScheduleDto>> scheduleMap = new TreeMap<>(Comparator.reverseOrder());
         List<Map<String, String>> partitionList = new ArrayList<>();
         event.getStagePartitions().forEach(partition -> {
             Map<String, String> partitionTmp = new HashMap<>();
