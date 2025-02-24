@@ -200,9 +200,11 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
 
         List<Event> top6 = queryFactory.selectFrom(event)
                 .where(builder)
-                .orderBy(event.ticketingTime.asc())
+                .orderBy(event.ticketingTime.desc())
                 .limit(6)
                 .fetch();
+
+        top6.sort(Comparator.comparing(Event::getTicketingTime));
 
         return top6.stream()
                 .map(event -> {
