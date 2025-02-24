@@ -63,26 +63,28 @@ const GenreRank = () => {
               {rankGenre.map((event, index) => (
                 <div
                   key={index}
-                  className="relative mx-[10px] w-[244px]"
+                  className="relative mx-[10px]"
                   onClick={() => navi(`events/detail/${event.eventId}`)}
                 >
                   {/* 이미지 */}
                   <img
                     src={event.pcImg}
                     alt=""
-                    className="rounded-lg object-cover"
+                    className="rounded-lg object-cover h-[321px] w-[244px]"
                   />
                   {/* Index 표시 */}
                   <div className="">
                     <p className="absolute bottom-2 left-2 bg-[] text-shadow text-white text-[70px] font-bold px-[5px] py-[2px] rounded">
                       {index + 1}
                     </p>
-                    <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap">
+                    <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap w-[240px]">
                       {event.title}
                     </p>
                   </div>
                 </div>
               ))}
+
+
             </div>
           )}
         </div>
