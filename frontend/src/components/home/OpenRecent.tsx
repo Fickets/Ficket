@@ -129,7 +129,7 @@ const OpenRecent = ({ genre }: { genre: string }) => {
             {firstRow.map((event, index) => (
               <div
                 key={index}
-                className="rounded shadow w-[250px] mx-[15px] border inline-block "
+                className="rounded shadow w-[350px] mx-[15px] border inline-block "
                 onClick={() => open6Click(event.eventId)}
               >
                 <div className="flex">
