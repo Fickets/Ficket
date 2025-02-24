@@ -54,7 +54,9 @@ const EventDetail: React.FC = () => {
   const [genderStatisticData, setGenderStatisticData] = useState<number[]>([
     0, 0, 0, 0, 0, 0, 0,
   ]);
-
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   const [activeTab, setActiveTab] = useState("performance");
   // const [selectedButton, setSelectedButton] = React.useState(null);
 
@@ -68,6 +70,8 @@ const EventDetail: React.FC = () => {
     Legend,
     ChartDataLabels,
   );
+
+
 
   const togglePrice = () => {
     setShowPrice((prev) => !prev);

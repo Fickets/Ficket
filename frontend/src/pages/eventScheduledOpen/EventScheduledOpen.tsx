@@ -5,10 +5,12 @@ import MobileHeader from "../../components/@common/MobileHeader.tsx";
 import UserHeader from "../../components/@common/UserHeader.tsx";
 import MobileBottom from "../../components/@common/MobileBottom.tsx";
 import { Helmet } from "react-helmet-async";
-
+import { useEffect } from "react";
 const EventScheduledOpen = () => {
   const isMobile: boolean = useMediaQuery({ query: "(max-width: 768px)" });
-
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   return (
     <div>
       <Helmet>

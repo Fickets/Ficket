@@ -7,6 +7,9 @@ import { ApiResponse, SearchParams } from "../../types/eventList.ts";
 import { Helmet } from "react-helmet-async";
 
 const AdminEventList = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   const [data, setData] = useState<ApiResponse>({
     content: [],
     page: 0,

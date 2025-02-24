@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EventStatistics from "../../components/adminEventDetail/EventStatistics.tsx";
 import EditEvent from "../../components/adminEventDetail/EditEvent.tsx";
 import TemporaryUrlModal from "../../components/adminEventDetail/TemporaryUrlModal.tsx";
@@ -19,7 +19,9 @@ const AdminEventDetail = () => {
   const activeTab = searchParams.get("tab") || "info"; // 기본값 'info'
 
   const { eventId } = useParams<{ eventId: string }>();
-
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   // 숫자만 허용
   if (!eventId || isNaN(Number(eventId))) {
     return <NotFound />;
@@ -91,31 +93,28 @@ const AdminEventDetail = () => {
           </button>
           <button
             onClick={() => handleTabChange("info")}
-            className={`px-4 py-2 rounded text-white ${
-              activeTab === "info"
+            className={`px-4 py-2 rounded text-white ${activeTab === "info"
                 ? "bg-blue-600"
                 : "bg-blue-500 hover:bg-blue-600"
-            }`}
+              }`}
           >
             공연 정보
           </button>
           <button
             onClick={() => handleTabChange("monitoring")}
-            className={`px-4 py-2 rounded text-white ${
-              activeTab === "monitoring"
+            className={`px-4 py-2 rounded text-white ${activeTab === "monitoring"
                 ? "bg-blue-600"
                 : "bg-blue-500 hover:bg-blue-600"
-            }`}
+              }`}
           >
             공연 통계
           </button>
           <button
             onClick={() => handleTabChange("edit")}
-            className={`px-4 py-2 rounded text-white ${
-              activeTab === "edit"
+            className={`px-4 py-2 rounded text-white ${activeTab === "edit"
                 ? "bg-blue-600"
                 : "bg-blue-500 hover:bg-blue-600"
-            }`}
+              }`}
           >
             수정
           </button>

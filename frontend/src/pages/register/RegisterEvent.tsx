@@ -32,7 +32,9 @@ const RegisterEvent = () => {
     eventDate: [],
     seats: [],
   });
-
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   const [poster, setPoster] = useState<File | null>(null);
   const [banner, setBanner] = useState<File | null>(null);
   const [stageImg, setStageImg] = useState<string | null>(null);

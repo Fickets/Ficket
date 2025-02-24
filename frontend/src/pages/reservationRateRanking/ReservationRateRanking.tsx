@@ -11,7 +11,9 @@ const ReservationRateRanking = () => {
   const [isMobile, setIsMobile] = useState<boolean>(
     window.matchMedia("(max-width: 760px)").matches,
   );
-
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get("tab") as Genre) || Genre.뮤지컬;
   const initialPeriod = (searchParams.get("period") as Period) || Period.DAILY;
@@ -77,21 +79,19 @@ const ReservationRateRanking = () => {
         {/* 탭 메뉴 */}
         <div className="mt-4">
           <div
-            className={`${
-              isMobile
+            className={`${isMobile
                 ? "flex overflow-x-auto whitespace-nowrap scrollbar-hide border-b mt-10"
                 : "grid grid-cols-6 border"
-            }`}
+              }`}
           >
             {Object.values(Genre).map((tab) => (
               <button
                 key={tab}
                 onClick={() => handleTabChange(tab)}
-                className={`py-2 px-4 text-sm font-medium flex-shrink-0 ${
-                  activeTab === tab
+                className={`py-2 px-4 text-sm font-medium flex-shrink-0 ${activeTab === tab
                     ? "text-white bg-purple-500 rounded-full"
                     : "text-gray-600 hover:bg-gray-100"
-                } ${isMobile ? "mx-1 border rounded-full" : "border-r"}`}
+                  } ${isMobile ? "mx-1 border rounded-full" : "border-r"}`}
               >
                 {tab}
               </button>
@@ -125,11 +125,10 @@ const ReservationRateRanking = () => {
                 <button
                   key={p.value}
                   onClick={() => setPeriod(p.value)}
-                  className={`${
-                    period === p.value
+                  className={`${period === p.value
                       ? "text-purple-600 font-medium border-b-2 border-purple-500"
                       : "text-gray-500"
-                  }`}
+                    }`}
                 >
                   {p.label}
                 </button>

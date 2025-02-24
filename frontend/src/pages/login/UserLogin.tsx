@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import LoginLogo from "../../assets/logo.png";
 import LoginBtn from "../../assets/Login/kakaoLoginBtn.png";
 import { Helmet } from "react-helmet-async";
@@ -10,7 +10,9 @@ const UserLogin: React.FC = () => {
     console.log(KAKAO_AUTHORIZATION_URL)
     window.location.href = KAKAO_AUTHORIZATION_URL;
   };
-
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   return (
     <div className="w-screen h-screen flex flex-col justify-center items-center bg-white">
       <Helmet>

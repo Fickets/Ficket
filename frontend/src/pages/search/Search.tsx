@@ -16,7 +16,9 @@ const Search = () => {
   const isMobile: boolean = useMediaQuery({ query: "(max-width: 768px)" });
   const [searchParams] = useSearchParams();
   const keyword = searchParams.get("keyword") || "";
-
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   // 티켓 데이터 상태
   const [tickets, setTickets] = useState<SearchResult>({
     totalSize: 0,
@@ -130,9 +132,8 @@ const Search = () => {
 
             {/* FilterSection 팝업 */}
             <div
-              className={`fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-opacity ${
-                isFilterOpen ? "opacity-100 visible" : "opacity-0 invisible"
-              }`}
+              className={`fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-opacity ${isFilterOpen ? "opacity-100 visible" : "opacity-0 invisible"
+                }`}
             >
               <div className="bg-white rounded-lg shadow-lg p-6 w-[85%] max-w-md h-[80%] overflow-y-auto relative">
                 {/* 닫기 버튼 */}
@@ -176,11 +177,10 @@ const Search = () => {
                   </h1>
                   <div className="flex space-x-6">
                     <button
-                      className={`${
-                        filters.sortBy === SortBy.SORT_BY_ACCURACY
+                      className={`${filters.sortBy === SortBy.SORT_BY_ACCURACY
                           ? "text-purple-500 font-bold border-b-2 border-purple-500"
                           : "text-gray-500 hover:text-black"
-                      }`}
+                        }`}
                       onClick={() =>
                         handleFilterChange({ sortBy: SortBy.SORT_BY_ACCURACY })
                       }
@@ -188,11 +188,10 @@ const Search = () => {
                       정확도순
                     </button>
                     <button
-                      className={`${
-                        filters.sortBy === SortBy.SORT_BY_PERFORMANCE_IMMINENT
+                      className={`${filters.sortBy === SortBy.SORT_BY_PERFORMANCE_IMMINENT
                           ? "text-purple-500 font-bold border-b-2 border-purple-500"
                           : "text-gray-500 hover:text-black"
-                      }`}
+                        }`}
                       onClick={() =>
                         handleFilterChange({
                           sortBy: SortBy.SORT_BY_PERFORMANCE_IMMINENT,

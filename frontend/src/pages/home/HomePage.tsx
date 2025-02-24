@@ -25,6 +25,7 @@ const HomePage = () => {
   const [cookies] = useCookies(["isLogin"]);
   const user = useStore(userStore);
   useEffect(() => {
+    window.scrollTo(0, 0);
     getAccess();
   }, []);
 

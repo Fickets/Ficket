@@ -14,7 +14,9 @@ const UserManagePage = () => {
     totalElements: 0,
     totalPages: 0,
   });
-
+  useEffect(() => {
+    window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
+  }, []);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     page: 0,
     size: 10,
