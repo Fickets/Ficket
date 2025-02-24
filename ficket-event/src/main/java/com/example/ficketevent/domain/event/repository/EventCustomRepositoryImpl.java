@@ -191,8 +191,8 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
     public List<SimpleEvent> openSearchTop6Genre(String genre) {
         BooleanBuilder builder = new BooleanBuilder();
         LocalDateTime currentDateTime = LocalDateTime.now();
-        LocalDateTime tomorrowMidnight = currentDateTime.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        builder.and(event.ticketingTime.before(tomorrowMidnight));
+        LocalDateTime todayMidnight = currentDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0);
+        builder.and(event.ticketingTime.after(todayMidnight));
         // 조건 추가: genre가 포함되는 경우
         if (!genre.isEmpty()) {
             builder.and(event.genre.any().stringValue().eq(genre));
