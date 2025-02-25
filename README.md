@@ -127,7 +127,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 7. ERD 🗄️
 
-![ficket_erd.png](img%2Fficket_erd.png)
+![ficket_erd.png](etc%2Fimg%2Ferd%2Fficket_erd.png)
 
 ---
 
