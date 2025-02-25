@@ -132,14 +132,31 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 8. 서비스 화면 (모바일) 🖥️
+## 8. 서비스 화면 (PC) 🖥️
+
+1. 메인 페이지  
+   <img src="./etc/gif/mainBanner.gif" title="charge"  width="444"/> <br>
+2. 공연 상세 페이지
+   <img src="./etc/gif/eventDetail.gif" title="charge" width="444" alt="공연_상세_페이지"/> <br>
+3. 티켓팅
+   <img src="./etc/gif/ticketReservation.gif" title="charge" width="444" alt="티켓팅"/> <br>
+4. 관리자 로그인
+   <img src="./etc/gif/adminLogin.gif" title="charge" width="444" alt="관리자 로그인"/> <br>
+5. 공연 등록 (관리자)
+   <img src="etc/gif/registerEvent1.gif" title="charge" width="444"/> <br>
+   <img src="./etc/gif/registerEvent2.gif" title="charge" width="444"/> <br>
+6. 티켓 검사
+   <img src="./etc/gif/ticketCheckUrl.gif" title="charge" width="444" alt="관리자 로그인"/> <br>
+   <img src="./etc/gif/managerCheck.gif" title="charge" width="240" alt="관리자 로그인"/> <br>
+
+---
+
+## 9. 서비스 화면 (MOBILE) 📱
 
 <table style="border: 2px; text-align:center;">
   <tr style="text-align:center;">
     <td> 로그인 </td>
     <td> 메인페이지 </td>
-    <td> 장르별 랭킹 </td>
-    <td> 티켓팅 </td>
   </tr>
   <tr>
     <td>
@@ -148,10 +165,21 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
     <td>
       <img src="./etc/gif/main_mobile.gif" alt="메인_화면_모바일" width="200px" />
     </td>
+  </tr>
+</table>
+
+<br>
+
+<table style="border: 2px; text-align:center;">
+  <tr style="text-align:center;">
+    <td> 장르별 랭킹 </td>
+    <td> 티켓팅 </td>
+  </tr>
+  <tr>
     <td>
       <img src="./etc/gif/gerneRank_mobile.gif" alt="장르별_랭킹_모바일" width="200px" />
     </td>
-<td>
+    <td>
       <img src="./etc/gif/ticketing_mobile.gif" alt="장르별_랭킹_모바일" width="200px" />
     </td>
   </tr>
@@ -159,7 +187,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 9. 주요 기술 ✨
+## 10. 주요 기술 ✨
 
 - 프론트
     - [zustand를 활용한 로그인 정보 유지 - 아직 작성 안됨]()
@@ -207,7 +235,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 --- 
 
-## 9. 외부 리소스 정보 📁
+## 11. 외부 리소스 정보 📁
 
 [포트원 개발자 센터](https://developers.portone.io/opi/ko/readme?v=v2)
 <br>
