@@ -182,4 +182,4 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 ## 9. 외부 리소스 정보 📁
 
 [포트원 개발자 센터](https://developers.portone.io/opi/ko/readme?v=v2)
-[카카오 디벨로퍼]([https://developers.portone.io/opi/ko/readme?v=v2](https://developers.kakao.com/))
+[카카오 디벨로퍼](https://developers.kakao.com/)
