@@ -134,25 +134,31 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 8. 서비스 화면 (PC) 🖥️
 
-1. 메인 페이지  
-   <img src="./etc/gif/mainBanner.gif" title="charge"  width="444"/> <br>
+1. 메인 페이지
+
+   <img src="./etc/gif/mainBanner.gif" width="80%" /> <br>
 
 2. 공연 상세 페이지
-   <img src="./etc/gif/eventDetail.gif" title="charge" width="444" alt="공연_상세_페이지"/> <br>
+
+   <img src="./etc/gif/eventDetail.gif" width="80%" alt="공연_상세_페이지" /> <br>
 
 3. 티켓팅
-   <img src="./etc/gif/ticketReservation.gif" title="charge" width="444" alt="티켓팅"/> <br>
+
+   <img src="./etc/gif/ticketReservation.gif" width="444" alt="티켓팅" /> <br>
 
 4. 관리자 로그인
-   <img src="./etc/gif/adminLogin.gif" title="charge" width="444" alt="관리자 로그인"/> <br>
+
+   <img src="./etc/gif/adminLogin.gif" width="80%" alt="관리자 로그인" /> <br>
 
 5. 공연 등록 (관리자)
-   <img src="etc/gif/registerEvent1.gif" title="charge" width="444"/> <br>
-   <img src="./etc/gif/registerEvent2.gif" title="charge" width="444"/> <br>
+
+   <img src="etc/gif/registerEvent1.gif" width="80%" /> <br>
+   <img src="./etc/gif/registerEvent2.gif" width="80%" /> <br>
 
 6. 티켓 검사
-   <img src="./etc/gif/ticketCheckUrl.gif" title="charge" width="444" alt="관리자 로그인"/> <br>
-   <img src="./etc/gif/managerCheck.gif" title="charge" width="240" alt="관리자 로그인"/> <br>
+
+   <img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
+   <img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> <br>
 
 ---
 
