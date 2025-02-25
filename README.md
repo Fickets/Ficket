@@ -171,17 +171,17 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
    <img src="./etc/gif/adminLogin.gif" width="80%" alt="관리자 로그인" /> <br>
 
 10. 공연 등록 (관리자)
-
-<img src="etc/gif/registerEvent1.gif" width="80%" /> <br>
-<img src="./etc/gif/registerEvent2.gif" width="80%" /> <br>
+  
+  <img src="etc/gif/registerEvent1.gif" width="80%" /> <br>
+  <img src="./etc/gif/registerEvent2.gif" width="80%" /> <br>
 
 11. 임시 URL 발급 (관리자)
 
-<img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
+  <img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
 
 12. 티켓 검사 (관리자)
 
-<img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> <br>
+  <img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> <br>
 
 ---
 
