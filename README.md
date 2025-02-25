@@ -35,7 +35,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 4. 🛠 기술 스택
 
-<div style="text-align: center;">
+<div align=middle>
   <h3>🎨 FrontEnd</h3>
   <div>
     <img src="https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
