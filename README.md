@@ -171,7 +171,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
    <img src="./etc/gif/adminLogin.gif" width="80%" alt="관리자 로그인" /> <br>
 
 10. 공연 등록 (관리자)
-  
+
   <img src="etc/gif/registerEvent1.gif" width="80%" /> <br>
   <img src="./etc/gif/registerEvent2.gif" width="80%" /> <br>
 
@@ -211,18 +211,18 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 <table style="border: 2px; text-align:center;">
   <tr style="text-align:center;">
     <td> 티켓팅 </td>
-    <td> 오픈 티켓 </td>
     <td> 장르별 랭킹 </td>
+    <td> 오픈 티켓 </td>
   </tr>
   <tr>
     <td>
       <img src="./etc/gif/ticketing_mobile.gif" alt="장르별_랭킹_모바일1" width="200px" />
     </td>
     <td>
-      <img src="./etc/gif/오픈티켓_mobile.png" alt="장르별_랭킹_모바일2" width="200px" />
+      <img src="./etc/gif/gerneRank_mobile.gif" alt="장르별_랭킹_모바일3" width="200px" />
     </td>
     <td>
-      <img src="./etc/gif/gerneRank_mobile.gif" alt="장르별_랭킹_모바일3" width="200px" />
+      <img src="./etc/gif/오픈티켓_mobile.png" alt="장르별_랭킹_모바일2" width="200px" />
     </td>
   </tr>
 </table>
