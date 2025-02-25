@@ -115,7 +115,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 5. 아키텍처 📃
 
-![ficket_architecture.png](etc%2Fimg%2F%20architecture%2Fficket_architecture.png)
+![ficket_architecutre.png](etc%2Fimg%2F%20architecture%2Fficket_architecutre.png)
 
 ---
 
