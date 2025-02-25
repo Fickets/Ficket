@@ -156,9 +156,11 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
    <img src="./etc/gif/registerEvent2.gif" width="80%" /> <br>
 
 6. 임시 URL 발급 (관리자)
+
    <img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
 
 7. 티켓 검사 (관리자)
+
    <img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> <br>
 
 ---
@@ -227,6 +229,8 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
     - [Flask, Eureka, Spring Config, RabbitMQ 통합](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-8-Flask-Eureka-Spring-Config-RabbitMQ-%ED%86%B5%ED%95%A9)
     - [이미지 암호화를 위한 S3 SSE-KMS 적용](https://velog.io/@zvyg1023/S3-SSE-KMS-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0)
     - [Insightface를 활용한 얼굴 인식 개발](https://velog.io/@zvyg1023/Insightface%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%96%BC%EA%B5%B4-%EC%9D%B8%EC%8B%9D)
+- 정산
+    - [??]()
 - 티켓 검사
     - [??]()
 - 검색
