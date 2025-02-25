@@ -114,7 +114,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 5. 아키텍처 📃
 
-추가 예정
+![아키텍처.png](etc%2Fimg%2F%20architecture%2F%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98.png)
 
 ---
 
