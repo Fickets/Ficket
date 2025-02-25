@@ -57,17 +57,18 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
     <img src="https://img.shields.io/badge/spring webclient-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring WebClient">
     <img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white" alt="Gradle">
     <br>
-    <img src="https://img.shields.io/badge/Feign-0075A8?style=for-the-badge&logo=apachekafka&logoColor=white" alt="Feign">
+    <img src="https://img.shields.io/badge/Feign-0075A8?style=for-the-badge&logo=java&logoColor=white" alt="Feign">
     <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Security">
     <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT">
     <img src="https://img.shields.io/badge/OAuth-0081CB?style=for-the-badge&logo=auth0&logoColor=white" alt="OAuth">
     <img src="https://img.shields.io/badge/Spring%20Cloud-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Cloud">
     <img src="https://img.shields.io/badge/Resilience4j-FF9E0F?style=for-the-badge&logo=java&logoColor=white" alt="Resilience4j">
     <br>
+    <img src="https://img.shields.io/badge/Spring%20Batch-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Batch">
+    <img src="https://img.shields.io/badge/Quartz-007396?style=for-the-badge&logo=java&logoColor=white" alt="Quartz Scheduler">
     <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
     <img src="https://img.shields.io/badge/InsightFace-EAEAEA?style=for-the-badge&logo=opencv&logoColor=black" alt="InsightFace">
     <img src="https://img.shields.io/badge/Flask-DDDDDD?style=for-the-badge&logo=flask&logoColor=black" alt="Flask">
-    <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask">
     <img src="https://img.shields.io/badge/boto3-FFCB05?style=for-the-badge&logo=boto3&logoColor=white" alt="Boto3">
   </div>
   <h3>💾 Database & Caching</h3>
