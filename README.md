@@ -132,7 +132,34 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 8. 주요 기술 ✨
+## 8. 서비스 화면 (모바일) 🖥️
+
+<table style="border: 2px; text-align:center;">
+  <tr style="text-align:center;">
+    <td> 로그인 </td>
+    <td> 메인페이지 </td>
+    <td> 장르별 랭킹 </td>
+    <td> 티켓팅 </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="etc/gif/login_mobile.gif" alt="로그인_모바일" width="200px" />
+    </td>
+    <td>
+      <img src="./etc/gif/main_mobile.gif" alt="메인_화면_모바일" width="200px" />
+    </td>
+    <td>
+      <img src="./etc/gif/gerneRank_mobile.gif" alt="장르별_랭킹_모바일" width="200px" />
+    </td>
+<td>
+      <img src="./etc/gif/ticketing_mobile.gif" alt="장르별_랭킹_모바일" width="200px" />
+    </td>
+  </tr>
+</table>
+
+---
+
+## 9. 주요 기술 ✨
 
 - 프론트
     - [zustand를 활용한 로그인 정보 유지 - 아직 작성 안됨]()
