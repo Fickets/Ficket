@@ -167,7 +167,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
   <img src="./etc/gif/뮤지컬_검색결과_pc.png" width="80%" alt="티켓팅6" /> <br>
 
 9. 관리자 로그인
-   
+
   <img src="./etc/gif/adminLogin.gif" width="80%" alt="관리자 로그인" /> <br>
 
 10. 공연 등록 (관리자)
@@ -251,8 +251,6 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
     - [Config 서버 구축](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-3-Config-%EC%84%9C%EB%B2%84-%EA%B5%AC%EC%B6%95)
     - [Spring Cloud Bus와 RabbitMQ를 활용한 Config 변경 자동 반영 설정](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-4-Spring-Cloud-Bus%EC%99%80-RabbitMQ%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-Config-%EB%B3%80%EA%B2%BD-%EC%9E%90%EB%8F%99-%EB%B0%98%EC%98%81-%EC%84%A4%EC%A0%95)
     - [설정 파일의 암호화 처리 : 비대칭키를 이용한 암/복호화](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-5-%EC%84%A4%EC%A0%95-%ED%8C%8C%EC%9D%BC%EC%9D%98-%EC%95%94%ED%98%B8%ED%99%94-%EC%B2%98%EB%A6%AC-%EB%B9%84%EB%8C%80%EC%B9%AD%ED%82%A4%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EC%95%94%EB%B3%B5%ED%98%B8%ED%99%94)
-    - [암호화된 설정 파일 보호와 /decrypt API 접근 제어](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-6-%EC%95%94%ED%98%B8%ED%99%94%EB%90%9C-%EC%84%A4%EC%A0%95-%ED%8C%8C%EC%9D%BC-%EB%B3%B4%ED%98%B8%EC%99%80-decrypt-API-%EC%A0%91%EA%B7%BC-%EC%A0%9C%EC%96%B4)
-    - [암호화된 설정 파일 보호와 /decrypt API 접근 제어](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-7-Config-%EC%84%9C%EB%B2%84%EC%99%80-%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8%EC%97%90%EC%84%9C-%EA%B3%B5%EA%B0%9C%ED%82%A4%EC%99%80-%EA%B0%9C%EC%9D%B8%ED%82%A4%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%95%94%ED%98%B8%ED%99%94%EB%B3%B5%ED%98%B8%ED%99%94-%EC%84%A4%EC%A0%95)
     - [Config 서버와 클라이언트에서 공개키와 개인키를 활용한 암호화/복호화 설정](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-7-Config-%EC%84%9C%EB%B2%84%EC%99%80-%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8%EC%97%90%EC%84%9C-%EA%B3%B5%EA%B0%9C%ED%82%A4%EC%99%80-%EA%B0%9C%EC%9D%B8%ED%82%A4%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%95%94%ED%98%B8%ED%99%94%EB%B3%B5%ED%98%B8%ED%99%94-%EC%84%A4%EC%A0%95)
     - [Feign Client를 활용한 서버간 동기 통신](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-9-Feign-Client-%EC%84%9C%EB%B2%84%EA%B0%84-%ED%86%B5%EC%8B%A0-%ED%95%98%EA%B8%B0)
     - [서비스 장애 대응 Circuit Breaker 구현(feat. Resilience4J)](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-10-%EC%84%9C%EB%B9%84%EC%8A%A4-%EC%9E%A5%EC%95%A0-%EB%8C%80%EC%9D%91-Circuit-Breaker-%EA%B5%AC%ED%98%84feat.-Resilience4J)
@@ -282,11 +280,22 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
     - [Redis로 조회수 랭킹 시스템 구현](https://velog.io/@zvyg1023/Spring-Redis%EB%A1%9C-%EC%A1%B0%ED%9A%8C%EC%88%98-%EB%9E%AD%ED%82%B9-%EC%8B%9C%EC%8A%A4%ED%85%9C-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0)
     - [Redis 예매율 순위 시스템 구현](https://velog.io/@zvyg1023/Spring-Redis-%EC%98%88%EB%A7%A4%EC%9C%A8-%EC%88%9C%EC%9C%84-%EC%8B%9C%EC%8A%A4%ED%85%9C-%EA%B5%AC%ED%98%84)
     - [포트원 연동을 통한 결제 시스템](https://velog.io/@zvyg1023/%ED%8F%AC%ED%8A%B8%EC%9B%90%EC%9D%84-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%8E%98%EC%9D%B4-%EA%B2%B0%EC%A0%9C-%EC%97%B0%EB%8F%99-API-V2-Webhook-V2)
-    - [XSS 방어: OWASP AntiSamy와 DOMPurify를 활용한 TinyMCE 보안 강화](https://velog.io/@zvyg1023/XSS-%EB%B0%A9%EC%96%B4-OWASP-AntiSamy%EC%99%80-DOMPurify%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-TinyMCE-%EB%B3%B4%EC%95%88-%EA%B0%95%ED%99%94)
 
 --- 
 
-## 11. 외부 리소스 정보 📁
+## 11. Trouble Shooting 🚧
+
+- [Config 서버 설정 값 노출](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-6-%EC%95%94%ED%98%B8%ED%99%94%EB%90%9C-%EC%84%A4%EC%A0%95-%ED%8C%8C%EC%9D%BC-%EB%B3%B4%ED%98%B8%EC%99%80-decrypt-API-%EC%A0%91%EA%B7%BC-%EC%A0%9C%EC%96%B4)
+
+- [Config 서버 복호화 실패](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-7-Config-%EC%84%9C%EB%B2%84%EC%99%80-%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8%EC%97%90%EC%84%9C-%EA%B3%B5%EA%B0%9C%ED%82%A4%EC%99%80-%EA%B0%9C%EC%9D%B8%ED%82%A4%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%95%94%ED%98%B8%ED%99%94%EB%B3%B5%ED%98%B8%ED%99%94-%EC%84%A4%EC%A0%95)
+
+- [배포 시 Java가 ElasticSearch Self-signed SSL 인식 하지 못하는 문제](https://velog.io/@zvyg1023/%EC%97%98%EB%9D%BC%EC%8A%A4%ED%8B%B1-%EC%84%9C%EC%B9%98-ec2-%EC%9A%B4%EC%98%81%ED%99%98%EA%B2%BD-%EB%A6%AC%ED%8C%A9%ED%86%A0%EB%A7%81)
+
+- [XSS 방어: OWASP AntiSamy와 DOMPurify를 활용한 TinyMCE 보안 강화](https://velog.io/@zvyg1023/XSS-%EB%B0%A9%EC%96%B4-OWASP-AntiSamy%EC%99%80-DOMPurify%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-TinyMCE-%EB%B3%B4%EC%95%88-%EA%B0%95%ED%99%94)
+
+---
+
+## 12. 외부 리소스 정보 📁
 
 [포트원 개발자 센터](https://developers.portone.io/opi/ko/readme?v=v2)
 <br>
