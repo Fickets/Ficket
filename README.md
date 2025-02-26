@@ -180,6 +180,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
   <img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
 
 12. 티켓 검사 (관리자 & 고객)
+
 <table>
   <td>
     <img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> 
@@ -289,7 +290,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 - [Config 서버 복호화 실패](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-7-Config-%EC%84%9C%EB%B2%84%EC%99%80-%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8%EC%97%90%EC%84%9C-%EA%B3%B5%EA%B0%9C%ED%82%A4%EC%99%80-%EA%B0%9C%EC%9D%B8%ED%82%A4%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EC%95%94%ED%98%B8%ED%99%94%EB%B3%B5%ED%98%B8%ED%99%94-%EC%84%A4%EC%A0%95)
 
-- [배포 시 Java가 ElasticSearch Self-signed SSL 인식 하지 못하는 문제](https://velog.io/@zvyg1023/%EC%97%98%EB%9D%BC%EC%8A%A4%ED%8B%B1-%EC%84%9C%EC%B9%98-ec2-%EC%9A%B4%EC%98%81%ED%99%98%EA%B2%BD-%EB%A6%AC%ED%8C%A9%ED%86%A0%EB%A7%81)
+- [배포 시 Java가 ElasticSearch Self-signed SSL 인식 하지 못하는 문제](https://velog.io/@zvyg1023/Docker-%EB%B0%B0%ED%8F%AC-%EC%8B%9C-Elasticsearch-SSL-%EC%9D%B8%EC%A6%9D-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
 
 - [XSS 방어: OWASP AntiSamy와 DOMPurify를 활용한 TinyMCE 보안 강화](https://velog.io/@zvyg1023/XSS-%EB%B0%A9%EC%96%B4-OWASP-AntiSamy%EC%99%80-DOMPurify%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-TinyMCE-%EB%B3%B4%EC%95%88-%EA%B0%95%ED%99%94)
 
