@@ -1,0 +1,38 @@
+server:
+  port: 8888
+
+spring:
+  config:
+    import: "optional:configserver:"
+  profiles:
+    active: local
+    group:
+      local:
+        - rabbitmq-local
+      prod:
+        - rabbitmq-prod
+    include:
+      - rabbitmq
+      - key
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/Fickets/config.git
+          default-label: main
+          search-paths: ConfigFiles
+          username: ${cloud.username}
+          password: ${cloud.password}
+          clone-on-start: true  # 서버 시작 시 Git 클론
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans, busrefresh # cloud bus refresh
+  security:
+    user:
+      name: ${security.SECURITY_USER_NAME} # 환경 변수로 값 설정
+      password: ${security.SECURITY_USER_PASSWORD} # 환경 변수로 값 설정
+
+logging:
+  level:
+    com.example.configservice: DEBUG

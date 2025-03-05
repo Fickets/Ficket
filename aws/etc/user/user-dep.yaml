@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-user
+  template:
+    metadata:
+      labels:
+        app: spring-user
+    spec:
+      nodeSelector:
+        role: worker2  # role=worker2 라벨이 있는 노드에서 실행
+      containers:
+        - name: spring-user
+          image: choissu/ficket:springuser-latest
+          ports:
+            - containerPort: 8089
+          command: ["java",
+                    "-Dspring.config.import=optional:configserver:",
+                    "-Dspring.cloud.config.enabled=false",
+                    "-Dspring.cloud.config.import-check.enabled=false",
+                    "-jar",
+                    "ficket-user-0.0.1-SNAPSHOT.jar"]
+          env:
+            - name: USER_MYSQL_URL
+              value: "jdbc:mysql://ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:3306/ficket"
+            - name: WORKER1_REDIS_HOST
+              value: "ec2-52-79-207-181.ap-northeast-2.compute.amazonaws.com"
+            - name: WORKER1_REDIS_PORT
+              value: "6379"
+            - name: ZIPKIN_BASE_URL
+              value: "ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411"
+            - name: ZIPKIN_ENDPOINT
+              value: "ec2-3-34-253-101.ap-northeast-2.compute.amazonaws.com:9411/api/v2/spans"
+            - name: REDIRECT_URI
+              value: "http://localhost:8777/login/oauth2/code/kakao"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "config-server"  # 활성화할 프로

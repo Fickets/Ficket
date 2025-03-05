@@ -1,0 +1,53 @@
+services:
+  mysql:
+    image: mysql:8.0.30
+    container_name: user-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  storage:
+    image: openzipkin/zipkin-mysql
+    container_name: zipkin-mysql
+    environment:
+      - MYSQL_DATABASE=zipkin
+      - MYSQL_USER=zipkin
+      - MYSQL_PASSWORD=zipkin
+    ports:
+      - "3307:3306"
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    environment:
+      - STORAGE_TYPE=mysql
+      - MYSQL_DB=zipkin
+      - MYSQL_USER=zipkin
+      - MYSQL_PASS=zipkin
+      - MYSQL_HOST=zipkin-mysql
+      - MYSQL_TCP_PORT=3306
+    ports:
+      - "9411:9411"
+    depends_on:
+      - storage
+    restart: always
+
+  dependencies:
+    image: openzipkin/zipkin-dependencies
+    container_name: dependencies
+    entrypoint: crond -f
+    environment:
+      - MYSQL_DB=zipkin
+      - MYSQL_USER=zipkin
+      - MYSQL_PASS=zipkin
+      - MYSQL_HOST=zipkin-mysql
+      - MYSQL_TCP_PORT=3306
+    depends_on:
+      - storage
+    restart: always
+volumes:
+  mysql-data:

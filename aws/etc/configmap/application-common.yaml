@@ -1,0 +1,27 @@
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: common-config
+#  namespace: default
+#data:
+#  application-common.yml: |
+#    # JWT
+#    jwt:
+#      secret: "{cipher}AQASSmZNXVzGEAWGw6cy9/ne5rTKRHHeoYQctW9AESFONne0Y+JXPNjsQLWae21zLvpS7XpdYSUIBN9YJaNUnJMC4A2C9bBllrMkOUa4dx6FxuBth4K0k6XUf9Q8/Qip9HHAj6ddaqXBcSUdGoV79zTwdeTag1DVrj4yOzl/GYe58Qj0nUDEsu5mI8i/U8mZQ1eLdV3JFJjox+Jfx0mP5643SYsPslWKK0cNpk4gcXxPdSrKEzMNhP6KOqxbWhpPBIvpJb6+LFcrPzHlWNHF+SdUb48axkgstPi/ZcSE/4SEB9HSGzjR+Orww2vSJKMr1+Kjvwv1Em8bElDKIHFFhiTSnIQ+K3FbXPaKy0OVkwBw1HJ82bgjBG+X3qXmY3a+J7SIYxj3F8ZiyDm4DW3DECNuG9iODxIpJtVUA2/+kjhxs6HpJ+/NfPEZ86A+77ZpYxA="
+#      access:
+#        expiration: 10800000 # 3시간 (ms)
+#        header: Authorization
+#      refresh:
+#        expiration: 1209600000 # 2주 (ms)
+#        header: Authorization-refresh
+#
+#    # For Cookie, Redis
+#    access-token-maxage: 10800 # 3시간 (sec)
+#    refresh-token-maxage: 1209600 # 2주 (sec)
+#
+#    # 클라이언트 코드에서 Actuator 설정
+#    management:
+#      endpoints:
+#        web:
+#          exposure:
+#            include: "*"

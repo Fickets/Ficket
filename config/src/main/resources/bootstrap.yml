@@ -1,0 +1,12 @@
+encrypt:
+  key-store:
+    password: test1234
+    alias: trustServer
+    location: classpath:/publicKey.jks
+
+spring:
+  cloud:
+    config:
+      server:
+        encrypt:
+          enabled: false

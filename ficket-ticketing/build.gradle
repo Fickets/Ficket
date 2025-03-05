@@ -1,0 +1,109 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.5'
+	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springCloudVersion', "2023.0.3")
+}
+
+dependencies {
+
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// Swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
+	// config
+	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+	// RabbitMQ
+	implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+
+	// actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// Feign Client
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2'
+
+	// Spring Data JPA
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// MySQL Driver
+	implementation 'mysql:mysql-connector-java:8.0.30'
+
+	// MapStruct
+	implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+
+	// Redis & Cache
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+	// Resilience4j
+	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
+	// Micrometer Observation and Tracing with Brave
+	implementation 'io.micrometer:micrometer-observation'
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// Brave Instrumentation for Spring Web
+	implementation 'io.zipkin.brave:brave-instrumentation-spring-web'
+
+	// Zipkin Reporter for Brave
+	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+	// Feign Micrometer integration
+	implementation 'io.github.openfeign:feign-micrometer'
+
+	// JSON 처리용 Jackson
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// Spring WebClient
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Kafka
+	implementation 'org.springframework.kafka:spring-kafka'
+
+	//web socket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// flyway-mysql
+	implementation 'org.flywaydb:flyway-mysql:11.3.1'
+
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

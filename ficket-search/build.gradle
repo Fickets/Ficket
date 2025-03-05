@@ -1,0 +1,111 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.5'
+	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springCloudVersion', "2023.0.3")
+}
+
+dependencies {
+	// JUnit (테스트용)
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Eureka-Client
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+	// Spring WebFlux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Reactor Test (WebFlux 비동기 테스트용)
+	testImplementation 'io.projectreactor:reactor-test'
+
+	// lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.projectlombok:lombok'
+
+	// MapStruct
+	implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+
+	// Swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0'
+
+	// config
+	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+	// RabbitMQ
+	implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+
+	// actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// Micrometer Observation and Tracing with Brave
+	implementation 'io.micrometer:micrometer-observation'
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// Brave Instrumentation for Spring Web
+	implementation 'io.zipkin.brave:brave-instrumentation-spring-web'
+
+	// Zipkin Reporter for Brave
+	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+	// Feign Micrometer integration
+	implementation 'io.github.openfeign:feign-micrometer'
+
+	// AOP
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+	// Redisson
+	implementation "org.redisson:redisson-spring-boot-starter:3.21.1"
+
+	// Kafka
+	implementation 'org.springframework.kafka:spring-kafka'
+
+	// Elasticsearch
+	implementation 'co.elastic.clients:elasticsearch-java:8.13.4'
+
+	// AWS S3
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+	// Apache Commons CSV
+	implementation 'org.apache.commons:commons-csv:1.12.0'
+
+	// MongoDB
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

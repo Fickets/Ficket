@@ -1,0 +1,20 @@
+services:
+  mysql:
+    image: mysql:8.0.30
+    container_name: event-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ficket  # 이 부분은 zipkin에서 사용하려는 DB 이름입니다.
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis2:
+    image: redis
+    container_name: redis-lock
+    ports:
+      - "6380:6380"
+    command: [ "redis-server", "--appendonly", "yes", "--notify-keyspace-events", "Ex", "--port", "6380" ]
+volumes:
+  mysql-data:

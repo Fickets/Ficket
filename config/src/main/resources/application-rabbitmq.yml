@@ -1,0 +1,20 @@
+---
+spring:
+  config:
+    activate:
+     on-profile: rabbitmq-local
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: admin
+    password: admin
+---
+spring:
+  config:
+    activate:
+      on-profile: rabbitmq-prod
+  rabbitmq:
+    host: ec2-43-200-253-221.ap-northeast-2.compute.amazonaws.com
+    port: 31272
+    username: rabbit
+    password: rabbit
