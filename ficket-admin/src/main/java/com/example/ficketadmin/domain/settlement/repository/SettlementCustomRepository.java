@@ -16,7 +16,8 @@ public interface SettlementCustomRepository {
 
     List<Settlement> findSettlementByEventId(Long eventId);
 
-    @Query("SELECT s FROM Settlement s WHERE s.eventId = :eventId AND s.settlementStatus != :status")
+    @Query("SELECT s FROM Settlement s WHERE s.settlementRecord.eventId = :eventId AND s.settlementStatus != :status")
     List<Settlement> findSettlementByEventIdAndStatus(@Param("eventId") Long eventId, @Param("status") SettlementStatus settlementStatus);
+
 
 }

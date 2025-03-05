@@ -11,12 +11,12 @@ import com.example.ficketadmin.domain.settlement.dto.request.OrderSimpleDto;
 import com.example.ficketadmin.domain.settlement.dto.request.SettlementReq;
 import com.example.ficketadmin.domain.settlement.dto.response.PageResponse;
 import com.example.ficketadmin.domain.settlement.dto.response.SettlementRecordDto;
-import com.example.ficketadmin.domain.settlement.entity.Settlement;
-import com.example.ficketadmin.domain.settlement.entity.SettlementRecord;
-import com.example.ficketadmin.domain.settlement.entity.SettlementStatus;
-import com.example.ficketadmin.domain.settlement.repository.SettlementCustomRepository;
-import com.example.ficketadmin.domain.settlement.repository.SettlementRecordRepository;
-import com.example.ficketadmin.domain.settlement.repository.SettlementRepository;
+import com.example.ficketadmin.domain.settlement.entity.*;
+import com.example.ficketadmin.domain.settlement.mapper.SettlementMapper;
+import com.example.ficketadmin.domain.settlement.mapper.SettlementRecordMapper;
+import com.example.ficketadmin.domain.settlement.mapper.SettlementRecordTempMapper;
+import com.example.ficketadmin.domain.settlement.mapper.SettlementTempMapper;
+import com.example.ficketadmin.domain.settlement.repository.*;
 import com.example.ficketadmin.global.result.error.ErrorCode;
 import com.example.ficketadmin.global.result.error.exception.BusinessException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -44,8 +44,15 @@ public class SettlementService {
     private final SettlementCustomRepository settlementCustomRepository;
     private final AccountRepository accountRepository;
 
+    private final SettlementRecordTempRepository settlementRecordTempRepository;
+    private final SettlementTempRepository settlementTempRepository;
+
     private final EventServiceClient eventServiceClient;
 
+    private final SettlementMapper settlementMapper;
+    private final SettlementRecordMapper settlementRecordMapper;
+    private final SettlementTempMapper settlementTempMapper;
+    private final SettlementRecordTempMapper settlementRecordTempMapper;
 
     @Transactional
     public void createSettlement(OrderSimpleDto orderSimpleDto) {
@@ -186,25 +193,24 @@ public class SettlementService {
 
         Account account = company.getAccount();
 
-        SettlementRecord record = settlementRecordRepository.findByEventId(eventId)
+        SettlementRecordTemp recordTemp = settlementRecordTempRepository.findByEventId(eventId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_SETTMENT_RECORD));
 
-        List<Settlement> settlements = settlementCustomRepository.findSettlementByEventIdAndStatus(eventId, SettlementStatus.UNSETTLED);
 
-        for (Settlement settlement : settlements) {
-            record.setTotalNetSupplyAmount(record.getTotalNetSupplyAmount().add(settlement.getNetSupplyAmount()));
-            record.setTotalVat(record.getTotalVat().add(settlement.getVat()));
-            record.setTotalSupplyAmount(record.getTotalSupplyAmount().add(settlement.getSupplyValue()));
-            record.setTotalServiceFee(record.getTotalServiceFee().add(settlement.getServiceFee()));
-            record.setTotalRefundValue(record.getTotalRefundValue().add(settlement.getRefundValue()));
-            record.setTotalSettlementValue(record.getTotalSettlementValue().add(settlement.getSettlementValue()));
-            BigDecimal updatedSettlementValue = record.getTotalSettlementValue().subtract(settlement.getRefundValue());
-            record.setTotalSettlementValue(updatedSettlementValue);
-            settlement.setSettlementStatus(SettlementStatus.SETTLEMENT);
+        List<SettlementTemp> settlementTemps = settlementTempRepository.findSettlementByEventId(eventId);
+        for (SettlementTemp settlementTemp : settlementTemps) {
+            Settlement settlement = settlementMapper.toSettlementByTemp(settlementTemp);
+            settlementRepository.save(settlement);
 
-            account.setBalance(account.getBalance().add(settlement.getSettlementValue()));
+            settlementTemp.setIsSettled(true);
+            settlementTempRepository.save(settlementTemp);
+
+            account.setBalance(account.getBalance().add(settlementTemp.getSettlementValue()));
         }
-        record.setSettlementStatus(SettlementStatus.SETTLEMENT);
+        recordTemp.setSettlementStatus(SettlementStatus.SETTLEMENT);
+        SettlementRecord record = settlementRecordMapper.toSettlementRecordByTemp(recordTemp);
+
+        settlementRecordTempRepository.save(recordTemp);
         settlementRecordRepository.save(record);
         accountRepository.save(account);
     }
@@ -212,29 +218,36 @@ public class SettlementService {
     @Transactional
     public void refundSettlement(Long orderId, Long ticketId, BigDecimal refund) {
 
-        Settlement settlement = settlementRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NO_SETTMENT_RECORD));
-        SettlementRecord record = settlement.getSettlementRecord();
+        SettlementTemp settlementTemp = settlementTempRepository.findByOrderId(orderId)
+                .orElseGet(() -> {
+                    Settlement settlement = settlementRepository.findByOrderId(orderId)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.NO_SETTMENT_RECORD));
+                    return settlementTempMapper.toSettlementTemp(settlement);
+                });
 
-        settlement.setRefundValue(refund);
-        settlement.setSettlementValue(settlement.getSettlementValue().subtract(refund));
+
+        SettlementRecord record = settlementTemp.getSettlementRecord();
+
+        settlementTemp.setRefundValue(refund);
+        settlementTemp.setSettlementValue(settlementTemp.getSettlementValue().subtract(refund));
 
         record.setTotalRefundValue(record.getTotalRefundValue().add(refund));
         record.setTotalSettlementValue(record.getTotalSettlementValue().subtract(refund));
 
-        record.setTotalServiceFee(record.getTotalServiceFee().subtract(settlement.getServiceFee()));
+        record.setTotalServiceFee(record.getTotalServiceFee().subtract(settlementTemp.getServiceFee()));
 
         if (!ticketId.equals(0L)) {
             // 장당 수수료 2000 * N
             Long ticketNums = eventServiceClient.getBuyTicketCount(ticketId);
             BigDecimal ticketCharge = BigDecimal.valueOf(ticketNums * 2000);
-            settlement.setServiceFee(ticketCharge);
+            settlementTemp.setServiceFee(ticketCharge);
             record.setTotalServiceFee(record.getTotalServiceFee().add(ticketCharge));
         } else {
-            settlement.setServiceFee(BigDecimal.ZERO);
+            settlementTemp.setServiceFee(BigDecimal.ZERO);
         }
+        SettlementRecordTemp settlementRecordTemp = settlementRecordTempMapper.toSettlementRecordTemp(record);
 
-        settlementRepository.save(settlement);
-        settlementRecordRepository.save(record);
+        settlementTempRepository.save(settlementTemp);
+        settlementRecordTempRepository.save(settlementRecordTemp);
     }
 }
