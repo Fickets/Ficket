@@ -15,6 +15,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -48,9 +49,12 @@ public class SpringBatchConfig {
 
     public List<Settlement> settlementList = new ArrayList<>();
     public List<SettlementRecordTemp> settlementRecordTempList = new ArrayList<>();
+
+
     @Bean
+    @JobScope
     public Job settlementJob() {
-        return new JobBuilder("settlementJob", jobRepository) // ✅ 직접 생성
+        return new JobBuilder("settlementJob", jobRepository)
                 .start(firstStep())
                 .next(secondStep())
                 .build();
