@@ -16,6 +16,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 
 import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -62,6 +63,7 @@ public class SpringBatchConfig {
 
 
     @Bean
+    @StepScope
     public Step firstStep() {
         return new StepBuilder("sampleStep", jobRepository)
                 .<Settlement, Settlement>chunk(20, transactionManager)
@@ -72,12 +74,14 @@ public class SpringBatchConfig {
 
 
     @Bean
+    @StepScope
     public ItemWriter<Settlement> settlementItemWriter() {
         return settlements -> settlements.forEach(settlementList::add);
     }
 
 
     @Bean
+    @StepScope
     public JpaPagingItemReader<Settlement> settlementItemReader(EntityManagerFactory entityManagerFactory) {
         JpaPagingItemReader<Settlement> reader = new JpaPagingItemReader<>();
         reader.setQueryString("SELECT s FROM Settlement s WHERE s.settlementStatus = 'UNSETTLED'");
@@ -87,6 +91,7 @@ public class SpringBatchConfig {
     }
 
     @Bean
+    @StepScope
     public Step secondStep() {
         return new StepBuilder("secondStep", jobRepository)
                 .<Settlement, SettlementTemp>chunk(20, transactionManager)  // Settlement에서 SettlementTemp로 변환
