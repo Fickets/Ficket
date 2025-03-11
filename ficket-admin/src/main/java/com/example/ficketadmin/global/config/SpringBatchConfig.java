@@ -86,7 +86,7 @@ public class SpringBatchConfig {
     @StepScope
     public Step firstStep() {
         return new StepBuilder("sampleStep", jobRepository)
-                .<Settlement, Settlement>chunk(20, transactionManager)
+                .<Settlement, Settlement>chunk(1000, transactionManager)
                 .reader(settlementItemReader(entityManagerFactory))
                 .writer(settlementItemWriter())
                 .build();
@@ -106,7 +106,7 @@ public class SpringBatchConfig {
         JpaPagingItemReader<Settlement> reader = new JpaPagingItemReader<>();
         reader.setQueryString("SELECT s FROM Settlement s WHERE s.settlementStatus = 'UNSETTLED'");
         reader.setEntityManagerFactory(entityManagerFactory);
-        reader.setPageSize(20);
+        reader.setPageSize(1000);
         return reader;
     }
 
