@@ -11,13 +11,14 @@ import com.example.ficketadmin.domain.settlement.repository.SettlementTempReposi
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.Chunk;
@@ -26,6 +27,8 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 
+
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -48,8 +51,25 @@ public class SpringBatchConfig {
     private final SettlementTempRepository settlementTempRepository;
     private final SettlementRecordTempMapper settlementRecordTempMapper;
 
+    private final JobLauncher jobLauncher;
+
+    private final ApplicationContext applicationContext;
+
+
     public List<Settlement> settlementList = new ArrayList<>();
     public List<SettlementRecordTemp> settlementRecordTempList = new ArrayList<>();
+
+    public void runSettlementBatchJob() {
+        try {
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("timestamp", System.currentTimeMillis())
+                    .toJobParameters();
+            Job job = applicationContext.getBean("settlementJob", Job.class);
+            jobLauncher.run(job, jobParameters);
+        } catch (JobExecutionException e) {
+            log.error("Error executing batch job", e);
+        }
+    }
 
 
     @Bean
@@ -144,8 +164,8 @@ public class SpringBatchConfig {
                 })
                 .writer(new ItemWriter<SettlementTemp>() {
                     @Override
-                    public void write(Chunk<? extends SettlementTemp> chunk) throws Exception {
-                        chunk.forEach(settlementTempRepository::save);
+                    public void write(@NotNull Chunk<? extends SettlementTemp> chunk) throws Exception {
+                        settlementTempRepository.saveAll(chunk.getItems());
                         settlementRecordTempRepository.saveAll(settlementRecordTempList);
                         settlementRecordTempList.clear();
                         settlementList.clear();
