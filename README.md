@@ -245,7 +245,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 - Docker
     - [도커 spring 서버 올리기](https://tutic982.tistory.com/2)
 - Jenkins
-    - [?? - 아직 작성 안됨]()
+    - [젠킨스 파이프라인 만들기](https://tutic982.tistory.com/5)
 - MSA
     - [Eureka Server & Eureka Client & Gateway 설정](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-1-Eureka-Server-Eureka-Client-Gateway-%EC%84%A4%EC%A0%95)
     - [인증/인가 설정](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-2-%EC%9D%B8%EC%A6%9D%EC%9D%B8%EA%B0%80-%EC%84%A4%EC%A0%95)
