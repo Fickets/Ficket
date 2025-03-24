@@ -266,7 +266,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 - 정산
     - [spring batch를 이용한 정산](https://tutic982.tistory.com/4)
 - 티켓 검사
-    - [??]()
+    - [face-api.js를 이용한 티켓검사](https://tutic982.tistory.com/6)
 - 검색
     - [Elasticsearch Indexing 설계](https://velog.io/@zvyg1023/%EC%97%98%EB%9D%BC%EC%8A%A4%ED%8B%B1-%EC%84%9C%EC%B9%98-%EA%B2%80%EC%83%89-%EA%B5%AC%ED%98%84-1-%EC%83%89%EC%9D%B8-%EC%8B%9C%EC%8A%A4%ED%85%9C-%EC%84%A4%EA%B3%84)
     - [Elasticsearch 8.13.4, Kibana 설치 및 S3 연결 (docker-compose)](https://velog.io/@zvyg1023/%EC%97%98%EB%9D%BC%EC%8A%A4%ED%8B%B1-%EC%84%9C%EC%B9%98-%EA%B2%80%EC%83%89-%EA%B5%AC%ED%98%84-2-Elasticsearch-8.13.4-Kibana-%EC%84%A4%EC%B9%98-%EB%B0%8F-S3-%EC%97%B0%EA%B2%B0-docker-compose)
