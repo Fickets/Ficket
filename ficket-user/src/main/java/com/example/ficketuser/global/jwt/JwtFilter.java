@@ -53,7 +53,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (!jwtUtils.validateToken(accessToken)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().print("user access token expired");
-            return; // ✅ 필터 중단
+            return; 
         }
 
         // JWT에서 사용자 정보 추출
@@ -61,7 +61,7 @@ public class JwtFilter extends OncePerRequestFilter {
         Long userId = jwtUtils.getUserId(accessToken);
         Long socialId = jwtUtils.getSocialId(accessToken);
 
-        // ✅ UserDto를 사용하여 CustomUserDetails 생성
+        // CustomUserDetails 생성
         UserDto userDto = UserDto.builder()
                 .userId(userId)
                 .userName(username)
@@ -69,17 +69,14 @@ public class JwtFilter extends OncePerRequestFilter {
                 .build();
         CustomUserDetails customUserDetails = new CustomUserDetails(userDto);
 
-        // ✅ Authentication 객체 생성 시, 권한을 빈 리스트라도 추가해야 함
         Authentication authToken = new UsernamePasswordAuthenticationToken(
                 customUserDetails,
                 null,
-                customUserDetails.getAuthorities() // ✅ 빈 리스트라도 넘겨야 오류 없음
+                customUserDetails.getAuthorities()
         );
 
-        // ✅ SecurityContextHolder에 저장
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
-        // ✅ 토큰이 유효한 경우에만 필터 실행
         filterChain.doFilter(request, response);
     }
 
