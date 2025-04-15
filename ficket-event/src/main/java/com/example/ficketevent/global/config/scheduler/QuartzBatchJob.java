@@ -15,6 +15,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.time.LocalDate;
@@ -26,36 +27,34 @@ public class QuartzBatchJob extends QuartzJobBean {
 
     private final JobLauncher jobLauncher;
     private final Job exportEventsJob;
-    private final RedissonClient redisson;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private static final long FULL_INDEX_TTL = 60 * 60 * 1000L; // 1시간
     private static final String INDEXING_LOCK = "FULL_INDEXING_LOCK";
 
     @Override
     protected void executeInternal(@NotNull JobExecutionContext context) throws JobExecutionException {
-        RLock lock = redisson.getLock(INDEXING_LOCK);
+        boolean isLocked = Boolean.FALSE.equals(redisTemplate.opsForValue()
+                .setIfAbsent(INDEXING_LOCK, "LOCKED", FULL_INDEX_TTL, TimeUnit.MILLISECONDS));
+
+        if (isLocked) {
+            log.warn("전체 인덱싱 작업이 이미 실행 중입니다. 실행을 건너뜁니다.");
+            return;
+        }
+
         try {
-            // 락 점유 시도
-            if (lock.tryLock(0, FULL_INDEX_TTL, TimeUnit.MILLISECONDS)) {
-                String today = LocalDate.now().toString(); // yyyy-MM-dd 형식
-                JobParameters jobParameters = new JobParametersBuilder()
-                        .addString("jobName", "exportEventsJob")
-                        .addString("executionDate", today) // 날짜 추가
-                        .toJobParameters();
+            String today = LocalDate.now().toString();
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addString("jobName", "exportEventsJob")
+                    .addString("executionDate", today)
+                    .toJobParameters();
 
-                jobLauncher.run(exportEventsJob, jobParameters);
-
-                log.info("Batch Job 'exportEventsJob' successfully executed.");
-            } else {
-                log.warn("Job is already running. Skipping execution.");
-            }
-        } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
-                 JobParametersInvalidException e) {
-            log.error("Failed to execute Batch Job 'exportEventsJob': {}", e.getMessage(), e);
+            jobLauncher.run(exportEventsJob, jobParameters);
+            log.info("Batch Job 'exportEventsJob' successfully executed.");
+        } catch (Exception e) {
+            log.error("Batch execution error: {}", e.getMessage(), e);
+            redisTemplate.delete(INDEXING_LOCK);
             throw new JobExecutionException(e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Lock acquisition was interrupted: {}", e.getMessage(), e);
         }
     }
 }

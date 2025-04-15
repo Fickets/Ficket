@@ -47,23 +47,24 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
     @Query("SELECT MAX(e.eventId) FROM Event e")
     Long findMaxId();
 
-//    @Query("SELECT new com.example.ficketevent.domain.event.dto.response.EventIndexingInfo(" +
-//            "e.eventId, " +
-//            "e.title, " +
-//            "es.stageName, " +
-//            "es.sido, " +
-//            "ei.posterPcUrl, " +
-//            "e.ticketingTime, " +
-//            "e.genre, " +
-//            "GROUP_CONCAT(ec.eventDate)" +
-//            ") " +
-//            "FROM Event e " +
-//            "JOIN e.eventStage es " +
-//            "LEFT JOIN e.eventImage ei " +
-//            "JOIN e.eventSchedules ec " +
-//            "WHERE e.eventId = :eventId " +
-//            "GROUP BY e.eventId")
-//    EventIndexingInfo findEventIndexingInfoById(@Param("eventId") Long eventId);
+//    @Query(value = "SELECT " +
+//            "e.event_id AS eventId, " +
+//            "e.title AS title, " +
+//            "es.stage_name AS stageName, " +
+//            "es.sido AS sido, " +
+//            "ANY_VALUE(ei.poster_pc_url) AS posterUrl, " +
+//            "e.ticketing_time AS ticketingTime, " +
+//            "GROUP_CONCAT(DISTINCT g.genre) AS genreList, " +
+//            "GROUP_CONCAT(DISTINCT ec.event_date) AS eventDateList " +
+//            "FROM event e " +
+//            "JOIN event_stage es ON e.stage_id = es.stage_id " +
+//            "LEFT JOIN event_image ei ON e.event_id = ei.event_id " +
+//            "JOIN event_schedule ec ON e.event_id = ec.event_id " +
+//            "JOIN event_genre g ON e.event_id = g.event_id " +
+//            "WHERE e.event_id = :eventId " +
+//            "GROUP BY e.event_id",
+//            nativeQuery = true)
+//    Map<String, Object> findEventIndexingInfoRaw(@Param("eventId") Long eventId);
 
     @Query(value = "SELECT " +
             "e.event_id AS eventId, " +
@@ -79,8 +80,9 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             "LEFT JOIN event_image ei ON e.event_id = ei.event_id " +
             "JOIN event_schedule ec ON e.event_id = ec.event_id " +
             "JOIN event_genre g ON e.event_id = g.event_id " +
-            "WHERE e.event_id = :eventId " +
+            "WHERE e.event_id IN :eventIds " +
             "GROUP BY e.event_id",
             nativeQuery = true)
-    Map<String, Object> findEventIndexingInfoRaw(@Param("eventId") Long eventId);
+    List<Map<String, Object>> findEventIndexingInfoRawBulk(@Param("eventIds") List<Long> eventIds);
+
 }

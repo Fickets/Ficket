@@ -24,7 +24,6 @@ public class IndexingConsumer {
     private final LockingService lockingService;
     private final IndexingService indexingService;
 
-    private static final String INDEXING_LOCK = "FULL_INDEXING_LOCK";
     private static final BlockingQueue<PartialIndexingMessage> queue = new LinkedBlockingQueue<>();
 
     @KafkaListener(
@@ -49,7 +48,7 @@ public class IndexingConsumer {
 
         if (message.isLastMessage()) {
             log.info("마지막 메세지 잆니다. Message: {}", message);
-            lockingService.releaseLock(INDEXING_LOCK);
+            lockingService.releaseLock();
             processQueuedMessages();
         }
 
@@ -119,7 +118,7 @@ public class IndexingConsumer {
 
     // 전체 색인 실행 상태 확인
     private boolean isFullIndexingInProgress() {
-        return (lockingService.isLockAcquired(INDEXING_LOCK));
+        return (lockingService.isLockAcquired());
     }
 
     @KafkaListener(
