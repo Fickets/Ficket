@@ -23,6 +23,7 @@ public class IndexingConsumer {
 
     private final LockingService lockingService;
     private final IndexingService indexingService;
+    private final ObjectMapper objectMapper;
 
     private static final BlockingQueue<PartialIndexingMessage> queue = new LinkedBlockingQueue<>();
 
@@ -32,9 +33,8 @@ public class IndexingConsumer {
             concurrency = "1"                // 단일 컨슈머 실행
     )
     public void handleFullIndexing(String message) {
-        ObjectMapper mapper = new ObjectMapper();
         try {
-            FullIndexingMessage fullIndexingMessage = mapper.readValue(message, FullIndexingMessage.class);
+            FullIndexingMessage fullIndexingMessage = objectMapper.readValue(message, FullIndexingMessage.class);
             processFullIndexing(fullIndexingMessage);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -72,9 +72,8 @@ public class IndexingConsumer {
             groupId = "partial-indexing-group"
     )
     public void handlePartialIndexing(String message) {
-        ObjectMapper mapper = new ObjectMapper();
         try {
-            PartialIndexingMessage partialIndexingMessage = mapper.readValue(message, PartialIndexingMessage.class);
+            PartialIndexingMessage partialIndexingMessage = objectMapper.readValue(message, PartialIndexingMessage.class);
             log.info("부분 색인 Kafka 메시지 수신: {}", partialIndexingMessage);
 
             if (isFullIndexingInProgress()) {
@@ -127,9 +126,8 @@ public class IndexingConsumer {
             concurrency = "1"                // 단일 컨슈머 실행
     )
     public void handleFailFullIndexing(String message) {
-        ObjectMapper mapper = new ObjectMapper();
         try {
-            FullIndexingMessage fullIndexingMessage = mapper.readValue(message, FullIndexingMessage.class);
+            FullIndexingMessage fullIndexingMessage = objectMapper.readValue(message, FullIndexingMessage.class);
             log.warn("DLQ 메세지 : {}", fullIndexingMessage);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
