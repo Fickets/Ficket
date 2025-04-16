@@ -29,6 +29,6 @@ public class LockingService {
      */
     public void releaseLock() {
         redisTemplate.delete(INDEXING_LOCK);
-        log.info("인덱싱 락이 해제되었습니다.");
+        log.info("전체 색인 락이 해제되었습니다.");
     }
 }

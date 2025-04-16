@@ -1,6 +1,5 @@
 package com.example.ficketsearch.global.config.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -10,8 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,47 +18,46 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class CsvToBulkApiConverter {
 
-    private final ObjectMapper objectMapper;
+    /**
+     * CSV를 JSON 형태의 Map으로 변환한 스트림을 반환합니다.
+     */
+    public Stream<Map<String, Object>> convertCsvToJsonStream(String csvFilePath) {
+        try (
+                BufferedReader reader = new BufferedReader(new FileReader(csvFilePath));
+                CSVParser csvParser = new CSVParser(reader, CSVFormat.Builder.create()
+                        .setHeader()
+                        .setSkipHeaderRecord(true)
+                        .build())
+        ) {
+            List<Map<String, Object>> records = csvParser.getRecords().stream()
+                    .filter(record -> record.size() > 0)
+                    .map(this::convertRecordToMap)
+                    .toList();
 
-    public Stream<String> convertCsvToBulkJsonStream(String csvFilePath, String indexName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(csvFilePath));
-             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
-
-            return csvParser.getRecords().stream()
-                    .filter(record -> record.size() > 0)  // 빈 줄 필터링
-                    .map(record -> convertRecordToJson(record, indexName));
+            return records.stream();  // 파일은 이미 닫혔고 메모리에서 스트림 제공
         } catch (Exception e) {
-            throw new RuntimeException("Error processing CSV file at: " + csvFilePath, e);
+            throw new RuntimeException("CSV 처리 실패: " + csvFilePath, e);
         }
     }
 
-    private String convertRecordToJson(CSVRecord record, String indexName) {
-        try {
-            String metadata = "{\"index\": {\"_index\": \"" + indexName + "\"}}";
+    /**
+     * CSVRecord를 Map 형태로 변환합니다.
+     */
+    private Map<String, Object> convertRecordToMap(CSVRecord record) {
+        Map<String, Object> resultMap = new HashMap<>(record.toMap());
 
-            Map<String, String> recordMap = record.toMap();
+        resultMap.computeIfPresent("Genres", (k, v) -> convertToListMap("Genre", (String) v));
+        resultMap.computeIfPresent("Schedules", (k, v) -> convertToListMap("Schedule", (String) v));
 
-            if (recordMap.containsKey("Genres")) {
-                recordMap.computeIfPresent("Genres", (k, genres) -> convertStringToNestedJsonArray("Genre", genres));
-            }
-
-            if (recordMap.containsKey("Schedules")) {
-                recordMap.computeIfPresent("Schedules", (k, schedules) -> convertStringToNestedJsonArray("Schedule", schedules));
-            }
-
-            String jsonData = objectMapper.writeValueAsString(recordMap);
-            log.info("Converted JSON: {}", jsonData);
-            return metadata + "\n" + jsonData;
-        } catch (Exception e) {
-            throw new RuntimeException("Error converting CSV record to JSON: " + record.toString(), e);
-        }
+        return resultMap;
     }
 
-    private String convertStringToNestedJsonArray(String key, String input) {
-        String[] info = input.split(",");
-
-        return "[" + Arrays.stream(info)
-                .map(item -> "{\"" + key + "\": \"" + item.trim() + "\"}")  // key 값을 사용하여 객체 생성
-                .collect(Collectors.joining(",")) + "]";
+    /**
+     * 문자열을 List<Map<String, String>> 형태로 변환합니다.
+     */
+    private List<Map<String, String>> convertToListMap(String key, String input) {
+        return Arrays.stream(input.split(","))
+                .map(item -> Map.of(key, item.trim()))
+                .collect(Collectors.toList());
     }
 }

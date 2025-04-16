@@ -1,5 +1,6 @@
 package com.example.ficketsearch.global.config.utils;
 
+import java.io.File;
 import java.net.URL;
 
 public class FileUtils {
@@ -21,5 +22,19 @@ public class FileUtils {
             throw new RuntimeException("Invalid URL: " + path, e);
         }
     }
+
+
+    public static void deleteFile(String filePath) {
+        try {
+            File file = new File(filePath);
+            if (file.exists() && file.isFile()) {
+                file.delete();
+            }
+        } catch (Exception ignored) {
+            // 삭제 실패는 무시
+        }
+    }
+
+
 
 }

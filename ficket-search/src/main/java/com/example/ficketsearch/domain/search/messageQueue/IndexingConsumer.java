@@ -43,27 +43,26 @@ public class IndexingConsumer {
 
 
     private void processFullIndexing(FullIndexingMessage message) {
-        log.info("전체 색인 작업을 시작합니다. Message: {}", message);
+        log.info("전체 색인 작업을 시작합니다.");
         indexingService.handleFullIndexing(message.getS3UrlList());
 
         if (message.isLastMessage()) {
-            log.info("마지막 메세지 잆니다. Message: {}", message);
             lockingService.releaseLock();
             processQueuedMessages();
         }
 
-        log.info("전체 색인 작업이 완료되었습니다. Message: {}", message);
+        log.info("전체 색인 작업이 완료되었습니다.");
     }
 
     private void processQueuedMessages() {
-        log.info("대기 중인 메시지 처리 시작...");
+        log.info("대기 중인 부분 색인 처리 시작...");
         while (!queue.isEmpty()) {
             PartialIndexingMessage message = queue.poll();
             if (message != null) {
                 processPartialIndexing(message);
             }
         }
-        log.info("대기 중인 메시지 처리가 완료되었습니다.");
+        log.info("대기 중인 부분 색인 처리가 완료되었습니다.");
     }
 
 

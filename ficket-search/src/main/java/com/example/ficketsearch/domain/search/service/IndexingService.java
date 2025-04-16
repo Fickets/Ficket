@@ -1,6 +1,7 @@
 package com.example.ficketsearch.domain.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.analysis.*;
 import co.elastic.clients.elasticsearch._types.mapping.TypeMapping;
 import co.elastic.clients.elasticsearch.core.*;
@@ -10,12 +11,11 @@ import co.elastic.clients.elasticsearch.snapshot.*;
 import co.elastic.clients.util.ApiTypeHelper;
 import com.example.ficketsearch.domain.search.dto.ElasticsearchDTO;
 import com.example.ficketsearch.global.config.utils.CsvToBulkApiConverter;
+import com.example.ficketsearch.global.config.utils.FileUtils;
 import com.example.ficketsearch.global.config.utils.S3Utils;
 import com.example.ficketsearch.domain.search.entity.PartialIndexing;
 import com.example.ficketsearch.domain.search.repository.IndexingRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -55,8 +55,8 @@ public class IndexingService {
     private void createIndexWithEdgeNgram() {
         try {
             IndexSettings indexSettings = new IndexSettings.Builder()
-                    .numberOfShards("5")
-                    .numberOfReplicas("1") // 노드 개수가 하나일떄는 사용되지 않음
+                    .numberOfShards("1")
+                    .numberOfReplicas("0")
                     .analysis(createAnalysis())  // 분석기 설정
                     .index(new IndexSettings.Builder().maxNgramDiff(29).build())
                     .build();
@@ -126,27 +126,22 @@ public class IndexingService {
 
         if (lastDate == null || !lastDate.equals(today)) {
             synchronized (this) { // 동시성 제어
-                lastDate = redisTemplate.opsForValue().get(INITIALIZATION_KEY);
-                if (lastDate == null || !lastDate.equals(today)) {
-                    try {
-                        registerS3Repository(); // S3 저장소 설정
-                        deleteExistingSnapshot(); // 기존 스냅샷 삭제
-                        backupCurrentData(); // 현재 상태를 스냅샷으로 S3에 저장
-                        deleteExistingData(); // 기존 데이터 삭제
-                        createIndexIfNotExist(); // 인덱스 생성
+                try {
+                    registerS3Repository(); // S3 저장소 설정
+                    deleteExistingSnapshot(); // 기존 스냅샷 삭제
+                    backupCurrentData(); // 현재 상태를 스냅샷으로 S3에 저장
+                    deleteExistingData(); // 기존 데이터 삭제
+                    createIndexIfNotExist(); // 인덱스 생성
 
-                        redisTemplate.opsForValue().set(INITIALIZATION_KEY, today);
-                        log.info("Redis 기반 인덱싱 초기화 작업이 완료되었습니다.");
-                    } catch (Exception e) {
-                        log.error("초기화 작업 중 오류 발생: {}", e.getMessage(), e);
-                        throw new IllegalStateException("인덱싱 초기화에 실패했습니다.", e);
-                    }
-                } else {
-                    log.info("오늘은 이미 초기화 작업이 Redis에 의해 처리되었습니다.");
+                    redisTemplate.opsForValue().set(INITIALIZATION_KEY, today);
+                    log.info("Redis 기반 인덱싱 초기화 작업이 완료되었습니다.");
+                } catch (Exception e) {
+                    log.error("초기화 작업 중 오류 발생: {}", e.getMessage(), e);
+                    throw new IllegalStateException("인덱싱 초기화에 실패했습니다.", e);
                 }
             }
         } else {
-            log.info("오늘은 이미 초기화 작업이 Redis에 의해 처리되었습니다.");
+            log.info("오늘은 이미 초기화 작업이 처리되었습니다.");
         }
     }
 
@@ -162,62 +157,24 @@ public class IndexingService {
         for (String s3Url : s3UrlList) {
             String downloadPath = s3Utils.downloadFileWithRetry(s3Url); // S3에서 파일 다운로드
 
-            try (Stream<String> bulkJsonStream = csvToBulkApiConverter.convertCsvToBulkJsonStream(downloadPath, INDEX_NAME)) {
+            try (Stream<Map<String, Object>> bulkJsonStream = csvToBulkApiConverter.convertCsvToJsonStream(downloadPath)) {
                 insertDataToElasticsearch(bulkJsonStream); // Elasticsearch에 데이터 삽입
             } catch (Exception e) {
                 log.error("전체 색인 처리 중 오류 발생: {}", e.getMessage(), e);
             } finally {
-                cleanUpDownloads(downloadPath);
+                FileUtils.deleteFile(downloadPath);
             }
         }
     }
 
-    private void cleanUpDownloads(String filePath) {
-        File file = new File(filePath);
-
-        if (file.exists() && file.isFile()) {
-            boolean deleted = file.delete();
-            if (deleted) {
-                log.info("File deleted: {}", filePath);
-            } else {
-                log.warn("Failed to delete file: {}", filePath);
-            }
-        } else {
-            log.warn("File not found or not a regular file: {}", filePath);
-        }
-
-        // downloads 디렉토리 삭제 시도 (폴더가 비어있을 경우만 삭제)
-        String downloadDirPath = file.getParent();
-        File downloadDir = new File(downloadDirPath);
-
-        if (downloadDir.exists() && downloadDir.isDirectory()) {
-            File[] remainingFiles = downloadDir.listFiles();
-            if (remainingFiles != null && remainingFiles.length == 0) {
-                boolean dirDeleted = downloadDir.delete();
-                if (dirDeleted) {
-                    log.info("Downloads directory deleted: {}", downloadDirPath);
-                } else {
-                    log.warn("Failed to delete downloads directory: {}", downloadDirPath);
-                }
-            }
-        }
-    }
-
-
+    /**
+     * 인덱스가 존재하지 않을 경우, Edge Ngram 분석기가 포함된 인덱스를 생성합니다.
+     */
     private void createIndexIfNotExist() {
         try {
-            // 인덱스가 존재하는지 확인
-            GetIndexRequest getIndexRequest = new GetIndexRequest.Builder()
-                    .index(INDEX_NAME)  // 확인할 인덱스 이름
-                    .build();
-
-            try {
-                elasticsearchClient.indices().get(getIndexRequest);  // 인덱스가 존재하면
-                log.info("인덱스가 이미 존재합니다: {}", INDEX_NAME);
-            } catch (Exception e) {
-                // 인덱스가 존재하지 않으면 새로 생성
-                log.info("인덱스가 존재하지 않아서 새로 생성합니다: {}", INDEX_NAME);
-                createIndexWithEdgeNgram();  // 인덱스 생성
+            boolean exists = elasticsearchClient.indices().exists(e -> e.index(INDEX_NAME)).value();
+            if (!exists) {
+                createIndexWithEdgeNgram();
             }
         } catch (Exception e) {
             log.error("인덱스 생성 중 오류 발생: {}", e.getMessage(), e);
@@ -226,43 +183,52 @@ public class IndexingService {
 
     /**
      * Elasticsearch에 데이터를 삽입하는 메서드
-     * CSV 데이터를 벌크로 처리하여 Elasticsearch에 삽입합니다.
+     * 주어진 JSON 스트림을 일정 크기(BULK_SIZE)로 나누어 Elasticsearch에 벌크 삽입합니다.
      *
      * @param bulkJsonStream - CSV 데이터를 JSON 형태로 변환한 스트림
      */
-    private void insertDataToElasticsearch(Stream<String> bulkJsonStream) {
-        List<String> currentBatch = new ArrayList<>();
-        bulkJsonStream.forEach(jsonLine -> {
-            currentBatch.add(jsonLine);
+    private void insertDataToElasticsearch(Stream<Map<String, Object>> bulkJsonStream) {
+        List<Map<String, Object>> currentBatch = new ArrayList<>(BULK_SIZE);
+
+        bulkJsonStream.forEach(jsonMap -> {
+            currentBatch.add(jsonMap);
             if (currentBatch.size() >= BULK_SIZE) {
-                processBatch(currentBatch); // 벌크 데이터 처리
+                processBatch(currentBatch);
                 currentBatch.clear();
             }
         });
+
         if (!currentBatch.isEmpty()) {
-            processBatch(currentBatch); // 마지막 배치 처리
+            processBatch(currentBatch);
         }
     }
 
     /**
-     * 벌크 데이터를 처리하는 메서드
-     * 주어진 데이터 배치를 Elasticsearch에 삽입합니다.
+     * 한 배치 내 문서들을 Elasticsearch Bulk API로 색인합니다. 유효하지 않은 문서(EventId 누락)는 제외합니다.
      *
      * @param batch - 처리할 데이터 배치
      */
-    private void processBatch(List<String> batch) {
+    private void processBatch(List<Map<String, Object>> batch) {
         try {
             List<BulkOperation> operations = new ArrayList<>();
-            for (String jsonLine : batch) {
-                JsonNode jsonNode = objectMapper.readTree(jsonLine.split("\n")[1]);
+            for (Map<String, Object> document : batch) {
+                String id = (String) document.get("EventId");
+                if (id == null || id.isBlank()) {
+                    log.warn("EventId가 없는 문서를 스킵합니다: {}", document);
+                    continue;
+                }
 
-                // 필드 처리: Genres, Schedules가 문자열이면 JSON 배열로 변환
-                transformJsonArrayField(jsonNode, "Genres");
-                transformJsonArrayField(jsonNode, "Schedules");
-
-                BulkOperation operation = BulkOperation.of(b -> b.index(i -> i.index(INDEX_NAME).document(jsonNode)));
+                BulkOperation operation = BulkOperation.of(b -> b
+                        .index(i -> i
+                                .index(INDEX_NAME)
+                                .id(id)
+                                .document(document)
+                        )
+                );
                 operations.add(operation);
             }
+
+            if (operations.isEmpty()) return;
 
             BulkRequest bulkRequest = new BulkRequest.Builder().operations(operations).build();
             BulkResponse bulkResponse = elasticsearchClient.bulk(bulkRequest);
@@ -273,31 +239,10 @@ public class IndexingService {
                         log.error("벌크 작업 실패: {}", item.error().reason());
                     }
                 });
-            } else {
-                log.info("Bulk API 요청 성공, 배치 크기: {}", batch.size());
             }
         } catch (Exception e) {
             log.error("벌크 요청 실패, 배치 크기: {}", batch.size(), e);
             throw new RuntimeException("Bulk 삽입 실패", e);
-        }
-    }
-
-    /**
-     * 주어진 필드를 JSON 배열로 변환하는 메서드
-     * 해당 필드가 문자열이면, 이를 JSON 배열로 변환하여 저장합니다.
-     *
-     * @param jsonNode  - 변환할 JSON 데이터
-     * @param fieldName - 변환할 필드 이름
-     */
-    private void transformJsonArrayField(JsonNode jsonNode, String fieldName) {
-        if (jsonNode.has(fieldName) && jsonNode.get(fieldName).isTextual()) {
-            try {
-                String fieldString = jsonNode.get(fieldName).asText();
-                JsonNode fieldArray = objectMapper.readTree(fieldString);
-                ((ObjectNode) jsonNode).set(fieldName, fieldArray);
-            } catch (Exception e) {
-                log.error("{} 필드를 JSON 배열로 변환하는데 실패했습니다", fieldName, e);
-            }
         }
     }
 
@@ -307,28 +252,15 @@ public class IndexingService {
      */
     private void deleteExistingSnapshot() {
         try {
-            // 스냅샷이 존재하는지 확인
-            GetSnapshotRequest getSnapshotRequest = new GetSnapshotRequest.Builder()
+            DeleteSnapshotRequest deleteSnapshotRequest = new DeleteSnapshotRequest.Builder()
                     .repository(SNAPSHOT_STORAGE_NAME)
-                    .snapshot(SNAPSHOT_NAME)  // 확인할 스냅샷 이름
+                    .snapshot(SNAPSHOT_NAME)
                     .build();
 
-            // 스냅샷이 존재하는지 확인
-            GetSnapshotResponse getSnapshotResponse = elasticsearchClient.snapshot().get(getSnapshotRequest);
-
-            // 스냅샷이 존재하면 삭제
-            if (!getSnapshotResponse.snapshots().isEmpty()) {
-                DeleteSnapshotRequest deleteSnapshotRequest = new DeleteSnapshotRequest.Builder()
-                        .repository(SNAPSHOT_STORAGE_NAME)
-                        .snapshot(SNAPSHOT_NAME)  // 삭제할 스냅샷 이름
-                        .build();
-
-                elasticsearchClient.snapshot().delete(deleteSnapshotRequest);
-                log.info("기존 스냅샷이 삭제되었습니다.");
-            } else {
-                log.info("삭제할 스냅샷이 존재하지 않습니다.");
-            }
-
+            elasticsearchClient.snapshot().delete(deleteSnapshotRequest);
+            log.info("기존 스냅샷이 삭제되었습니다.");
+        } catch (ElasticsearchException e) {
+            log.info("삭제할 스냅샷이 존재하지 않아 삭제하지 않았습니다.");
         } catch (Exception e) {
             log.error("스냅샷 삭제 중 오류 발생: {}", e.getMessage(), e);
         }
@@ -374,30 +306,32 @@ public class IndexingService {
      */
     private void deleteExistingData() {
         try {
-            // 먼저 인덱스에 데이터가 있는지 확인
-            SearchRequest searchRequest = new SearchRequest.Builder()
+            // 인덱스 존재 여부 먼저 확인
+            boolean exists = elasticsearchClient.indices().exists(e -> e.index(INDEX_NAME)).value();
+            if (!exists) {
+                log.info("삭제할 인덱스가 존재하지 않아 삭제를 생략합니다: {}", INDEX_NAME);
+                return;
+            }
+
+            // 인덱스가 존재할 경우 삭제 진행
+            DeleteByQueryRequest deleteRequest = new DeleteByQueryRequest.Builder()
                     .index(INDEX_NAME)
-                    .size(1)  // 최소 1개의 문서만 확인하면 되므로 size를 1로 설정
+                    .query(q -> q.matchAll(m -> m))
                     .build();
 
-            SearchResponse<Void> searchResponse = elasticsearchClient.search(searchRequest, Void.class);
+            long deletedCount = elasticsearchClient.deleteByQuery(deleteRequest).deleted();
 
-            if (searchResponse.hits().total().value() > 0) {
-                // 데이터가 있을 경우에만 삭제
-                DeleteByQueryRequest deleteRequest = new DeleteByQueryRequest.Builder()
-                        .index(INDEX_NAME)
-                        .query(q -> q.matchAll(m -> m)) // 모든 데이터를 삭제
-                        .build();
-
-                elasticsearchClient.deleteByQuery(deleteRequest);
-                log.info("기존 데이터가 삭제되었습니다.");
+            if (deletedCount > 0) {
+                log.info("기존 데이터 {}건이 삭제되었습니다.", deletedCount);
             } else {
-                log.info("데이터가 존재하지 않아 삭제하지 않았습니다.");
+                log.info("삭제할 데이터가 없어 삭제하지 않았습니다.");
             }
+
         } catch (Exception e) {
             log.error("기존 데이터 삭제 중 오류 발생: {}", e.getMessage(), e);
         }
     }
+
 
 
     /**
@@ -438,39 +372,6 @@ public class IndexingService {
             throw new RuntimeException("문서 생성 실패", e);
         }
     }
-//    public void handlePartialIndexingCreate(Map<String, Object> map, String operationType) {
-//        try {
-//            String eventId = (String) map.get("EventId");
-//
-//            // PartialIndexing 객체 생성 및 operationType 설정
-//            PartialIndexing partialIndexing = objectMapper.convertValue(map, PartialIndexing.class);
-//            partialIndexing.setOperationType(operationType); // 동작 타입 설정
-//            partialIndexing.setIndexed(true);
-//
-//            indexingRepository.save(partialIndexing)
-//                    .doOnSuccess(saved -> {
-//                        try {
-//                            // Elasticsearch 색인 작업
-//                            IndexRequest<Map<String, Object>> request = IndexRequest.of(builder -> builder.index(INDEX_NAME).document(map));
-//                            IndexResponse response = elasticsearchClient.index(request);
-//                            log.info("Elasticsearch에 문서가 생성되었습니다: {}, 결과: {}", eventId, response.result());
-//                        } catch (Exception e) {
-//                            log.error("Elasticsearch 색인 실패: {}", e.getMessage());
-//
-//                            // 색인 실패 시 상태를 false로 변경
-//                            saved.setIndexed(false);
-//                            indexingRepository.save(saved).subscribe();
-//                        }
-//                    })
-//                    .doOnError(e -> {
-//                        log.error("MongoDB 저장 실패: {}", e.getMessage());
-//                    })
-//                    .subscribe();
-//        } catch (Exception e) {
-//            log.error("Elasticsearch에 문서 생성 실패: {}", e.getMessage(), e);
-//            throw new RuntimeException("문서 생성 실패", e);
-//        }
-//    }
 
     /**
      * Elasticsearch에서 문서를 업데이트하는 메서드
@@ -523,57 +424,6 @@ public class IndexingService {
             throw new RuntimeException("문서 업데이트 실패", e);
         }
     }
-//    public void handlePartialIndexingUpdate(Map<String, Object> map, String operationType) {
-//        try {
-//            String eventId = (String) map.get("EventId");
-//            if (eventId == null) throw new IllegalArgumentException("EventId가 없습니다");
-//
-//            // PartialIndexing 객체 생성 및 operationType 설정
-//            PartialIndexing partialIndexing = objectMapper.convertValue(map, PartialIndexing.class);
-//            partialIndexing.setOperationType(operationType); // 동작 타입 설정
-//            partialIndexing.setIndexed(true);
-//
-//            // MongoDB 저장 후 Elasticsearch 업데이트 실행
-//            indexingRepository.save(partialIndexing)
-//                    .doOnSuccess(saved -> {
-//                        // Elasticsearch 검색 요청
-//                        SearchRequest searchRequest = SearchRequest.of(builder -> builder
-//                                .index(INDEX_NAME)
-//                                .query(q -> q.term(t -> t.field("EventId").value(eventId))));
-//                        try {
-//                            SearchResponse<Map> searchResponse = elasticsearchClient.search(searchRequest, Map.class);
-//
-//                            if (searchResponse.hits().hits().isEmpty()) {
-//                                throw new RuntimeException("EventId로 문서를 찾을 수 없습니다: " + eventId);
-//                            }
-//
-//                            // 문서 ID를 가져와 업데이트 실행
-//                            String documentId = searchResponse.hits().hits().get(0).id();
-//                            IndexRequest<Map<String, Object>> indexRequest = IndexRequest.of(builder -> builder
-//                                    .index(INDEX_NAME)
-//                                    .id(documentId)
-//                                    .document(map));
-//                            IndexResponse response = elasticsearchClient.index(indexRequest);
-//                            log.info("Elasticsearch에 문서가 업데이트되었습니다: EventId: {}, 응답: {}", eventId, response.result());
-//                        } catch (Exception e) {
-//                            log.error("Elasticsearch에서 문서 업데이트 실패: {}", e.getMessage(), e);
-//                            // 상태를 false로 업데이트
-//                            partialIndexing.setIndexed(false);
-//                            indexingRepository.save(partialIndexing).subscribe();
-//                        }
-//                    })
-//                    .doOnError(e -> {
-//                        log.error("MongoDB 저장 실패: {}", e.getMessage());
-//                        // 상태를 false로 업데이트
-//                        partialIndexing.setIndexed(false);
-//                        indexingRepository.save(partialIndexing).subscribe();
-//                    })
-//                    .subscribe();
-//        } catch (Exception e) {
-//            log.error("Elasticsearch에서 문서 업데이트 실패: {}", e.getMessage(), e);
-//            throw new RuntimeException("문서 업데이트 실패", e);
-//        }
-//    }
 
     /**
      * Elasticsearch에서 문서를 삭제하는 메서드
@@ -615,49 +465,6 @@ public class IndexingService {
             throw new RuntimeException("문서 삭제 실패", e);
         }
     }
-//    public void handlePartialIndexingDelete(String eventId, String operationType) {
-//        try {
-//            PartialIndexing partialIndexing = new PartialIndexing();
-//            partialIndexing.setEventId(eventId);
-//            partialIndexing.setOperationType(operationType);
-//            partialIndexing.setIndexed(true); // 기본 값 true
-//
-//            // MongoDB 저장 후 Elasticsearch 삭제 실행
-//            indexingRepository.save(partialIndexing)
-//                    .doOnSuccess(saved -> {
-//                        try {
-//                            // Elasticsearch 삭제 요청
-//                            DeleteByQueryRequest request = DeleteByQueryRequest.of(builder -> builder
-//                                    .index(INDEX_NAME)
-//                                    .query(q -> q.term(t -> t.field("EventId").value(eventId))));
-//                            long deletedCount = elasticsearchClient.deleteByQuery(request).deleted();
-//                            log.info("EventId: {}에 해당하는 문서가 삭제되었습니다. 삭제된 문서 수: {}", eventId, deletedCount);
-//                        } catch (Exception e) {
-//                            log.error("Elasticsearch에서 문서 삭제 실패: {}", e.getMessage(), e);
-//                            // 상태를 false로 설정
-//                            partialIndexing.setIndexed(false);
-//                            indexingRepository.save(partialIndexing).subscribe();
-//                        }
-//                    })
-//                    .doOnError(e -> {
-//                        log.error("MongoDB 저장 실패: {}", e.getMessage());
-//                        // 상태를 false로 설정
-//                        partialIndexing.setIndexed(false);
-//                        indexingRepository.save(partialIndexing).subscribe();
-//                    })
-//                    .subscribe();
-//        } catch (Exception e) {
-//            log.error("EventId: {}에 해당하는 문서 삭제 실패: {}", eventId, e.getMessage(), e);
-//            // 상태를 false로 설정
-//            PartialIndexing partialIndexing = new PartialIndexing();
-//            partialIndexing.setEventId(eventId);
-//            partialIndexing.setOperationType(operationType);
-//            partialIndexing.setIndexed(false);
-//            indexingRepository.save(partialIndexing).subscribe();
-//            throw new RuntimeException("문서 삭제 실패", e);
-//        }
-//    }
-
 
     public void restoreSnapshot() {
         try {

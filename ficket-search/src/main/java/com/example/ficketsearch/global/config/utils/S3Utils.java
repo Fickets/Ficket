@@ -43,9 +43,9 @@ public class S3Utils {
         if (!downloadDir.exists()) {
             boolean isCreated = downloadDir.mkdirs();
             if (isCreated) {
-                log.info("Downloads directory created: {}", downloadDirPath);
+                log.info("다운로드 디렉토리가 생성되었습니다: {}", downloadDirPath);
             } else {
-                throw new RuntimeException("Failed to create downloads directory");
+                throw new RuntimeException("다운로드 디렉토리 생성에 실패했습니다");
             }
         }
 
@@ -60,11 +60,10 @@ public class S3Utils {
                 outputStream.write(buffer, 0, bytesRead);
             }
 
-            log.info("File downloaded successfully to: {}", localFilePath);
             return localFilePath;
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to download file from S3. URL: " + s3Url + ", Local Path: " + localFilePath, e);
+            throw new RuntimeException("S3에서 파일 다운로드에 실패했습니다. URL: " + s3Url + ", 저장 경로: " + localFilePath, e);
         }
     }
 }
