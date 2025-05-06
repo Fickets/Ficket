@@ -24,6 +24,10 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 3. JIRA를 활용한 협업
 
+### 스크럼
+
+<img src="etc/img/jira/SCRUM.png" width="400"/>
+
 ### 번다운 차트
 | ![WEEK6.png](etc%2Fimg%2Fjira%2FWEEK6.png) | ![WEEK7](etc%2Fimg%2Fjira%2FWEEK7.png) |
 |--------------------------------------------|----------------------------------------|
