@@ -22,7 +22,14 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 3. 제작기간 && 팀원소개 🏃‍🏃‍♀️💨
+## 3. JIRA를 활용한 협업
+
+### 번다운 차트
+| ![WEEK6.png](etc%2Fimg%2Fjira%2FWEEK6.png) | ![WEEK7](etc%2Fimg%2Fjira%2FWEEK7.png) |
+|--------------------------------------------|----------------------------------------|
+| ![WEEK8](etc%2Fimg%2Fjira%2FWEEK8.png)     | ![WEEK9](etc%2Fimg%2Fjira%2FWEEK9.png) |
+
+## 4. 제작기간 && 팀원소개 🏃‍🏃‍♀️💨
 
 ### 2024-11-21 ~ 2025-02-25🔥
 
@@ -33,7 +40,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 4. 🛠 기술 스택
+## 5. 🛠 기술 스택
 
 <div align=middle>
   <h3>🎨 FrontEnd</h3>
@@ -113,16 +120,9 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 5. 아키텍처 📃
+## 6. 아키텍처 📃
 
 ![ficket_architecutre.png](etc%2Fimg%2Farchitecture%2Fficket_architecutre.png)
-
----
-
-## 6. API 명세서 📡
-
-- Swagger: [https://api.ficket.shop](https://api.ficket.shop)
-- Notion: [API 명세서 바로가기](https://www.notion.so/API-125cb8b3a5cf81dbbff3cec772823e6a?pvs=4)
 
 ---
 
@@ -132,7 +132,14 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 8. 서비스 화면 (PC) 🖥️
+## 8. API 명세서 📡
+
+- Swagger: [https://api.ficket.shop](https://api.ficket.shop)
+- Notion: [API 명세서 바로가기](https://www.notion.so/API-125cb8b3a5cf81dbbff3cec772823e6a?pvs=4)
+
+---
+
+## 9. 서비스 화면 (PC) 🖥️
 
 1. 메인 페이지
 
@@ -143,7 +150,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
    <img src="./etc/gif/eventDetail.gif" width="80%" alt="공연_상세_페이지" /> <br>
 
 3. 티켓팅
-
+   
    <img src="./etc/gif/ticketReservation.gif" width="444" alt="티켓팅1" /> <br>
 
 4. 마이 티켓
@@ -193,7 +200,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 9. 서비스 화면 (MOBILE) 📱
+## 10. 서비스 화면 (MOBILE) 📱
 
 <table style="border: 2px; text-align:center;">
   <tr style="text-align:center;">
@@ -237,7 +244,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 10. 주요 기술 ✨
+## 11. 주요 기술 ✨
 
 - 프론트
     - [zustand를 활용한 로그인 정보 유지](https://tutic982.tistory.com/3)
@@ -283,7 +290,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 --- 
 
-## 11. Trouble Shooting 🚧
+## 12. Trouble Shooting 🚧
 
 - [Config 서버 설정 값 노출](https://velog.io/@zvyg1023/MSA-%EA%B5%AC%EC%B6%95-6-%EC%95%94%ED%98%B8%ED%99%94%EB%90%9C-%EC%84%A4%EC%A0%95-%ED%8C%8C%EC%9D%BC-%EB%B3%B4%ED%98%B8%EC%99%80-decrypt-API-%EC%A0%91%EA%B7%BC-%EC%A0%9C%EC%96%B4)
 
@@ -295,7 +302,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ---
 
-## 12. 외부 리소스 정보 📁
+## 13. 외부 리소스 정보 📁
 
 [포트원 개발자 센터](https://developers.portone.io/opi/ko/readme?v=v2)
 <br>
