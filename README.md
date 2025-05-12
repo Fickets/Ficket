@@ -188,18 +188,18 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 11. 임시 URL 발급 (관리자)
 
-   <img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
+    <img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
 
 12. 티켓 검사 (관리자 & 고객)
 
-    <table>
-      <td>
-        <img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> 
-      </td>
-      <td>
-        <img src="./etc/gif/ticketCheckCustomer.gif" width="240" alt="고객체크"/>
-      </td>
-    </table>
+  <table>
+    <td>
+      <img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> 
+    </td>
+    <td>
+      <img src="./etc/gif/ticketCheckCustomer.gif" width="240" alt="고객체크"/>
+    </td>
+  </table>
 
 
 ---
