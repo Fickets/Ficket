@@ -132,7 +132,7 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 ## 7. ERD 🗄️
 
-![ficket_erd.png](etc%2Fimg%2Ferd%2Fficket_erd.png)
+![ERD.png](etc%2Fimg%2Ferd%2FERD.png)
 
 ---
 
@@ -159,47 +159,47 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 4. 마이 티켓
 
-  <img src="./etc/gif/my_ticket_pc.png" width="80%" alt="티켓팅2" /> <br>
+    <img src="./etc/gif/my_ticket_pc.png" width="80%" alt="티켓팅2" /> <br>
 
 5. 오픈 티켓
 
-  <img src="./etc/gif/open_event_pc.png" width="80%" alt="티켓팅3" /> <br>
+    <img src="./etc/gif/open_event_pc.png" width="80%" alt="티켓팅3" /> <br>
 
 6. 장르별 랭킹
 
-  <img src="./etc/gif/장르별%20랭킹_pc.png" width="80%" alt="티켓팅4" /> <br>
+    <img src="./etc/gif/장르별%20랭킹_pc.png" width="80%" alt="티켓팅4" /> <br>
 
 7. 검색 (자동 완성)
 
-  <img src="./etc/gif/뮤지컬%20자동완성_pc.png" width="80%" alt="티켓팅5" /> <br>
+    <img src="./etc/gif/뮤지컬%20자동완성_pc.png" width="80%" alt="티켓팅5" /> <br>
 
 8. 검색 결과
 
-  <img src="./etc/gif/뮤지컬_검색결과_pc.png" width="80%" alt="티켓팅6" /> <br>
+    <img src="./etc/gif/뮤지컬_검색결과_pc.png" width="80%" alt="티켓팅6" /> <br>
 
 9. 관리자 로그인
 
-  <img src="./etc/gif/adminLogin.gif" width="80%" alt="관리자 로그인" /> <br>
+    <img src="./etc/gif/adminLogin.gif" width="80%" alt="관리자 로그인" /> <br>
 
 10. 공연 등록 (관리자)
 
-  <img src="./etc/gif/registerEvent1.gif" width="80%" /> <br>
-  <img src="./etc/gif/registerEvent2.gif" width="80%" /> <br>
+    <img src="./etc/gif/registerEvent1.gif" width="80%" /> <br>
+    <img src="./etc/gif/registerEvent2.gif" width="80%" /> <br>
 
 11. 임시 URL 발급 (관리자)
 
-  <img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
+   <img src="./etc/gif/ticketCheckUrl.gif" width="80%" alt="관리자 로그인"/> <br>
 
 12. 티켓 검사 (관리자 & 고객)
 
-<table>
-  <td>
-    <img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> 
-  </td>
-  <td>
-    <img src="./etc/gif/ticketCheckCustomer.gif" width="240" alt="고객체크"/>
-  </td>
-</table>
+    <table>
+      <td>
+        <img src="./etc/gif/managerCheck.gif"  width="240" alt="관리자 로그인"/> 
+      </td>
+      <td>
+        <img src="./etc/gif/ticketCheckCustomer.gif" width="240" alt="고객체크"/>
+      </td>
+    </table>
 
 
 ---
