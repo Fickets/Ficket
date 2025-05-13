@@ -31,6 +31,8 @@ import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.math.BigDecimal;
@@ -58,6 +60,14 @@ public class SpringBatchConfig {
 
     public List<Settlement> settlementList = new ArrayList<>();
     public List<SettlementRecordTemp> settlementRecordTempList = new ArrayList<>();
+
+
+    @Bean
+    public TaskExecutor taskExecutor() {
+        SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+        taskExecutor.setConcurrencyLimit(10);  // 최대 10개의 스레드로 처리
+        return taskExecutor;
+    }
 
     public void runSettlementBatchJob() {
         try {
@@ -89,6 +99,7 @@ public class SpringBatchConfig {
                 .<Settlement, Settlement>chunk(1000, transactionManager)
                 .reader(settlementItemReader(entityManagerFactory))
                 .writer(settlementItemWriter())
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
