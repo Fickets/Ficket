@@ -24,8 +24,8 @@ public class EventSearchCond {
     private Long eventStageId;
 
     @Schema(description = "검색 시작 날짜", example = "2024-12-16")
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     @Schema(description = "검색 종료 날짜", example = "2024-12-31")
-    private LocalDate endDate;
+    private LocalDateTime endDate;
 }

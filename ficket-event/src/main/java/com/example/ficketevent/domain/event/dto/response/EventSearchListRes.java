@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,9 +17,9 @@ public class EventSearchListRes {
     private Long eventId;
     private String eventTitle;
     private String stageName;
-    private Long adminId;
     private String companyName;
     private String adminName;
-    private List<LocalDateTime> eventDates;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 
 }

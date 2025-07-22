@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface EventCustomRepository {
-    List<EventSearchRes> searchEventByCond(EventSearchCond eventSearchCond);
+//    List<EventSearchRes> searchEventByCond(EventSearchCond eventSearchCond, Pageable pageable);
 
     List<Long> getEventScheduleByEventId(Long eventId);
 

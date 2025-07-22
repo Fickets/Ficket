@@ -884,22 +884,40 @@ public class EventService {
     }
 
 
-    public PagedResponse<EventSearchListRes> searchEvent(EventSearchCond eventSearchCond, Pageable pageable) {
+    public PagedResponse<EventSearchListRes> searchEvent(EventSearchCond cond, Pageable pageable) {
         // 이벤트 검색 결과 가져오기
-        List<EventSearchRes> eventSearchRes = eventRepository.searchEventByCond(eventSearchCond);
+        List<EventSummaryProjection> projections = eventRepository.searchEventByCond(
+                cond.getEventId(),
+                cond.getEventTitle(),
+                cond.getCompanyId(),
+                cond.getAdminId(),
+                cond.getEventStageId(),
+                cond.getStartDate(),
+                cond.getEndDate(),
+                pageable.getPageSize(),
+                pageable.getOffset()
+        );
 
-        if (eventSearchRes.isEmpty()) {
-            return new PagedResponse<>(Collections.emptyList(), pageable.getPageNumber(), pageable.getPageSize(), 0, 0);
-        }
+        long totalElements = eventRepository.countEventsByCond(
+                cond.getEventId(),
+                cond.getEventTitle(),
+                cond.getCompanyId(),
+                cond.getAdminId(),
+                cond.getEventStageId(),
+                cond.getStartDate(),
+                cond.getEndDate()
+        );
+
+        int totalPages = (int) Math.ceil((double) totalElements / pageable.getPageSize());
 
         // adminId와 companyId를 수집
-        Set<Long> adminIds = eventSearchRes.stream()
-                .map(EventSearchRes::getAdminId)
+        Set<Long> adminIds = projections.stream()
+                .map(EventSummaryProjection::getAdminId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        Set<Long> companyIds = eventSearchRes.stream()
-                .map(EventSearchRes::getCompanyId)
+        Set<Long> companyIds = projections.stream()
+                .map(EventSummaryProjection::getCompanyId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -917,42 +935,25 @@ public class EventService {
                 ).stream().collect(Collectors.toMap(CompanyResponse::getCompanyId, CompanyResponse::getCompanyName));
 
         // 결과 변환
-        List<EventSearchListRes> results = eventSearchRes.stream()
-                .collect(Collectors.groupingBy(EventSearchRes::getEventId))
-                .entrySet().stream()
-                .map(entry -> {
-                    Long eventId = entry.getKey();
-                    List<EventSearchRes> groupedEvents = entry.getValue();
-                    EventSearchRes firstEvent = groupedEvents.get(0);
+        List<EventSearchListRes> results = projections.stream().map(p -> EventSearchListRes.builder()
+                .eventId(p.getEventId())
+                .eventTitle(p.getTitle())
+                .stageName(p.getStageName())
+                .companyName(companyNameMap.get(p.getCompanyId()))
+                .adminName(adminNameMap.get(p.getAdminId()))
+                .startDate(p.getMinEventDate())
+                .endDate(p.getMaxEventDate())
+                .build()).toList();
 
-                    return EventSearchListRes.builder()
-                            .eventId(eventId)
-                            .eventTitle(firstEvent.getEventTitle())
-                            .stageName(firstEvent.getStageName())
-                            .adminId(firstEvent.getAdminId())
-                            .companyName(companyNameMap.get(firstEvent.getCompanyId()))
-                            .adminName(adminNameMap.get(firstEvent.getAdminId()))
-                            .eventDates(groupedEvents.stream()
-                                    .map(EventSearchRes::getEventDate)
-                                    .sorted() // 날짜 정렬
-                                    .collect(Collectors.toList()))
-                            .build();
-                })
-                .sorted(Comparator.comparing(EventSearchListRes::getEventId)) // 정렬 기준
-                .collect(Collectors.toList());
 
-        // 페이징 처리
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), results.size());
-        List<EventSearchListRes> pagedResults = results.subList(start, end);
 
         // PagedResponse로 변환하여 반환
         return new PagedResponse<>(
-                pagedResults,
+                results,
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
-                results.size(),
-                (int) Math.ceil((double) results.size() / pageable.getPageSize())
+                totalElements,
+                totalPages
         );
     }
 

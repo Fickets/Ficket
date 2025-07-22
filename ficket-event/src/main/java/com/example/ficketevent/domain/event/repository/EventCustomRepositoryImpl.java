@@ -40,38 +40,37 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
 
     private final JPAQueryFactory queryFactory;
 
-
-    @Override
-    public List<EventSearchRes> searchEventByCond(EventSearchCond cond) {
-        return queryFactory.selectDistinct(new QEventSearchRes(
-                        event.eventId,
-                        event.title,
-                        event.eventStage.stageName,
-                        event.companyId,
-                        event.adminId,
-                        eventSchedule.eventDate.min()
-                ))
-                .from(event)
-                .join(event.eventSchedules, eventSchedule)
-                .where(
-                        eqEventId(cond.getEventId()),
-                        containsEventTitle(cond.getEventTitle()),
-                        eqCompanyId(cond.getCompanyId()),
-                        eqAdminId(cond.getAdminId()),
-                        eqEventStageId(cond.getEventStageId()),
-                        goeStartDate(cond.getStartDate()),
-                        loeEndDate(cond.getEndDate())
-                )
-                .groupBy(
-                        event.eventId,
-                        event.title,
-                        event.eventStage.stageName,
-                        event.companyId,
-                        event.adminId,
-                        Expressions.dateTemplate(LocalDate.class, "DATE({0})", eventSchedule.eventDate)
-                )
-                .fetch();
-    }
+//    @Override
+//    public List<EventSearchRes> searchEventByCond(EventSearchCond cond, Pageable pageable) {
+//        return queryFactory.selectDistinct(new QEventSearchRes(
+//                        event.eventId,
+//                        event.title,
+//                        event.eventStage.stageName,
+//                        event.companyId,
+//                        event.adminId,
+//                        eventSchedule.eventDate.min()
+//                ))
+//                .from(event)
+//                .join(event.eventSchedules, eventSchedule)
+//                .where(
+//                        eqEventId(cond.getEventId()),
+//                        containsEventTitle(cond.getEventTitle()),
+//                        eqCompanyId(cond.getCompanyId()),
+//                        eqAdminId(cond.getAdminId()),
+//                        eqEventStageId(cond.getEventStageId()),
+//                        goeStartDate(cond.getStartDate()),
+//                        loeEndDate(cond.getEndDate())
+//                )
+//                .groupBy(
+//                        event.eventId,
+//                        event.title,
+//                        event.eventStage.stageName,
+//                        event.companyId,
+//                        event.adminId,
+//                        Expressions.dateTemplate(LocalDate.class, "DATE({0})", eventSchedule.eventDate)
+//                )
+//                .fetch();
+//    }
 
     private BooleanExpression eqEventId(Long eventId) {
         return eventId != null ? event.eventId.eq(eventId) : null;
