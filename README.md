@@ -304,6 +304,8 @@ https://www.figma.com/design/M9VDb3yhlblGtRa8O3DfQr/Ficket?node-id=9-1722&t=qpZD
 
 - [XSS 방어: OWASP AntiSamy와 DOMPurify를 활용한 TinyMCE 보안 강화](https://velog.io/@zvyg1023/XSS-%EB%B0%A9%EC%96%B4-OWASP-AntiSamy%EC%99%80-DOMPurify%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-TinyMCE-%EB%B3%B4%EC%95%88-%EA%B0%95%ED%99%94)
 
+- [관리자 행사 목록 조회 API 성능 최적화 및 실행 계획 분석](https://velog.io/@zvyg1023/%EA%B4%80%EB%A6%AC%EC%9E%90-%ED%96%89%EC%82%AC-%EB%AA%A9%EB%A1%9D-%EC%A1%B0%ED%9A%8C-API-%EC%84%B1%EB%8A%A5-%EC%B5%9C%EC%A0%81%ED%99%94-%EB%B0%8F-%EC%8B%A4%ED%96%89-%EA%B3%84%ED%9A%8D-%EB%B6%84%EC%84%9D)
+
 ---
 
 ## 13. 외부 리소스 정보 📁
