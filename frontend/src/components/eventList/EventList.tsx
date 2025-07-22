@@ -43,57 +43,16 @@ const EventList = ({ data, onPageChange }: EventListProps) => {
       },
       {
         header: "공연 날짜",
-        accessorKey: "eventDates",
-        cell: ({ getValue }) => {
-          const value = getValue() as string[];
-          if (!Array.isArray(value) || value.length === 0) return null;
+        accessorKey: "startDate",
+        cell: ({ row }) => {
+          const start = new Date(row.original.startDate).toLocaleDateString(
+            "ko-KR",
+          );
+          const end = new Date(row.original.endDate).toLocaleDateString(
+            "ko-KR",
+          );
 
-          const uniqueDates = Array.from(
-            new Set(
-              value.map((date) => {
-                const localDate = new Date(date);
-                return new Date(
-                  localDate.getFullYear(),
-                  localDate.getMonth(),
-                  localDate.getDate(),
-                ).toISOString();
-              }),
-            ),
-          )
-            .sort()
-            .map((dateString) => new Date(dateString));
-
-          const formattedDates: string[] = [];
-          let start = uniqueDates[0];
-          let end = uniqueDates[0];
-
-          for (let i = 1; i <= uniqueDates.length; i++) {
-            if (
-              i === uniqueDates.length ||
-              new Date(uniqueDates[i]).getTime() !==
-                new Date(end.getTime() + 24 * 60 * 60 * 1000).getTime()
-            ) {
-              if (start.getTime() === end.getTime()) {
-                formattedDates.push(start.toLocaleDateString("ko-KR"));
-              } else {
-                formattedDates.push(
-                  `${start.toLocaleDateString(
-                    "ko-KR",
-                  )} ~ ${end.toLocaleDateString("ko-KR")}`,
-                );
-              }
-              start = uniqueDates[i];
-              end = uniqueDates[i];
-            } else {
-              end = uniqueDates[i];
-            }
-          }
-
-          return formattedDates.map((dateRange, index) => (
-            <span key={index} className="block">
-              {dateRange}
-            </span>
-          ));
+          return start === end ? start : `${start} ~ ${end}`;
         },
       },
     ],
