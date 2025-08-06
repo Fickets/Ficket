@@ -15,19 +15,14 @@ import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.*;
-import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -42,12 +37,12 @@ import static com.example.ficketevent.global.result.error.ErrorCode.FAILED_ITEM_
 public class BatchConfig {
 
     private static final String JOB_NAME = "exportEventsJob";
-    private static final String MANAGER_STEP_NAME = "managerStep";
     private static final String WORKER_STEP_NAME = "workerStep";
     private static final String RETRY_STEP_NAME = "retryFailedItemsStep";
     private static final String KAFKA_STEP_NAME = "sendKafkaMessageStep";
     private static final int CHUNK_SIZE = 2000;
-    private static final int PAGE_SIZE = 1000;
+    private static final int PAGE_SIZE = 2000;
+    private static final int BATCH_SIZE = 100;
     private static final int QUEUE_CAPACITY = 100;
     private static final String THREAD_NAME_PREFIX = "Batch-Thread-";
 
@@ -62,21 +57,12 @@ public class BatchConfig {
     public Job exportEventsJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .listener(prepareJobListener)
-                .start(managerStep(jobRepository, taskExecutor(), transactionManager))
+                .start(workerStep(jobRepository, transactionManager))
                 .next(retryFailedItemsStep(jobRepository, transactionManager))
                 .next(sendKafkaMessageStep(jobRepository, transactionManager))
                 .build();
     }
 
-    @Bean
-    public Step managerStep(JobRepository jobRepository, @Qualifier("taskExecutor") TaskExecutor taskExecutor, PlatformTransactionManager transactionManager) {
-        return new StepBuilder(MANAGER_STEP_NAME, jobRepository)
-                .partitioner(WORKER_STEP_NAME, partitioner())
-                .step(workerStep(jobRepository, transactionManager))
-                .taskExecutor(taskExecutor)
-                .allowStartIfComplete(true)
-                .build();
-    }
 
     @Bean
     public Step retryFailedItemsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
@@ -88,36 +74,15 @@ public class BatchConfig {
                 .faultTolerant()
                 .retry(Exception.class)
                 .retryLimit(3)
-                .listener(skipListener()) // 동일 Listener 재사용
+                .listener(skipListener())
                 .build();
-    }
-
-    @Bean
-    public Partitioner partitioner() {
-        return gridSize -> {
-            Map<String, ExecutionContext> partitions = new HashMap<>();
-            long minId = eventRepository.findMinId();
-            long maxId = eventRepository.findMaxId();
-            long numberOfPartitions = (maxId - minId + CHUNK_SIZE) / CHUNK_SIZE;
-
-            for (int i = 0; i < numberOfPartitions; i++) {
-                long start = minId + ((long) i * CHUNK_SIZE);
-                long end = Math.min(start + CHUNK_SIZE - 1, maxId);
-
-                ExecutionContext context = new ExecutionContext();
-                context.putLong("minId", start);
-                context.putLong("maxId", end);
-                partitions.put("partition" + i, context);
-            }
-            return partitions;
-        };
     }
 
     @Bean
     public Step workerStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder(WORKER_STEP_NAME, jobRepository)
                 .<Long, Long>chunk(CHUNK_SIZE, transactionManager)
-                .reader(eventReader(null, null))
+                .reader(cursorBasedEventReader())
                 .processor(batchProcessor())
                 .writer(csvBatchWriter())
                 .faultTolerant()
@@ -128,6 +93,7 @@ public class BatchConfig {
                 .build();
     }
 
+
     @Bean
     public Step sendKafkaMessageStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder(KAFKA_STEP_NAME, jobRepository)
@@ -137,21 +103,38 @@ public class BatchConfig {
 
     @Bean
     @StepScope
-    public RepositoryItemReader<Long> eventReader(@Value("#{stepExecutionContext['minId']}") Long minId,
-                                                  @Value("#{stepExecutionContext['maxId']}") Long maxId) {
-        RepositoryItemReader<Long> reader = new RepositoryItemReader<>();
-        reader.setRepository(eventRepository);
-        reader.setMethodName("findEventIdsByRange");
-        reader.setArguments(List.of(minId, maxId));
-        reader.setPageSize(PAGE_SIZE);
-        reader.setSort(Map.of("eventId", Sort.Direction.ASC));
-        return reader;
+    public ItemReader<Long> cursorBasedEventReader() {
+        return new ItemReader<>() {
+
+            private Long lastEventId = 0L;
+            private Iterator<Long> currentBatchIterator = Collections.emptyIterator();
+
+            @Override
+            public Long read() throws Exception {
+                if (currentBatchIterator.hasNext()) {
+                    return currentBatchIterator.next();
+                }
+
+                // 다음 배치 조회
+                List<Long> nextBatch = eventRepository.findEventIdsByCursor(lastEventId, PAGE_SIZE);
+
+                if (nextBatch.isEmpty()) {
+                    return null; // 더 이상 데이터 없음
+                }
+
+                // 마지막 이벤트 아이디 갱신
+                lastEventId = nextBatch.get(nextBatch.size() - 1);
+
+                currentBatchIterator = nextBatch.iterator();
+                return currentBatchIterator.next();
+            }
+        };
     }
 
     @Bean
     @StepScope
     public ItemProcessor<Long, Long> batchProcessor() {
-        return item -> item; // Pass-through processor
+        return item -> item;
     }
 
     @Bean
@@ -162,7 +145,9 @@ public class BatchConfig {
             File csvFile = csvGenerator.generateCsv((List<Long>) items.getItems(), filePath);
             awsS3Service.uploadEventListInfoFile(csvFile);
             if (!csvFile.delete()) {
-                throw new IllegalStateException("Failed to delete CSV file: " + csvFile.getAbsolutePath());
+                throw new IllegalStateException("CSV 파일 삭제 실패: " + csvFile.getAbsolutePath());
+            } else {
+                log.info("CSV 파일이 성공적으로 삭제되었습니다: {}", csvFile.getAbsolutePath());
             }
         };
     }
@@ -171,18 +156,21 @@ public class BatchConfig {
     public Tasklet sendKafkaMessageTasklet() {
         return (contribution, chunkContext) -> {
             List<String> filePaths = awsS3Service.getFiles();
-            int batchSize = 2000;
 
-            // 2000개 단위로 나누기
-            for (int i = 0; i < filePaths.size(); i += batchSize) {
-                List<String> batch = filePaths.subList(i, Math.min(i + batchSize, filePaths.size()));
+            int totalBatches = (int) Math.ceil((double) filePaths.size() / BATCH_SIZE);
+
+            log.info("전체 CSV 파일 개수 : {}", totalBatches);
+
+            for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+                int fromIndex = batchIndex * BATCH_SIZE;
+                int toIndex = Math.min(fromIndex + BATCH_SIZE, filePaths.size());
+                List<String> batch = filePaths.subList(fromIndex, toIndex);
                 String message = String.join(",", batch);
 
-                // 마지막 메시지인지 확인
-                boolean isLastMessage = (i + batchSize >= filePaths.size());
+                boolean isFirstMessage = (batchIndex == 0);
+                boolean isLastMessage = (batchIndex == totalBatches - 1);
 
-                // Kafka 메시지 전송
-                fullIndexingProducer.sendIndexingMessage(message, isLastMessage);
+                fullIndexingProducer.sendIndexingMessage(message, isFirstMessage, isLastMessage);
             }
 
             return RepeatStatus.FINISHED;
@@ -201,17 +189,17 @@ public class BatchConfig {
                         .reason(t.getMessage())
                         .status(JobStatus.PENDING)
                         .build());
-                log.error("Item failed during write: {}, reason: {}", item, t.getMessage());
+                log.error("쓰기 작업 중 실패한 항목: {}, 사유: {}", item, t.getMessage());
             }
 
             @Override
             public void onSkipInRead(Throwable t) {
-                log.error("Item failed during read: {}", t.getMessage());
+                log.error("읽기 작업 중 실패 발생: {}", t.getMessage());
             }
 
             @Override
             public void onSkipInProcess(Long item, Throwable t) {
-                log.error("Item failed during process: {}, reason: {}", item, t.getMessage());
+                log.error("처리 작업 중 실패한 항목: {}, 사유: {}", item, t.getMessage());
             }
         };
     }
@@ -273,7 +261,7 @@ public class BatchConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         int coreCount = Runtime.getRuntime().availableProcessors(); // CPU 코어 수
         executor.setCorePoolSize(coreCount); // 기본 스레드 수
-        executor.setMaxPoolSize(coreCount * 4); // 최대 스레드 수
+        executor.setMaxPoolSize(coreCount * 2); // 최대 스레드 수
         executor.setQueueCapacity(QUEUE_CAPACITY); // 큐 용량 증가
         executor.setThreadNamePrefix(THREAD_NAME_PREFIX);
         executor.setAwaitTerminationSeconds(60); // 종료 대기 시간 설정

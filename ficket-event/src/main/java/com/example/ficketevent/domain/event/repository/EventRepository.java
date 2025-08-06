@@ -39,16 +39,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
     @Query("SELECT e.title FROM Event e")
     List<String> findEventTitle();
 
-    // spring batch
-    @Query("SELECT e.eventId FROM Event e WHERE e.eventId BETWEEN :startId AND :endId")
-    Page<Event> findEventIdsByRange(@Param("startId") Long startId, @Param("endId") Long endId, Pageable pageable);
-
-    @Query("SELECT MIN(e.eventId) FROM Event e")
-    Long findMinId();
-
-    @Query("SELECT MAX(e.eventId) FROM Event e")
-    Long findMaxId();
-
     @Query(
             value = """
         SELECT
@@ -123,6 +113,19 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             @Param("endDate") LocalDateTime endDate
     );
 
+    // spring batch
+//    @Query("SELECT e.eventId FROM Event e WHERE e.eventId BETWEEN :startId AND :endId")
+//    Page<Event> findEventIdsByRange(@Param("startId") Long startId, @Param("endId") Long endId, Pageable pageable);
+
+    @Query("SELECT MIN(e.eventId) FROM Event e")
+    Long findMinId();
+
+    @Query("SELECT MAX(e.eventId) FROM Event e")
+    Long findMaxId();
+
+    @Query(value = "SELECT event_id FROM event WHERE event_id > :lastEventId ORDER BY event_id LIMIT :limit", nativeQuery = true)
+    List<Long> findEventIdsByCursor(@Param("lastEventId") Long lastEventId, @Param("limit") int limit);
+
     @Query(value = "SELECT " +
             "e.event_id AS eventId, " +
             "e.title AS title, " +
@@ -141,5 +144,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             "GROUP BY e.event_id",
             nativeQuery = true)
     List<Map<String, Object>> findEventIndexingInfoRawBulk(@Param("eventIds") List<Long> eventIds);
+
 
 }

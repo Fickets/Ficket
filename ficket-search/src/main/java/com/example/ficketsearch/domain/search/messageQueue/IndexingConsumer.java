@@ -43,15 +43,19 @@ public class IndexingConsumer {
 
 
     private void processFullIndexing(FullIndexingMessage message) {
-        log.info("전체 색인 작업을 시작합니다.");
+
+        if (message.isFirstMessage()) {
+            log.info("전체 색인 작업을 시작합니다.");
+            indexingService.initializeIndexing();
+        }
+
         indexingService.handleFullIndexing(message.getS3UrlList());
 
         if (message.isLastMessage()) {
             lockingService.releaseLock();
             processQueuedMessages();
+            log.info("전체 색인 작업이 완료되었습니다.");
         }
-
-        log.info("전체 색인 작업이 완료되었습니다.");
     }
 
     private void processQueuedMessages() {

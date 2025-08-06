@@ -80,9 +80,6 @@ dependencies {
 	// AOP
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
-	// Redisson
-	implementation "org.redisson:redisson-spring-boot-starter:3.21.1"
-
 	// Kafka
 	implementation 'org.springframework.kafka:spring-kafka'
 
@@ -97,6 +94,9 @@ dependencies {
 
 	// MongoDB
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 }
 

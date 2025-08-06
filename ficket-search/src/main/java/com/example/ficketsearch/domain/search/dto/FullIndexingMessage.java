@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FullIndexingMessage {
     private String s3UrlList;
+    private boolean isFirstMessage;
     private boolean isLastMessage;
 }

@@ -21,11 +21,11 @@ public class FullIndexingProducer {
     private static final String DLQ_TOPIC_NAME = "full-indexing-dlq";
     private static final int PARTITION_NUMBER = 0; // 단일 파티션 설정
 
-    public void sendIndexingMessage(String s3UrlList, boolean isLast) {
+    public void sendIndexingMessage(String s3UrlList, boolean isFirst, boolean isLast) {
         try {
             // 메시지 직렬화
             String message = objectMapper.writeValueAsString(
-                    new FullIndexingMessage(s3UrlList, isLast)
+                    new FullIndexingMessage(s3UrlList, isFirst, isLast)
             );
 
             // 특정 파티션으로 메시지 전송
@@ -74,10 +74,12 @@ public class FullIndexingProducer {
     @Getter
     private static class FullIndexingMessage {
         private final String s3UrlList;
+        private final boolean isFirstMessage;
         private final boolean isLastMessage;
 
-        public FullIndexingMessage(String message, boolean isLastMessage) {
-            this.s3UrlList = message;
+        public FullIndexingMessage(String s3UrlList, boolean isFirstMessage, boolean isLastMessage) {
+            this.s3UrlList = s3UrlList;
+            this.isFirstMessage = isFirstMessage;
             this.isLastMessage = isLastMessage;
         }
     }
