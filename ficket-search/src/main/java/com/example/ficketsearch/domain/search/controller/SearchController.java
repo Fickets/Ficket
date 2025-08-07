@@ -9,6 +9,7 @@ import com.example.ficketsearch.domain.search.enums.SortBy;
 import com.example.ficketsearch.domain.search.service.IndexingService;
 import com.example.ficketsearch.domain.search.service.SearchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -31,10 +32,12 @@ public class SearchController {
      * 작업 날짜: 2025-01-06
      * 변경 이력:
      * 2025-01-06 오형상: 초기 작성
+     * 2025-08-07 오형상: Spring WebFlux -> Spring Web 전환
      */
     @GetMapping("/auto-complete")
-    public Mono<List<AutoCompleteRes>> autoComplete(@RequestParam("query") String query) {
-        return Mono.fromFuture(() -> CompletableFuture.supplyAsync(() -> searchService.autoComplete(query)));
+    public ResponseEntity<List<AutoCompleteRes>> autoComplete(@RequestParam("query") String query) {
+        List<AutoCompleteRes> autoCompleteRes = searchService.autoComplete(query);
+        return ResponseEntity.ok(autoCompleteRes);
     }
 
     /**
@@ -44,9 +47,10 @@ public class SearchController {
      * 작업 날짜: 2025-01-06
      * 변경 이력:
      * 2025-01-06 오형상: 초기 작성
+     * 2025-08-07 오형상: Spring WebFlux -> Spring Web 전환
      */
     @GetMapping("/detail")
-    public Mono<SearchResult> searchByFilter(
+    public ResponseEntity<SearchResult> searchByFilter(
             @RequestParam String title,
             @RequestParam(required = false) List<Genre> genreList,
             @RequestParam(required = false) List<Location> locationList,
@@ -57,7 +61,8 @@ public class SearchController {
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "20") int pageSize
     ) {
-        return Mono.fromFuture(() -> CompletableFuture.supplyAsync(() -> searchService.searchEventsByFilter(title, genreList, locationList, saleTypeList, startDate, endDate, sortBy, pageNumber, pageSize)));
+        SearchResult searchResult = searchService.searchEventsByFilter(title, genreList, locationList, saleTypeList, startDate, endDate, sortBy, pageNumber, pageSize);
+        return ResponseEntity.ok(searchResult);
     }
 
     /**
@@ -67,10 +72,12 @@ public class SearchController {
      * 작업 날짜: 2025-01-05
      * 변경 이력:
      * 2025-01-05 오형상: 초기 작성
+     * 2025-08-07 오형상: Spring WebFlux -> Spring Web 전환
      */
     @PostMapping("/restore")
-    public void restoreSnapshot() {
+    public ResponseEntity<Void> restoreSnapshot() {
         indexingService.restoreSnapshot();
+        return ResponseEntity.noContent().build();
     }
 
 //    /**
