@@ -48,10 +48,11 @@ public class SearchController {
      * 변경 이력:
      * 2025-01-06 오형상: 초기 작성
      * 2025-08-07 오형상: Spring WebFlux -> Spring Web 전환
+     * 2025-08-07 오형상: title, SaleType 조건 없으면 빈 리스트 반환 로직 추가 및 관련 쿼리 조건 수정
      */
     @GetMapping("/detail")
     public ResponseEntity<SearchResult> searchByFilter(
-            @RequestParam String title,
+            @RequestParam(required = false) String title,
             @RequestParam(required = false) List<Genre> genreList,
             @RequestParam(required = false) List<Location> locationList,
             @RequestParam(required = false) String startDate,

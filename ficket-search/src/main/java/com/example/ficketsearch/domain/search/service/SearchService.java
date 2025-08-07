@@ -78,9 +78,12 @@ public class SearchService {
                             .query(nq -> nq.range(r -> r.field("Schedules.Schedule").gt(JsonData.of(now.toString())))))))); // Schedules.Schedule > now
             case TO_BE_SALE -> Query.of(q -> q.range(r -> r.field("Ticketing").gt(JsonData.of(now.toString()))));
             case END_OF_SALE -> Query.of(q -> q.bool(b -> b
-                    .must(m -> m.range(r -> r
-                            .field("Schedules.Schedule")
-                            .lt(JsonData.of(now.toString()))
+                    .mustNot(m -> m.nested(n -> n
+                            .path("Schedules")
+                            .query(nq -> nq.range(r -> r
+                                    .field("Schedules.Schedule")
+                                    .gt(JsonData.of(now.toString()))
+                            ))
                     ))
             ));
         };
@@ -143,6 +146,8 @@ public class SearchService {
         // 제목 필터
         if (title != null) {
             mustQueries.add(Query.of(q -> q.match(m -> m.field("Title").query(title))));
+        } else {
+            return new SearchResult(0L, 0L, Collections.emptyList());
         }
 
         // 지역 필터
@@ -170,6 +175,8 @@ public class SearchService {
                     .toList();
 
             mustQueries.add(Query.of(q -> q.bool(b -> b.should(saleTypeQueries))));
+        } else {
+            return new SearchResult(0L, 0L, Collections.emptyList());
         }
 
         // Bool Query 생성
