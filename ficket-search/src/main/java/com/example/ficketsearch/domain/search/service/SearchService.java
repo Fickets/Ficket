@@ -2,14 +2,16 @@ package com.example.ficketsearch.domain.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.Time;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch.core.ScrollRequest;
+import co.elastic.clients.elasticsearch.core.ScrollResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
-import com.example.ficketsearch.domain.search.dto.AutoCompleteRes;
-import com.example.ficketsearch.domain.search.dto.Event;
-import com.example.ficketsearch.domain.search.dto.SearchResult;
+import com.example.ficketsearch.domain.search.dto.*;
 import com.example.ficketsearch.domain.search.enums.Genre;
 import com.example.ficketsearch.domain.search.enums.Location;
 import com.example.ficketsearch.domain.search.enums.SaleType;
@@ -61,6 +63,7 @@ public class SearchService {
                 .map(item -> FieldValue.of(f -> f.stringValue(item.toString())))
                 .toList();
     }
+
 
     /**
      * 판매 상태 필터를 위한 Elasticsearch Query를 생성합니다.
@@ -131,10 +134,546 @@ public class SearchService {
     public SearchResult searchEventsByFilter(String title, List<Genre> genreList, List<Location> locationList,
                                              List<SaleType> saleTypeList, String startDate, String endDate,
                                              SortBy sortBy, int pageNumber, int pageSize) {
-        List<Query> mustQueries = new ArrayList<>();
+
+        LocalDateTime now = LocalDateTime.now();
+        Query boolQuery = buildBoolQuery(title, genreList, locationList, saleTypeList, startDate, endDate, now);
+
         int from = (pageNumber - 1) * pageSize;
 
-        // 장르 필터
+        SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
+                .index(INDEX_NAME)
+                .query(boolQuery)
+                .from(from)
+                .size(pageSize);
+
+        applySort(searchRequestBuilder, sortBy);
+
+        try {
+            SearchResponse<Event> response = elasticsearchClient.search(searchRequestBuilder.build(), Event.class);
+
+            long totalSize = response.hits().total().value();
+            int totalPages = (int) Math.ceil((double) totalSize / pageSize);
+
+            List<Event> processedEvents = processEvents(response.hits().hits().stream()
+                    .map(Hit::source)
+                    .toList());
+
+            return new SearchResult(totalSize, totalPages, processedEvents);
+
+        } catch (Exception e) {
+            log.error("이벤트 검색 중 오류 발생: {}", e.getMessage(), e);
+            return new SearchResult(0L, 0, Collections.emptyList());
+        }
+    }
+//    public SearchResult searchEventsByFilter(String title, List<Genre> genreList, List<Location> locationList,
+//                                             List<SaleType> saleTypeList, String startDate, String endDate,
+//                                             SortBy sortBy, int pageNumber, int pageSize) {
+//        List<Query> mustQueries = new ArrayList<>();
+//        int from = (pageNumber - 1) * pageSize;
+//
+//        // 장르 필터
+//        if (isNotEmpty(genreList)) {
+//            mustQueries.add(Query.of(q -> q.nested(n -> n
+//                    .path("Genres")
+//                    .query(query -> query.terms(t -> t
+//                            .field("Genres.Genre")
+//                            .terms(TermsQueryField.of(tq -> tq.value(toFieldValues(genreList)))))))));
+//        }
+//
+//        // 제목 필터
+//        if (title != null) {
+//            mustQueries.add(Query.of(q -> q.match(m -> m.field("Title").query(title))));
+//        }
+//
+//        // 지역 필터
+//        if (isNotEmpty(locationList)) {
+//            mustQueries.add(Query.of(q -> q.terms(t -> t
+//                    .field("Location")
+//                    .terms(TermsQueryField.of(tq -> tq.value(toFieldValues(locationList)))))));
+//        }
+//
+//        // 날짜 필터
+//        if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
+//            mustQueries.add(Query.of(q -> q.nested(n -> n
+//                    .path("Schedules")
+//                    .query(query -> query.range(r -> r
+//                            .field("Schedules.Schedule")
+//                            .gte(JsonData.of(startDate))
+//                            .lte(JsonData.of(endDate)))))));
+//        }
+//
+//        // 판매 상태 필터
+//        if (isNotEmpty(saleTypeList)) {
+//            LocalDateTime now = LocalDateTime.now();
+//            List<Query> saleTypeQueries = saleTypeList.stream()
+//                    .map(saleType -> createSaleTypeQuery(saleType, now))
+//                    .toList();
+//
+//            mustQueries.add(Query.of(q -> q.bool(b -> b.should(saleTypeQueries))));
+//        }
+//
+//        // Bool Query 생성
+//        Query boolQuery = Query.of(q -> q.bool(b -> b.must(mustQueries)));
+//
+//        // 검색 요청 생성
+//        SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
+//                .index(INDEX_NAME)
+//                .query(boolQuery)
+//                .from(from)
+//                .size(pageSize);
+//
+//        // 정렬 추가
+//        if (sortBy != null) {
+//            if (sortBy.getNestedPath() != null) {
+//                searchRequestBuilder.sort(s -> s.field(f -> f
+//                        .field(sortBy.getField())
+//                        .order(sortBy.getOrder())
+//                        .nested(n -> n.path(sortBy.getNestedPath()))));
+//            } else {
+//                searchRequestBuilder.sort(s -> s.field(f -> f
+//                        .field(sortBy.getField())
+//                        .order(sortBy.getOrder())));
+//            }
+//        }
+//
+//        try {
+//            SearchResponse<Event> response = elasticsearchClient.search(searchRequestBuilder.build(), Event.class);
+//
+//            long totalSize = response.hits().total().value();
+//            int totalPages = (int) Math.ceil((double) totalSize / pageSize);
+//
+//            List<Event> eventList = response.hits().hits().stream()
+//                    .map(Hit::source)
+//                    .peek(event -> {
+//                        // 판매 상태 계산 로직 추가
+//                        LocalDateTime now = LocalDateTime.now();
+//                        if (event.getTicketing().isBefore(now)) {
+//                            // Schedules에서 현재 시간을 기준으로 종료 여부 확인
+//                            boolean isEventOver = event.getSchedules().stream()
+//                                    .allMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
+//
+//                            if (isEventOver) {
+//                                event.setSaleType(SaleType.END_OF_SALE); // 판매 종료
+//                            } else {
+//                                event.setSaleType(SaleType.ON_SALE); // 판매 중
+//                            }
+//                        } else if (event.getTicketing().isEqual(now)) {
+//                            // Ticketing 시간과 현재 시간이 같으면 판매 시작
+//                            event.setSaleType(SaleType.ON_SALE);
+//                        } else {
+//                            // Ticketing 시간이 현재 시간 이후이면 판매 예정
+//                            event.setSaleType(SaleType.TO_BE_SALE);
+//                        }
+//                    })
+//                    .toList();
+//
+//            return new SearchResult(totalSize, totalPages, eventList);
+//        } catch (Exception e) {
+//            log.error("이벤트 검색 중 오류 발생: {}", e.getMessage(), e);
+//            return new SearchResult(0L, 0L, Collections.emptyList());
+//        }
+//    }
+
+    public ScrollSearchResult searchEventsByFilterWithScroll(String title, List<Genre> genreList, List<Location> locationList,
+                                                             List<SaleType> saleTypeList, String startDate, String endDate,
+                                                             SortBy sortBy, int scrollSize, String scrollId) {
+
+        LocalDateTime now = LocalDateTime.now();
+        Query boolQuery = buildBoolQuery(title, genreList, locationList, saleTypeList, startDate, endDate, now);
+
+        try {
+            if (scrollId == null || scrollId.isEmpty()) {
+                SearchRequest.Builder builder = new SearchRequest.Builder()
+                        .index(INDEX_NAME)
+                        .query(boolQuery)
+                        .size(scrollSize)
+                        .scroll(Time.of(t -> t.time("1m")));
+
+                applySort(builder, sortBy);
+
+                SearchResponse<Event> response = elasticsearchClient.search(builder.build(), Event.class);
+
+                List<Event> processedEvents = processEvents(response.hits().hits().stream()
+                        .map(Hit::source)
+                        .toList());
+
+                long total = response.hits().total().value();
+
+                return new ScrollSearchResult(total, processedEvents, response.scrollId());
+            } else {
+                ScrollRequest scrollRequest = new ScrollRequest.Builder()
+                        .scrollId(scrollId)
+                        .scroll(Time.of(t -> t.time("1m")))
+                        .build();
+
+                ScrollResponse<Event> scrollResponse = elasticsearchClient.scroll(scrollRequest, Event.class);
+
+                List<Event> processedEvents = processEvents(scrollResponse.hits().hits().stream()
+                        .map(Hit::source)
+                        .toList());
+
+                return new ScrollSearchResult(null, processedEvents, scrollResponse.scrollId());
+            }
+        } catch (Exception e) {
+            log.error("Scroll 검색 중 오류 발생: {}", e.getMessage(), e);
+            return new ScrollSearchResult(0L, Collections.emptyList(), null);
+        }
+    }
+
+
+//    public ScrollSearchResult searchEventsByFilterWithScroll(String title, List<Genre> genreList, List<Location> locationList,
+//                                                             List<SaleType> saleTypeList, String startDate, String endDate,
+//                                                             SortBy sortBy, int scrollSize, String scrollId) {
+//        List<Query> mustQueries = new ArrayList<>();
+//
+//        if (isNotEmpty(genreList)) {
+//            mustQueries.add(Query.of(q -> q.nested(n -> n
+//                    .path("Genres")
+//                    .query(query -> query.terms(t -> t
+//                            .field("Genres.Genre")
+//                            .terms(TermsQueryField.of(tq -> tq.value(toFieldValues(genreList)))))))));
+//        }
+//
+//        if (title != null) {
+//            mustQueries.add(Query.of(q -> q.match(m -> m.field("Title").query(title))));
+//        }
+//
+//        if (isNotEmpty(locationList)) {
+//            mustQueries.add(Query.of(q -> q.terms(t -> t
+//                    .field("Location")
+//                    .terms(TermsQueryField.of(tq -> tq.value(toFieldValues(locationList)))))));
+//        }
+//
+//        if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
+//            mustQueries.add(Query.of(q -> q.nested(n -> n
+//                    .path("Schedules")
+//                    .query(query -> query.range(r -> r
+//                            .field("Schedules.Schedule")
+//                            .gte(JsonData.of(startDate))
+//                            .lte(JsonData.of(endDate)))))));
+//        }
+//
+//        if (isNotEmpty(saleTypeList)) {
+//            LocalDateTime now = LocalDateTime.now();
+//            List<Query> saleTypeQueries = saleTypeList.stream()
+//                    .map(saleType -> createSaleTypeQuery(saleType, now))
+//                    .toList();
+//
+//            mustQueries.add(Query.of(q -> q.bool(b -> b.should(saleTypeQueries))));
+//        }
+//
+//        Query boolQuery = Query.of(q -> q.bool(b -> b.must(mustQueries)));
+//
+//        try {
+//            if (scrollId == null || scrollId.isEmpty()) {
+//                // 초기 검색
+//                SearchRequest.Builder builder = new SearchRequest.Builder()
+//                        .index(INDEX_NAME)
+//                        .query(boolQuery)
+//                        .size(scrollSize)
+//                        .scroll(Time.of(t ->  t.time("1m")));   // ← Time 객체로 변경
+//
+//                if (sortBy != null) {
+//                    if (sortBy.getNestedPath() != null) {
+//                        builder.sort(s -> s.field(f -> f
+//                                .field(sortBy.getField())
+//                                .order(sortBy.getOrder())
+//                                .nested(n -> n.path(sortBy.getNestedPath()))));
+//                    } else {
+//                        builder.sort(s -> s.field(f -> f
+//                                .field(sortBy.getField())
+//                                .order(sortBy.getOrder())));
+//                    }
+//                }
+//
+//                SearchResponse<Event> response = elasticsearchClient.search(builder.build(), Event.class);
+//
+//                List<Event> eventList = response.hits().hits().stream()
+//                        .map(Hit::source)
+//                        .peek(event -> {
+//                            // 판매 상태 계산 로직 추가
+//                            LocalDateTime now = LocalDateTime.now();
+//                            if (event.getTicketing().isBefore(now)) {
+//                                // Schedules에서 현재 시간을 기준으로 종료 여부 확인
+//                                boolean isEventOver = event.getSchedules().stream()
+//                                        .allMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
+//
+//                                if (isEventOver) {
+//                                    event.setSaleType(SaleType.END_OF_SALE); // 판매 종료
+//                                } else {
+//                                    event.setSaleType(SaleType.ON_SALE); // 판매 중
+//                                }
+//                            } else if (event.getTicketing().isEqual(now)) {
+//                                // Ticketing 시간과 현재 시간이 같으면 판매 시작
+//                                event.setSaleType(SaleType.ON_SALE);
+//                            } else {
+//                                // Ticketing 시간이 현재 시간 이후이면 판매 예정
+//                                event.setSaleType(SaleType.TO_BE_SALE);
+//                            }
+//                        })
+//                        .toList();
+//
+//                long total = response.hits().total().value();
+//
+//                return new ScrollSearchResult(total, eventList, response.scrollId());
+//            } else {
+//                // 다음 스크롤 페이지 조회
+//                ScrollRequest scrollRequest = new ScrollRequest.Builder()
+//                        .scrollId(scrollId)
+//                        .scroll(Time.of(t -> t.time("1m")))  // ← Time 객체로 변경
+//                        .build();
+//
+//                ScrollResponse<Event> scrollResponse = elasticsearchClient.scroll(scrollRequest, Event.class);
+//
+//                List<Event> eventList = scrollResponse.hits().hits().stream()
+//                        .map(Hit::source)
+//                        .peek(event -> {
+//                            // 판매 상태 계산 로직 추가
+//                            LocalDateTime now = LocalDateTime.now();
+//                            if (event.getTicketing().isBefore(now)) {
+//                                // Schedules에서 현재 시간을 기준으로 종료 여부 확인
+//                                boolean isEventOver = event.getSchedules().stream()
+//                                        .allMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
+//
+//                                if (isEventOver) {
+//                                    event.setSaleType(SaleType.END_OF_SALE); // 판매 종료
+//                                } else {
+//                                    event.setSaleType(SaleType.ON_SALE); // 판매 중
+//                                }
+//                            } else if (event.getTicketing().isEqual(now)) {
+//                                // Ticketing 시간과 현재 시간이 같으면 판매 시작
+//                                event.setSaleType(SaleType.ON_SALE);
+//                            } else {
+//                                // Ticketing 시간이 현재 시간 이후이면 판매 예정
+//                                event.setSaleType(SaleType.TO_BE_SALE);
+//                            }
+//                        })
+//                        .toList();
+//
+//                return new ScrollSearchResult(null, eventList, scrollResponse.scrollId());
+//            }
+//        } catch (Exception e) {
+//            log.error("Scroll 검색 중 오류 발생: {}", e.getMessage(), e);
+//            return new ScrollSearchResult(0L, Collections.emptyList(), null);
+//        }
+//    }
+
+    public SearchAfterResult searchEventsByFilterWithSearchAfter(String title, List<Genre> genreList,
+                                                                 List<Location> locationList,
+                                                                 List<SaleType> saleTypeList, String startDate,
+                                                                 String endDate, SortBy sortBy,
+                                                                 List<Object> searchAfter, int pageSize) {
+
+        LocalDateTime now = LocalDateTime.now();
+        Query boolQuery = buildBoolQuery(title, genreList, locationList, saleTypeList, startDate, endDate, now);
+
+        SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
+                .index(INDEX_NAME)
+                .query(boolQuery)
+                .size(pageSize + 1)
+                .trackTotalHits(t -> t.enabled(true));
+
+        applySort(searchRequestBuilder, sortBy);
+
+        // tie-breaker 정렬 (항상 추가)
+        searchRequestBuilder.sort(s -> s.field(f -> f
+                .field("EventId.keyword")
+                .order(SortOrder.Asc)));
+
+        if (searchAfter != null && !searchAfter.isEmpty()) {
+            List<FieldValue> searchAfterFieldValues = searchAfter.stream()
+                    .map(this::convertObjectToFieldValue)
+                    .toList();
+            searchRequestBuilder.searchAfter(searchAfterFieldValues);
+        }
+
+        try {
+            SearchResponse<Event> response = elasticsearchClient.search(searchRequestBuilder.build(), Event.class);
+
+            List<Hit<Event>> hits = response.hits().hits();
+
+            boolean hasNext = false;
+            if (hits.size() > pageSize) {
+                hasNext = true;
+                hits = hits.subList(0, pageSize);
+            }
+
+            List<Event> processedEvents = processEvents(hits.stream()
+                    .map(Hit::source)
+                    .toList());
+
+            List<Object> nextSearchAfter = null;
+            if (hasNext && !processedEvents.isEmpty()) {
+                Hit<Event> lastHit = hits.get(hits.size() - 1);
+                nextSearchAfter = lastHit.sort().stream()
+                        .map(this::convertFieldValueToObject)
+                        .toList();
+            }
+
+            Long totalSize = response.hits().total() != null ?
+                    response.hits().total().value() : 0L;
+
+            return new SearchAfterResult(totalSize, processedEvents, nextSearchAfter, hasNext, processedEvents.size());
+        } catch (Exception e) {
+            log.error("이벤트 검색 중 오류 발생: {}", e.getMessage(), e);
+            return new SearchAfterResult(0L, Collections.emptyList(), null, false, 0);
+        }
+    }
+
+//    public SearchAfterResult searchEventsByFilterWithSearchAfter(String title, List<Genre> genreList,
+//                                                                 List<Location> locationList,
+//                                                                 List<SaleType> saleTypeList, String startDate,
+//                                                                 String endDate, SortBy sortBy,
+//                                                                 List<Object> searchAfter, int pageSize) {
+//        List<Query> mustQueries = new ArrayList<>();
+//
+//        // 장르 필터 (기존 로직 그대로)
+//        if (isNotEmpty(genreList)) {
+//            mustQueries.add(Query.of(q -> q.nested(n -> n
+//                    .path("Genres")
+//                    .query(query -> query.terms(t -> t
+//                            .field("Genres.Genre")
+//                            .terms(TermsQueryField.of(tq -> tq.value(toFieldValues(genreList)))))))));
+//        }
+//
+//        // 제목 필터 (기존 로직 그대로)
+//        if (title != null && !title.trim().isEmpty()) {
+//            mustQueries.add(Query.of(q -> q.match(m -> m.field("Title").query(title))));
+//        }
+//
+//        // 지역 필터 (기존 로직 그대로)
+//        if (isNotEmpty(locationList)) {
+//            mustQueries.add(Query.of(q -> q.terms(t -> t
+//                    .field("Location")
+//                    .terms(TermsQueryField.of(tq -> tq.value(toFieldValues(locationList)))))));
+//        }
+//
+//        // 날짜 필터 (기존 로직 그대로)
+//        if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
+//            mustQueries.add(Query.of(q -> q.nested(n -> n
+//                    .path("Schedules")
+//                    .query(query -> query.range(r -> r
+//                            .field("Schedules.Schedule")
+//                            .gte(JsonData.of(startDate))
+//                            .lte(JsonData.of(endDate)))))));
+//        }
+//
+//        // 판매 상태 필터 (기존 로직 그대로)
+//        if (isNotEmpty(saleTypeList)) {
+//            LocalDateTime now = LocalDateTime.now();
+//            List<Query> saleTypeQueries = saleTypeList.stream()
+//                    .map(saleType -> createSaleTypeQuery(saleType, now))
+//                    .toList();
+//
+//            mustQueries.add(Query.of(q -> q.bool(b -> b.should(saleTypeQueries))));
+//        }
+//
+//        // Bool Query 생성 (기존과 동일)
+//        Query boolQuery = Query.of(q -> q.bool(b -> b.must(mustQueries)));
+//
+//        // 검색 요청 생성 (search_after 방식으로 변경)
+//        SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
+//                .index(INDEX_NAME)
+//                .query(boolQuery)
+//                .size(pageSize + 1) // +1로 다음 페이지 존재 여부 확인
+//                .trackTotalHits(t -> t.enabled(true)); // 전체 결과 수 추적
+//
+//        // 정렬 추가 (기존 로직 + tie-breaker 추가)
+//        if (sortBy != null) {
+//            if (sortBy.getNestedPath() != null) {
+//                searchRequestBuilder.sort(s -> s.field(f -> f
+//                        .field(sortBy.getField())
+//                        .order(sortBy.getOrder())
+//                        .nested(n -> n.path(sortBy.getNestedPath()))));
+//            } else {
+//                searchRequestBuilder.sort(s -> s.field(f -> f
+//                        .field(sortBy.getField())
+//                        .order(sortBy.getOrder())));
+//            }
+//        }
+//
+//        // tie-breaker로 EventId 추가 (search_after를 위해 필수)
+//        searchRequestBuilder.sort(s -> s.field(f -> f
+//                .field("EventId.keyword")
+//                .order(SortOrder.Asc)));
+//
+//        // search_after 설정
+//        if (searchAfter != null && !searchAfter.isEmpty()) {
+//            List<FieldValue> searchAfterFieldValues = searchAfter.stream()
+//                    .map(this::convertObjectToFieldValue)
+//                    .toList();
+//            searchRequestBuilder.searchAfter(searchAfterFieldValues);
+//        }
+//
+//        try {
+//            SearchResponse<Event> response = elasticsearchClient.search(searchRequestBuilder.build(), Event.class);
+//
+//            // 결과 처리
+//            return processSearchAfterResults(response, pageSize);
+//
+//        } catch (Exception e) {
+//            log.error("이벤트 검색 중 오류 발생: {}", e.getMessage(), e);
+//            return new SearchAfterResult(0L, Collections.emptyList(), null, false, 0);
+//        }
+//    }
+//
+//    private SearchAfterResult processSearchAfterResults(SearchResponse<Event> response, int pageSize) {
+//        List<Hit<Event>> hits = response.hits().hits();
+//        List<Object> nextSearchAfter = null;
+//        boolean hasNext = false;
+//
+//        // pageSize보다 많이 가져온 경우 (다음 페이지 존재)
+//        if (hits.size() > pageSize) {
+//            hasNext = true;
+//            hits = hits.subList(0, pageSize); // 실제 페이지 사이즈만큼만 사용
+//        }
+//
+//        // Event 리스트 처리 (기존 로직 그대로 적용)
+//        List<Event> eventList = hits.stream()
+//                .map(Hit::source)
+//                .peek(event -> {
+//                    // 판매 상태 계산 로직 (기존과 동일)
+//                    LocalDateTime now = LocalDateTime.now();
+//                    if (event.getTicketing().isBefore(now)) {
+//                        // Schedules에서 현재 시간을 기준으로 종료 여부 확인
+//                        boolean isEventOver = event.getSchedules().stream()
+//                                .allMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
+//
+//                        if (isEventOver) {
+//                            event.setSaleType(SaleType.END_OF_SALE); // 판매 종료
+//                        } else {
+//                            event.setSaleType(SaleType.ON_SALE); // 판매 중
+//                        }
+//                    } else if (event.getTicketing().isEqual(now)) {
+//                        // Ticketing 시간과 현재 시간이 같으면 판매 시작
+//                        event.setSaleType(SaleType.ON_SALE);
+//                    } else {
+//                        // Ticketing 시간이 현재 시간 이후이면 판매 예정
+//                        event.setSaleType(SaleType.TO_BE_SALE);
+//                    }
+//                })
+//                .toList();
+//
+//        // 다음 페이지가 있고, 현재 페이지에 결과가 있으면 마지막 아이템의 sort 값을 설정
+//        if (hasNext && !eventList.isEmpty()) {
+//            Hit<Event> lastHit = hits.get(hits.size() - 1);
+//            List<FieldValue> sortValues = lastHit.sort();
+//            nextSearchAfter = sortValues.stream()
+//                    .map(this::convertFieldValueToObject)
+//                    .toList();
+//        }
+//
+//        // 전체 결과 수
+//        Long totalSize = response.hits().total() != null ?
+//                response.hits().total().value() : 0L;
+//
+//        return new SearchAfterResult(totalSize, eventList, nextSearchAfter, hasNext, eventList.size());
+//    }
+
+    private Query buildBoolQuery(String title, List<Genre> genreList, List<Location> locationList,
+                                 List<SaleType> saleTypeList, String startDate, String endDate, LocalDateTime now) {
+        List<Query> mustQueries = new ArrayList<>();
+
         if (isNotEmpty(genreList)) {
             mustQueries.add(Query.of(q -> q.nested(n -> n
                     .path("Genres")
@@ -143,21 +682,16 @@ public class SearchService {
                             .terms(TermsQueryField.of(tq -> tq.value(toFieldValues(genreList)))))))));
         }
 
-        // 제목 필터
-        if (title != null) {
+        if (title != null && !title.trim().isEmpty()) {
             mustQueries.add(Query.of(q -> q.match(m -> m.field("Title").query(title))));
-        } else {
-            return new SearchResult(0L, 0L, Collections.emptyList());
         }
 
-        // 지역 필터
         if (isNotEmpty(locationList)) {
             mustQueries.add(Query.of(q -> q.terms(t -> t
                     .field("Location")
                     .terms(TermsQueryField.of(tq -> tq.value(toFieldValues(locationList)))))));
         }
 
-        // 날짜 필터
         if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
             mustQueries.add(Query.of(q -> q.nested(n -> n
                     .path("Schedules")
@@ -167,77 +701,96 @@ public class SearchService {
                             .lte(JsonData.of(endDate)))))));
         }
 
-        // 판매 상태 필터
         if (isNotEmpty(saleTypeList)) {
-            LocalDateTime now = LocalDateTime.now();
             List<Query> saleTypeQueries = saleTypeList.stream()
                     .map(saleType -> createSaleTypeQuery(saleType, now))
                     .toList();
 
             mustQueries.add(Query.of(q -> q.bool(b -> b.should(saleTypeQueries))));
+        }
+
+        return Query.of(q -> q.bool(b -> b.must(mustQueries)));
+    }
+
+    private void calculateSaleType(Event event) {
+        LocalDateTime now = LocalDateTime.now();
+        if (event.getTicketing().isBefore(now)) {
+            boolean isEventOver = event.getSchedules().stream()
+                    .allMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
+            event.setSaleType(isEventOver ? SaleType.END_OF_SALE : SaleType.ON_SALE);
+        } else if (event.getTicketing().isEqual(now)) {
+            event.setSaleType(SaleType.ON_SALE);
         } else {
-            return new SearchResult(0L, 0L, Collections.emptyList());
-        }
-
-        // Bool Query 생성
-        Query boolQuery = Query.of(q -> q.bool(b -> b.must(mustQueries)));
-
-        // 검색 요청 생성
-        SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
-                .index(INDEX_NAME)
-                .query(boolQuery)
-                .from(from)
-                .size(pageSize);
-
-        // 정렬 추가
-        if (sortBy != null) {
-            if (sortBy.getNestedPath() != null) {
-                searchRequestBuilder.sort(s -> s.field(f -> f
-                        .field(sortBy.getField())
-                        .order(sortBy.getOrder())
-                        .nested(n -> n.path(sortBy.getNestedPath()))));
-            } else {
-                searchRequestBuilder.sort(s -> s.field(f -> f
-                        .field(sortBy.getField())
-                        .order(sortBy.getOrder())));
-            }
-        }
-
-        try {
-            SearchResponse<Event> response = elasticsearchClient.search(searchRequestBuilder.build(), Event.class);
-
-            long totalSize = response.hits().total().value();
-            int totalPages = (int) Math.ceil((double) totalSize / pageSize);
-
-            List<Event> eventList = response.hits().hits().stream()
-                    .map(Hit::source)
-                    .peek(event -> {
-                        // 판매 상태 계산 로직 추가
-                        LocalDateTime now = LocalDateTime.now();
-                        if (event.getTicketing().isBefore(now)) {
-                            // Schedules에서 현재 시간을 기준으로 종료 여부 확인
-                            boolean isEventOver = event.getSchedules().stream()
-                                    .allMatch(schedule -> LocalDateTime.parse(schedule.get("Schedule")).isBefore(now));
-
-                            if (isEventOver) {
-                                event.setSaleType(SaleType.END_OF_SALE); // 판매 종료
-                            } else {
-                                event.setSaleType(SaleType.ON_SALE); // 판매 중
-                            }
-                        } else if (event.getTicketing().isEqual(now)) {
-                            // Ticketing 시간과 현재 시간이 같으면 판매 시작
-                            event.setSaleType(SaleType.ON_SALE);
-                        } else {
-                            // Ticketing 시간이 현재 시간 이후이면 판매 예정
-                            event.setSaleType(SaleType.TO_BE_SALE);
-                        }
-                    })
-                    .toList();
-
-            return new SearchResult(totalSize, totalPages, eventList);
-        } catch (Exception e) {
-            log.error("이벤트 검색 중 오류 발생: {}", e.getMessage(), e);
-            return new SearchResult(0L, 0L, Collections.emptyList());
+            event.setSaleType(SaleType.TO_BE_SALE);
         }
     }
+
+    private List<Event> processEvents(List<Event> events) {
+        return events.stream()
+                .peek(this::calculateSaleType)
+                .toList();
+    }
+
+    private void applySort(SearchRequest.Builder builder, SortBy sortBy) {
+        if (sortBy == null) return;
+
+        if (sortBy.getNestedPath() != null) {
+            builder.sort(s -> s.field(f -> f
+                    .field(sortBy.getField())
+                    .order(sortBy.getOrder())
+                    .nested(n -> n.path(sortBy.getNestedPath()))));
+        } else {
+            builder.sort(s -> s.field(f -> f
+                    .field(sortBy.getField())
+                    .order(sortBy.getOrder())));
+        }
+    }
+
+    private FieldValue convertObjectToFieldValue(Object obj) {
+        if (obj == null) {
+            return FieldValue.NULL;
+        } else if (obj instanceof String) {
+            return FieldValue.of((String) obj);
+        } else if (obj instanceof Long) {
+            return FieldValue.of((Long) obj);
+        } else if (obj instanceof Integer) {
+            return FieldValue.of(((Integer) obj).longValue());
+        } else if (obj instanceof Double) {
+            return FieldValue.of((Double) obj);
+        } else if (obj instanceof Float) {
+            return FieldValue.of(((Float) obj).doubleValue());
+        } else if (obj instanceof Boolean) {
+            return FieldValue.of((Boolean) obj);
+        } else {
+            // 숫자 타입 처리 (JSON에서 파싱된 경우)
+            try {
+                if (obj.toString().contains(".")) {
+                    return FieldValue.of(Double.parseDouble(obj.toString()));
+                } else {
+                    return FieldValue.of(Long.parseLong(obj.toString()));
+                }
+            } catch (NumberFormatException e) {
+                return FieldValue.of(obj.toString());
+            }
+        }
+    }
+
+    // FieldValue를 Object로 변환하는 헬퍼 메서드
+    private Object convertFieldValueToObject(FieldValue fieldValue) {
+        if (fieldValue.isString()) {
+            return fieldValue.stringValue();
+        } else if (fieldValue.isLong()) {
+            return fieldValue.longValue();
+        } else if (fieldValue.isDouble()) {
+            return fieldValue.doubleValue();
+        } else if (fieldValue.isBoolean()) {
+            return fieldValue.booleanValue();
+        } else if (fieldValue.isNull()) {
+            return null;
+        } else {
+            // 기본적으로 toString() 사용
+            return fieldValue.toString();
+        }
+    }
+
 }
