@@ -82,7 +82,7 @@ public class SearchController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam SortBy sortBy,
-            @RequestParam(defaultValue = "100") int scrollSize,
+            @RequestParam(defaultValue = "20") int scrollSize,
             @RequestParam(required = false) String scrollId
     ) {
         return ResponseEntity.ok(searchService.searchEventsByFilterWithScroll(
@@ -117,7 +117,7 @@ public class SearchController {
         } catch (Exception e) {
             log.error("검색 API 호출 중 오류: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new SearchAfterResult(0L, Collections.emptyList(), Collections.emptyList(), false, 0));
+                    .body(new SearchAfterResult(0L, Collections.emptyList(), Collections.emptyList()));
         }
     }
 
