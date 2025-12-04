@@ -555,7 +555,7 @@ public class EventService {
 
     @Transactional
     public String convertImageToUrl(MultipartFile image) {
-        return awsS3Service.upload(image, CONTENT_BUCKET_NAME, ORIGIN_CONTENT_FOLDER);
+        return awsS3Service.uploadEventInfoImage(image);
     }
 
 

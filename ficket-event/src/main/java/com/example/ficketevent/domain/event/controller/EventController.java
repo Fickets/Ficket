@@ -45,14 +45,8 @@ import java.util.concurrent.TimeUnit;
 public class EventController {
 
     private final EventService eventService;
-
     private final JobLauncher jobLauncher;
     private final Job exportEventsJob;
-    private final RedissonClient redisson;
-
-    private static final long FULL_INDEX_TTL = 60 * 60 * 1000L; // 1시간
-    private static final String INDEXING_LOCK = "FULL_INDEXING_LOCK";
-
 
     /**
      * 행사 등록 API
@@ -373,32 +367,25 @@ public class EventController {
 
     @PostMapping("/detail/test")
     public String runExportEventsJob() {
-        RLock lock = redisson.getLock(INDEXING_LOCK);
+
         try {
-            if (lock.tryLock(0, FULL_INDEX_TTL, TimeUnit.MILLISECONDS)) {
-                String uniqueRunId = UUID.randomUUID().toString();
 
-                JobParameters jobParameters = new JobParametersBuilder()
-                        .addString("jobName", "exportEventsJob")
-                        .addString("executionDate", uniqueRunId)
-                        .toJobParameters();
+            String uniqueRunId = UUID.randomUUID().toString();
 
-                jobLauncher.run(exportEventsJob, jobParameters);
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addString("jobName", "eventToCsvJob")
+                    .addString("executionDate", uniqueRunId)
+                    .toJobParameters();
 
-                log.info("Batch Job 'exportEventsJob' manually executed.");
-                return "Batch Job 'exportEventsJob' started successfully.";
-            } else {
-                log.warn("Job is already running. Skipping execution.");
-                return "Job is already running. Try again later.";
-            }
+            jobLauncher.run(exportEventsJob, jobParameters);
+
+            log.info("Batch Job 'exportEventsJob' manually executed.");
+            return "Batch Job 'exportEventsJob' started successfully.";
+
         } catch (JobExecutionAlreadyRunningException | JobRestartException |
                  JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
             log.error("Failed to execute Batch Job 'exportEventsJob': {}", e.getMessage(), e);
             return "Failed to execute batch job: " + e.getMessage();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Lock acquisition was interrupted: {}", e.getMessage(), e);
-            return "Lock acquisition was interrupted.";
         }
     }
 

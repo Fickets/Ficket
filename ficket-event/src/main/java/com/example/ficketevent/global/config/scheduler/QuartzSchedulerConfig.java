@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class QuartzSchedulerConfig {
 
-    private static final String JOB_NAME = "eventToCSVJob";
+    private static final String JOB_NAME = "eventToCsvJob";
 
     @Bean
     public JobDetail jobDetail() {
@@ -22,7 +22,7 @@ public class QuartzSchedulerConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(jobDetail())
                 .withIdentity(JOB_NAME + "Trigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 2 * * ?")) // 매일 새벽 2시 실행
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 1 * * ?")) // 매일 새벽 1시 실행
                 .build();
     }
 }
