@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PartialIndexingMessage<T> {
-    private T payload;
-    private String operationType; // "CREATE", "UPDATE", "DELETE"
+public class PartialIndexingDeleteDto {
+    private String eventId;
 }

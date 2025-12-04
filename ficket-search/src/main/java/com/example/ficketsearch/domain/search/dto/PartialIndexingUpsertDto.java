@@ -1,17 +1,18 @@
-package com.example.ficketsearch.domain.search.entity;
+package com.example.ficketsearch.domain.search.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 @Data
-public class PartialIndexing {
-    @Id
-    private String id;
+@NoArgsConstructor
+@AllArgsConstructor
+public class PartialIndexingUpsertDto {
 
     @JsonProperty("EventId")
     private String eventId;
@@ -36,8 +37,4 @@ public class PartialIndexing {
 
     @JsonProperty("Ticketing")
     private LocalDateTime ticketing;
-
-    private String operationType;
-
-    private boolean indexed;
 }

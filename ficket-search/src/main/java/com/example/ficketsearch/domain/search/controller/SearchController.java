@@ -8,7 +8,7 @@ import com.example.ficketsearch.domain.search.enums.Genre;
 import com.example.ficketsearch.domain.search.enums.Location;
 import com.example.ficketsearch.domain.search.enums.SaleType;
 import com.example.ficketsearch.domain.search.enums.SortBy;
-import com.example.ficketsearch.domain.search.service.IndexingService;
+import com.example.ficketsearch.domain.search.service.FullIndexingService;
 import com.example.ficketsearch.domain.search.service.SearchService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import java.util.List;
 public class SearchController {
 
     private final SearchService searchService;
-    private final IndexingService indexingService;
+    private final FullIndexingService fullIndexingService;
     private final ObjectMapper objectMapper;
 
 
@@ -132,7 +132,7 @@ public class SearchController {
      */
     @PostMapping("/restore")
     public ResponseEntity<Void> restoreSnapshot() {
-        indexingService.restoreSnapshot();
+        fullIndexingService.restoreSnapshot();
         return ResponseEntity.noContent().build();
     }
 
