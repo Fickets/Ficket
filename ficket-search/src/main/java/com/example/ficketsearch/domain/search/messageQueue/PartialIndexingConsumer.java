@@ -3,6 +3,7 @@ package com.example.ficketsearch.domain.search.messageQueue;
 import com.example.ficketsearch.domain.search.dto.*;
 import com.example.ficketsearch.domain.search.service.LockingService;
 import com.example.ficketsearch.domain.search.service.PartialIndexingService;
+import com.example.ficketsearch.domain.search.service.RedisQueueService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -17,18 +18,27 @@ public class PartialIndexingConsumer {
 
     private final LockingService lockingService;
     private final PartialIndexingService partialIndexingService;
+    private final RedisQueueService redisQueueService;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "partial-indexing", groupId = "partial-indexing-group")
+    @KafkaListener(
+            id = "partialIndexingListener",
+            topics = "partial-indexing",
+            groupId = "partial-indexing-group"
+    )
     public void handlePartialIndexing(String message) {
         try {
             PartialIndexingMessage<?> partialIndexingMessage = parseMessage(message);
 
-            if (isFullIndexingInProgress(partialIndexingMessage)) return;
+            if (lockingService.isLocked()) {
+                log.info("전체 색인 중 → Redis 대기 큐에 저장: {}", message);
+                redisQueueService.enqueue(message);
+                return;
+            }
 
             processMessage(partialIndexingMessage);
 
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             log.error("Kafka 메시지 처리 실패: {}", message, e);
             throw new RuntimeException("Kafka 메시지 처리 실패", e);
         }
@@ -38,14 +48,6 @@ public class PartialIndexingConsumer {
         PartialIndexingMessage<?> msg = objectMapper.readValue(message, PartialIndexingMessage.class);
         log.info("부분 색인 Kafka 메시지 수신: {}", msg);
         return msg;
-    }
-
-    private boolean isFullIndexingInProgress(PartialIndexingMessage<?> msg) {
-        if (lockingService.isLocked()) {
-            log.info("전체 색인 중, 메시지 대기: {}", msg);
-            return true;
-        }
-        return false;
     }
 
     private void processMessage(PartialIndexingMessage<?> msg) {
