@@ -24,4 +24,6 @@ public class AwsConstants {
     public static final String ORIGIN_CONTENT_FOLDER = "content";
     public static final String EVENT_INFO_LIST_FOLDER = "event_info_list";
 
+    public static final String FULL_INDEXING_FOLDER = "index/full";
+
 }

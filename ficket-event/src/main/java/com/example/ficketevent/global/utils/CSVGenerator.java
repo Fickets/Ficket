@@ -26,6 +26,8 @@ public class CSVGenerator {
 
     private static final DateTimeFormatter FORMATTER_TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     private static final DateTimeFormatter FORMATTER_DB = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER_FILENAME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
     private static final String[] CSV_HEADER = {
             "EventId", "Title", "Poster_Url", "Stage", "Location",
             "Genres", "Schedules", "Ticketing"
@@ -67,6 +69,14 @@ public class CSVGenerator {
             log.error("CSV 생성 실패", e);
             throw e;
         }
+    }
+
+    /**
+     * CSV 파일명 생성 (timestamp_uuid.csv 형식)
+     */
+    public String generateFileName(String uuid) {
+        String timestamp = LocalDateTime.now().format(FORMATTER_FILENAME);
+        return String.format("%s_%s.csv", timestamp, uuid);
     }
 
     /**

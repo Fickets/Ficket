@@ -9,9 +9,7 @@ import com.example.ficketevent.global.utils.AwsS3Service;
 import com.example.ficketevent.global.utils.CSVGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.SkipListener;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -24,11 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.InputStream;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static com.example.ficketevent.global.result.error.ErrorCode.FAILED_ITEM_NOT_FOUND;
 
@@ -53,7 +47,36 @@ public class EventToCsvBatchConfig {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .start(workerStep(jobRepository, transactionManager))
                 .next(retryFailedItemsStep(jobRepository, transactionManager))
+                .listener(jobCompletionListener())
                 .build();
+    }
+
+    /**
+     * Job 완료 시 _SUCCESS 파일 생성
+     */
+    @Bean
+    public JobExecutionListener jobCompletionListener() {
+        return new JobExecutionListener() {
+            @Override
+            public void beforeJob(JobExecution jobExecution) {
+                log.info("===== Job 시작: {} =====", JOB_NAME);
+            }
+
+            @Override
+            public void afterJob(JobExecution jobExecution) {
+                if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
+                    log.info("===== Job 완료: {} =====", JOB_NAME);
+                    try {
+                        awsS3Service.createSuccessFile();
+                        log.info("_SUCCESS 파일 생성 완료");
+                    } catch (Exception e) {
+                        log.error("_SUCCESS 파일 생성 실패", e);
+                    }
+                } else {
+                    log.error("===== Job 실패: {} (상태: {}) =====", JOB_NAME, jobExecution.getStatus());
+                }
+            }
+        };
     }
 
     @Bean
@@ -103,7 +126,9 @@ public class EventToCsvBatchConfig {
             List<Long> eventIds = (List<Long>) items.getItems();
             int itemCount = eventIds.size();
 
-            String fileName = generateFileName();
+            // UUID 생성 및 파일명 생성 (timestamp_uuid.csv 형식)
+            String uuid = UUID.randomUUID().toString().substring(0, 8);
+            String fileName = csvGenerator.generateFileName(uuid);
 
             // CSV를 메모리에서 생성하고 InputStream으로 받기
             try (InputStream csvStream = csvGenerator.generateCsvStream(eventIds)) {
@@ -119,12 +144,6 @@ public class EventToCsvBatchConfig {
                 log.info("CSV 업로드 완료: {} ({} 건, {} bytes)", fileName, itemCount, contentLength);
             }
         };
-    }
-
-    private String generateFileName() {
-        return String.format("events_%s_%s.csv",
-                LocalDate.now(),
-                UUID.randomUUID().toString().substring(0, 8));
     }
 
     @Bean
