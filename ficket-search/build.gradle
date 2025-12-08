@@ -89,8 +89,8 @@ dependencies {
 	// Apache Commons CSV
 	implementation 'org.apache.commons:commons-csv:1.12.0'
 
-	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// Redisson
+	implementation "org.redisson:redisson-spring-boot-starter:3.21.1"
 
 }
 

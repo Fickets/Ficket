@@ -41,7 +41,7 @@ public class PartialIndexingConsumer {
     }
 
     private boolean isFullIndexingInProgress(PartialIndexingMessage<?> msg) {
-        if (lockingService.isLockAcquired()) {
+        if (lockingService.isLocked()) {
             log.info("전체 색인 중, 메시지 대기: {}", msg);
             return true;
         }
