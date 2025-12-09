@@ -44,37 +44,17 @@ public class QuartzConfiguration {
      * 
      * 결과: 매일 새벽 02:00:00에 실행 (Asia/Seoul 시간대)
      */
-//    @Bean
-//    public Trigger fullIndexingTrigger() {
-//        return TriggerBuilder.newTrigger()
-//                .forJob(fullIndexingJobDetail())
-//                .withIdentity("fullIndexingTrigger", "batch-triggers")
-//                .withDescription("매일 새벽 2시 실행 (Asia/Seoul)")
-//                .withSchedule(
-//                        CronScheduleBuilder.cronSchedule("0 0 2 ? * *")  // ⭐ 매일 새벽 2시
-//                                .inTimeZone(java.util.TimeZone.getTimeZone("Asia/Seoul"))
-//                                .withMisfireHandlingInstructionDoNothing() // Misfire 시 건너뛰기
-//                )
-//                .build();
-//    }
-    
-    /**
-     * 테스트용 트리거 (주석 처리됨)
-     * 5분마다 실행하고 싶다면 아래 Bean 활성화
-     */
-
     @Bean
-    public Trigger fullIndexingTestTrigger() {
+    public Trigger fullIndexingTrigger() {
         return TriggerBuilder.newTrigger()
                 .forJob(fullIndexingJobDetail())
-                .withIdentity("fullIndexingTestTrigger", "batch-triggers")
-                .withDescription("테스트용 - 5분마다 실행")
+                .withIdentity("fullIndexingTrigger", "batch-triggers")
+                .withDescription("매일 새벽 2시 실행 (Asia/Seoul)")
                 .withSchedule(
-                        SimpleScheduleBuilder.simpleSchedule()
-                                .withIntervalInMinutes(5)
-                                .repeatForever()
+                        CronScheduleBuilder.cronSchedule("0 0 2 ? * *")
+                                .inTimeZone(java.util.TimeZone.getTimeZone("Asia/Seoul"))
+                                .withMisfireHandlingInstructionDoNothing() // Misfire 시 건너뛰기
                 )
-                .startNow()
                 .build();
     }
 

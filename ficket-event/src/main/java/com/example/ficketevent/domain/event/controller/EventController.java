@@ -16,16 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -35,8 +25,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
@@ -45,8 +33,6 @@ import java.util.concurrent.TimeUnit;
 public class EventController {
 
     private final EventService eventService;
-    private final JobLauncher jobLauncher;
-    private final Job exportEventsJob;
 
     /**
      * 행사 등록 API
@@ -364,31 +350,6 @@ public class EventController {
     List<Long> getScheduledId(@RequestParam Long eventId) {
         return eventService.getScheduleId(eventId);
     }
-
-    @PostMapping("/detail/test")
-    public String runExportEventsJob() {
-
-        try {
-
-            String uniqueRunId = UUID.randomUUID().toString();
-
-            JobParameters jobParameters = new JobParametersBuilder()
-                    .addString("jobName", "eventToCsvJob")
-                    .addString("executionDate", uniqueRunId)
-                    .toJobParameters();
-
-            jobLauncher.run(exportEventsJob, jobParameters);
-
-            log.info("Batch Job 'exportEventsJob' manually executed.");
-            return "Batch Job 'exportEventsJob' started successfully.";
-
-        } catch (JobExecutionAlreadyRunningException | JobRestartException |
-                 JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
-            log.error("Failed to execute Batch Job 'exportEventsJob': {}", e.getMessage(), e);
-            return "Failed to execute batch job: " + e.getMessage();
-        }
-    }
-
 
     @GetMapping("/companyId/{eventId}")
     public Long getCompanyIdByEventId(@PathVariable(name = "eventId") Long eventId) {
