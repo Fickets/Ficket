@@ -21,6 +21,9 @@ public class PartialIndexingConsumer {
     private final RedisQueueService redisQueueService;
     private final ObjectMapper objectMapper;
 
+    private static final long WAIT_TIME_SEC = 0;   // 락 대기 0초 (즉시)
+    private static final long LEASE_TIME_SEC = 180; // 락 유지 3분
+
     @KafkaListener(
             id = "partialIndexingListener",
             topics = "partial-indexing",
@@ -30,13 +33,18 @@ public class PartialIndexingConsumer {
         try {
             PartialIndexingMessage<?> partialIndexingMessage = parseMessage(message);
 
-            if (lockingService.isLocked()) {
+            boolean locked = lockingService.tryLock(WAIT_TIME_SEC, LEASE_TIME_SEC);
+
+            if (locked) {
+                try {
+                    processMessage(partialIndexingMessage);
+                } finally {
+                    lockingService.unlock();
+                }
+            } else {
                 log.info("전체 색인 중 → Redis 대기 큐에 저장: {}", message);
                 redisQueueService.enqueue(message);
-                return;
             }
-
-            processMessage(partialIndexingMessage);
 
         } catch (Exception e) {
             log.error("Kafka 메시지 처리 실패: {}", message, e);

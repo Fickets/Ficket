@@ -42,11 +42,6 @@ public class CSVGenerator {
              OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
              CSVWriter csvWriter = new CSVWriter(writer)) {
 
-            // UTF-8 BOM 추가 (엑셀 한글깨짐 방지)
-            outputStream.write(0xEF);
-            outputStream.write(0xBB);
-            outputStream.write(0xBF);
-
             // 헤더 작성
             csvWriter.writeNext(CSV_HEADER);
 

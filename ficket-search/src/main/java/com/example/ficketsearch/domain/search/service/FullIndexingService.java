@@ -12,7 +12,6 @@ import co.elastic.clients.util.ApiTypeHelper;
 import com.example.ficketsearch.global.config.utils.CsvToBulkApiConverter;
 import com.example.ficketsearch.global.config.utils.FileUtils;
 import com.example.ficketsearch.global.config.utils.S3Utils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,6 @@ public class FullIndexingService {
     private final S3Utils s3Utils;
     private final CsvToBulkApiConverter csvToBulkApiConverter;
     private final ElasticsearchClient elasticsearchClient;
-    private final ObjectMapper objectMapper;
 
     private static final int BULK_SIZE = 2000;
     private static final String INDEX_NAME = "event-data";

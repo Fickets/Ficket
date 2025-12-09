@@ -15,7 +15,7 @@ public class LockingService {
 
     private final RedissonClient redissonClient;
 
-    private static final String FULL_INDEX_LOCK = "FULL_INDEXING_LOCK";
+    private static final String FULL_INDEX_LOCK = "INDEXING_LOCK";
 
     /**
      * 전체 색인 락 획득 시도 (timeout 내에 시도 → leaseTime 동안 유지)

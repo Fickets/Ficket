@@ -92,6 +92,15 @@ dependencies {
 	// Redisson
 	implementation "org.redisson:redisson-spring-boot-starter:3.21.1"
 
+	// Spring-Batch
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+	// Scheduler
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+
+	// MySQL Driver
+	implementation 'mysql:mysql-connector-java:8.0.30'
+
 }
 
 dependencyManagement {
