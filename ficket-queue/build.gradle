@@ -28,6 +28,8 @@ ext {
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
 	// JUnit (테스트용)
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -35,21 +37,11 @@ dependencies {
 	// Eureka-Client
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-	// Spring WebFlux
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
-	// Reactor Test (WebFlux 비동기 테스트용)
-	testImplementation 'io.projectreactor:reactor-test'
-
 	// lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.projectlombok:lombok'
-
-	// MapStruct
-	implementation 'org.mapstruct:mapstruct:1.5.3.Final'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
 
 	// Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
@@ -80,11 +72,8 @@ dependencies {
 	// Feign Micrometer integration
 	implementation 'io.github.openfeign:feign-micrometer'
 
-	// Kafka
-	implementation 'org.springframework.kafka:spring-kafka'
-
 	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 dependencyManagement {
