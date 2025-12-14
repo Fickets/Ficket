@@ -13,12 +13,22 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     public void enterQueue(String userId, String eventId) {
-        Long myNumber = queueRepository.enterQueue(userId, eventId);
-
+        queueRepository.enterQueue(userId, eventId);
     }
 
     @Override
     public MyQueueStatusResponse getQueueStatus(String userId, String eventId) {
-        return null;
+        return queueRepository.getQueueStatus(userId, eventId);
+    }
+
+    @Override
+    public boolean enterTicketing(String userId, String eventId) {
+        Long enter = queueRepository.enterTicketing(userId, eventId);
+        return enter == 1L;
+    }
+
+    @Override
+    public void leaveTicketing(String userId, String eventId) {
+        queueRepository.leaveTicketing(eventId, userId);
     }
 }

@@ -25,10 +25,10 @@ public class KeyHelper {
     }
 
     /**
-     * 이벤트 + 사용자별 userQueueNumber Key 생성
+     * 이벤트별 대기열 ZSET Key 생성
      */
-    public static String userQueueNumberKey(String eventId, String userId) {
-        return KeyType.USER_QUEUE_NUMBER.format(eventId, userId);
+    public static String waitingZSetKey(String eventId) {
+        return KeyType.WAITING_ZSET.format(eventId);
     }
 
     /**
@@ -44,11 +44,4 @@ public class KeyHelper {
     public static String maxConcurrentKey(String eventId) {
         return KeyType.MAX_CONCURRENT.format(eventId);
     }
-
-//    /**
-//     * 이벤트별 lock Key 생성
-//     */
-//    public static String lockKey(String eventId) {
-//        return KeyType.LOCK.format(eventId);
-//    }
 }

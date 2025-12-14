@@ -20,35 +20,25 @@ public class QueueRedisRepository implements QueueRepository {
     private final RedisTemplate<String, Object> redisTemplate;
     private final RedisLuaScripts redisLuaScripts;
 
+    private static final int TICKETING_TTL_SECONDS = 20 * 60; // 20분
+
     /**
-     * 대기열 진입 - 순번 발급 + 중복 방지
+     * 대기열 진입 - 순번 발급 + ZSET에 추가
      */
     @Override
-    public Long enterQueue(String eventId, String userId) {
-        String nextNumberKey = KeyHelper.nextNumberKey(eventId);
-        String userNumberKey = KeyHelper.userQueueNumberKey(eventId, userId);
-
+    public Long enterQueue(String userId, String eventId) {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setScriptText(redisLuaScripts.getEnterQueueScript());
         script.setResultType(Long.class);
 
-        return redisTemplate.execute(script, List.of(nextNumberKey, userNumberKey));
-    }
-
-    /**
-     * 대기열 상태 조회 - 내 번호,
-     */
-    @Override
-    public MyQueueStatusResponse getQueueStatus(String eventId, String userId) {
-        String userNumberKey = KeyHelper.userQueueNumberKey(eventId, userId);
-        String currentNumberKey = KeyHelper.currentNumberKey(eventId);
-        String workingUserKey = KeyHelper.workingUserKey(eventId, userId);
-
-        Long myNumber = (Long) redisTemplate.opsForValue().get(userNumberKey);
-        Long currentNumber = (Long) redisTemplate.opsForValue().get(currentNumberKey);
-        Boolean canEnterScreen = redisTemplate.hasKey(workingUserKey);
-
-        return MyQueueStatusResponse.of(myNumber, currentNumber, canEnterScreen);
+        return redisTemplate.execute(
+                script,
+                List.of(
+                        KeyHelper.nextNumberKey(eventId),
+                        KeyHelper.waitingZSetKey(eventId)
+                ),
+                userId
+        );
     }
 
     /**
@@ -56,36 +46,63 @@ public class QueueRedisRepository implements QueueRepository {
      * @return 1 = 입장 성공, 0 = 입장 불가
      */
     @Override
-    public Long enterTicketing(String eventId, String userId, int maxConcurrent, int ttlSeconds) {
-        String currentNumberKey = KeyHelper.currentNumberKey(eventId);
-        String workingUserKey = KeyHelper.workingUserKey(eventId, userId);
-
+    public Long enterTicketing(String userId, String eventId) {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setScriptText(redisLuaScripts.getEnterTicketingScript());
         script.setResultType(Long.class);
 
         return redisTemplate.execute(
                 script,
-                List.of(currentNumberKey, workingUserKey),
-                maxConcurrent,
-                ttlSeconds
+                List.of(
+                        KeyHelper.waitingZSetKey(eventId),
+                        KeyHelper.currentNumberKey(eventId),
+                        KeyHelper.workingUserKey(eventId, userId)
+                ),
+                userId,
+                redisTemplate.opsForValue()
+                        .get(KeyHelper.maxConcurrentKey(eventId)),
+                TICKETING_TTL_SECONDS
+        );
+    }
+
+
+    /**
+     * 예매 화면 나가기
+     */
+    @Override
+    public Long leaveTicketing(String userId, String eventId) {
+        String currentNumberKey = KeyHelper.currentNumberKey(eventId);
+        String workingUserKey = KeyHelper.workingUserKey(eventId, userId);
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptText(redisLuaScripts.getLeaveTicketingScript());
+        script.setResultType(Long.class);
+
+        return redisTemplate.execute(
+                script,
+                List.of(currentNumberKey, workingUserKey)
         );
     }
 
     /**
-     * 예매 화면 퇴장 시 currentNumber 감소
-     * @return 1 = 감소 성공, 0 = 이미 0
+     * 대기열 상태 조회 - 내 앞에 남은 인원 수, 예매 화면 입장 여부
      */
     @Override
-    public Long leaveTicketing(String eventId) {
-        String currentNumberKey = KeyHelper.currentNumberKey(eventId);
+    public MyQueueStatusResponse getQueueStatus(String userId, String eventId) {
+        String waitingZSetKey = KeyHelper.waitingZSetKey(eventId);
+        String workingUserKey = KeyHelper.workingUserKey(eventId, userId);
 
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
-        script.setScriptText(redisLuaScripts.getLeaveScreenScript());
-        script.setResultType(Long.class);
+        // ZRANK로 내 앞에 남은 인원 수 조회
+        Long rank = redisTemplate.opsForZSet().rank(waitingZSetKey, userId);
+        Long waitingAhead = rank != null ? rank : -1L;
 
-        return redisTemplate.execute(script, List.of(currentNumberKey));
+        // 대기열에 남아 있는 총 인원 수 조회
+        Long totalWaitingNumber = redisTemplate.opsForZSet().size(waitingZSetKey);
+
+        // 현재 예매 화면 접속 여부 확인
+        Boolean canEnterTicketing = redisTemplate.hasKey(workingUserKey);
+
+        return MyQueueStatusResponse.of(waitingAhead, totalWaitingNumber, canEnterTicketing);
     }
-
 
 }
