@@ -10,9 +10,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MyQueueStatusResponse {
-    private String userId;
-    private String eventId;
     private Long myWaitingNumber;
     private Long totalWaitingNumber;
-    private QueueStatus queueStatus;
+    private Boolean canEnter;
+
+    public static MyQueueStatusResponse of(Long myWaitingNumber, Long totalWaitingNumber, Boolean canEnter) {
+        return MyQueueStatusResponse.builder()
+                .myWaitingNumber(myWaitingNumber)
+                .totalWaitingNumber(totalWaitingNumber)
+                .canEnter(canEnter)
+                .build();
+    }
 }
