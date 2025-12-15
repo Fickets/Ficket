@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PictureBox from "../../components/registerface/PictureBox";
 import PolicyAgree from "../../components/registerface/PolicyAgree";
@@ -6,21 +6,14 @@ import { unLockSeats } from "../../service/selectseat/api";
 import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
 import { eventDetailStore } from "../../stores/EventStore.tsx";
 import { useStore } from "zustand";
-import { releaseSlot } from "../../service/queue/api.ts";
-import { userStore } from "../../stores/UserStore.tsx";
-import { WorkStatus } from "../../types/queue.ts";
 import { uploadUserFace } from "../../service/uploadFace/api.ts";
 import { Helmet } from "react-helmet-async";
-
-const WORK_WEBSOCKET_URL: string = import.meta.env.VITE_WORK_WEBSOCKET_URL;
 
 function RegisterFace() {
   const navigate = useNavigate();
 
   const event = useStore(eventDetailStore);
-  const user = useStore(userStore);
 
-  const eventId = event.eventId;
   const setPersistFaceId = event.setFaceId;
   const setPersistFaceImg = event.setFaceImg;
   const selectedSeats = event.selectedSeats;
@@ -43,13 +36,10 @@ function RegisterFace() {
       setPersistFaceId(0);
       setPersistFaceImg("");
 
-      notifyNavigation("BEFORE_STEP");
-
       navigate(`/ticketing/select-seat`);
     } catch (error) {
-      console.error("Error locking seats:", error);
-
-      alert("좌석 선점에 실패했습니다. 다시 시도해주세요.");
+      console.error("Error unlocking seats:", error);
+      alert("좌석 선점 해제에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -73,77 +63,11 @@ function RegisterFace() {
       setPersistFaceId(faceId);
       setPersistFaceImg(faceUrl);
 
-      notifyNavigation("NEXT_STEP");
-
       navigate("/ticketing/order");
     } catch (error: any) {
       alert(error.message);
     }
   };
-
-  let wsInstance: WebSocket | null = null;
-
-  // 페이지 이동 시 웹소켓 메시지 전송
-  const notifyNavigation = (message: string) => {
-    if (wsInstance?.readyState === WebSocket.OPEN) {
-      wsInstance.send(message);
-    }
-  };
-
-  const connectWebSocket = () => {
-    const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}/${eventScheduleId}?Authorization=${encodedToken}`;
-    const ws = new WebSocket(WEBSOCKET_URL);
-
-    ws.onopen = () => {
-      console.log("WebSocket 연결 성공");
-    };
-
-    ws.onmessage = (event: MessageEvent) => {
-      const handleMessage = async () => {
-        try {
-          if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-            await releaseSlot(eventId);
-            const payload = {
-              eventScheduleId: eventScheduleId,
-              seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
-            };
-            await unLockSeats(payload); // 좌석 선점 해제 API 호출
-            alert("세션이 만료되었습니다. 창을 닫습니다.");
-            ws.close();
-            window.close();
-          } else if (event.data === WorkStatus.SEAT_RESERVATION_RELEASED) {
-            alert("좌석 선점이 만료되었습니다.");
-            setSelectedSeats([]);
-            setFaceImg(null);
-            navigate(`/ticketing/select-seat`);
-          }
-        } catch (error) {
-          console.error("WebSocket 메시지 처리 중 오류 발생:", error);
-        }
-      };
-
-      handleMessage();
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket 연결 종료");
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket 오류:", error);
-    };
-
-    return ws;
-  };
-
-  useEffect(() => {
-    wsInstance = connectWebSocket();
-
-    return () => {
-      wsInstance?.close();
-    };
-  }, []);
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
@@ -159,9 +83,7 @@ function RegisterFace() {
       <div className="relative sm:-mt-[60px] flex flex-col sm:flex-row justify-center items-start space-y-4 sm:space-y-0 sm:space-x-8 px-4 z-10">
         {/* PictureBox */}
         <div className="flex-1 max-w-[400px]">
-          <PictureBox
-            onChange={(selectedImage) => setFaceImg(selectedImage)} // Zustand의 setFaceImg 직접 호출
-          />
+          <PictureBox onChange={(selectedImage) => setFaceImg(selectedImage)} />
         </div>
 
         {/* PolicyAgree */}

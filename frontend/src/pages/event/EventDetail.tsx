@@ -18,13 +18,10 @@ import {
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import MobileHeader from "../../components/@common/MobileHeader";
 import { Helmet } from "react-helmet-async";
-import { canEnterTicketingPage, occupySlot } from "../../service/queue/api.ts";
 import {
-  checkEnterTicketing,
   eventDetail,
   genderStatistic,
   checkEventTime,
-  checkScheduleTime,
 } from "../../service/event/eventApi";
 import { eventDetailStore } from "../../stores/EventStore";
 import { useEventStore } from "../../types/StoreType/EventState";
@@ -70,8 +67,6 @@ const EventDetail: React.FC = () => {
     Legend,
     ChartDataLabels,
   );
-
-
 
   const togglePrice = () => {
     setShowPrice((prev) => !prev);
@@ -244,7 +239,7 @@ const EventDetail: React.FC = () => {
 
         setGenderStatisticData(statisticData);
       },
-      (_error) => { },
+      (_error) => {},
     );
   };
 
@@ -282,95 +277,136 @@ const EventDetail: React.FC = () => {
         event.setTicketingStep(false);
         setEventId(Number(eventId));
       },
-      (_error) => { },
+      (_error) => {},
     );
   };
 
   const goTicketing = async () => {
-    if (user.isLogin) {
-      const checkTime = await checkEventTime(event.eventId);
-      if (checkTime) {
-        let url = "";
-        if (event.ticketingStep) {
-          const checkSchedule = await checkScheduleTime(event.scheduleId);
-          if (checkSchedule) {
-            try {
-              const availableCount = await checkEnterTicketing(
-                event.scheduleId,
-              );
-              event.setReservationLimit(availableCount);
-              url = "/ticketing/select-seat";
-            } catch (error: any) {
-              alert(`${error.message}`); // API에서 에러 발생 시 처리
-              return; // 에러 발생 시 새 창 열기를 중단
-            }
-          } else {
-            alert("예매가 불가능한 날짜 입니다.");
-            return;
-          }
-        } else {
-          url = "/ticketing/select-date";
-        }
-
-        const canEnter = await canEnterTicketingPage(eventId as string);
-        if (canEnter) {
-          const occupied = await occupySlot(eventId as string);
-          if (!occupied) {
-            alert("슬롯 점유 실패. 다시 시도해 주세요.");
-            return;
-          }
-        } else {
-          url = `/ticketing/queue/${eventId}`;
-        }
-        window.open(
-          url,
-          "_blank", // 새 창 이름
-          `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`,
-        );
-      } else {
-        alert("예매 시간이 되지 않았습니다.");
-      }
-    } else {
+    if (!user.isLogin) {
       if (event.choiceDate && event.round) {
         navi("/users/login");
       }
+      return;
     }
+
+    const checkTime = await checkEventTime(event.eventId);
+    if (!checkTime) {
+      alert("예매 시간이 되지 않았습니다.");
+      return;
+    }
+
+    // 무조건 대기열로 이동
+    window.open(
+      `/ticketing/queue/${eventId}`,
+      "_blank",
+      `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no`,
+    );
   };
 
   const mobileGo = async () => {
-    if (user.isLogin) {
-      const checkTime = await checkEventTime(event.eventId);
-      if (checkTime) {
-        let url = "";
-        const canEnter = await canEnterTicketingPage(eventId as string);
-        if (canEnter) {
-          const occupied = await occupySlot(eventId as string);
-          if (occupied) {
-            url = "/ticketing/select-date";
-          } else {
-            alert("슬롯 점유 실패. 다시 시도해 주세요.");
-            return;
-          }
-        } else {
-          url = `/ticketing/queue/${eventId}`;
-        }
-        navi(url);
-      } else {
-        alert("예매 시간이 되지 않았습니다.");
-        return;
-      }
-    } else {
+    if (!user.isLogin) {
       toast.error("로그인이 필요합니다.", {
         position: "top-center",
-        autoClose: 1000, // 3초 후 자동으로 닫힘
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
+        autoClose: 1000,
       });
+      return;
     }
+
+    const checkTime = await checkEventTime(event.eventId);
+    if (!checkTime) {
+      alert("예매 시간이 되지 않았습니다.");
+      return;
+    }
+
+    // 무조건 대기열
+    navi(`/ticketing/queue/${eventId}`);
   };
+
+  // const goTicketing = async () => {
+  //   if (user.isLogin) {
+  //     const checkTime = await checkEventTime(event.eventId);
+  //     if (checkTime) {
+  //       let url = "";
+  //       if (event.ticketingStep) {
+  //         const checkSchedule = await checkScheduleTime(event.scheduleId);
+  //         if (checkSchedule) {
+  //           try {
+  //             const availableCount = await checkEnterTicketing(
+  //               event.scheduleId,
+  //             );
+  //             event.setReservationLimit(availableCount);
+  //             url = "/ticketing/select-seat";
+  //           } catch (error: any) {
+  //             alert(`${error.message}`); // API에서 에러 발생 시 처리
+  //             return; // 에러 발생 시 새 창 열기를 중단
+  //           }
+  //         } else {
+  //           alert("예매가 불가능한 날짜 입니다.");
+  //           return;
+  //         }
+  //       } else {
+  //         url = "/ticketing/select-date";
+  //       }
+  //
+  //       const canEnter = await canEnterTicketingPage(eventId as string);
+  //       if (canEnter) {
+  //         const occupied = await occupySlot(eventId as string);
+  //         if (!occupied) {
+  //           alert("슬롯 점유 실패. 다시 시도해 주세요.");
+  //           return;
+  //         }
+  //       } else {
+  //         url = `/ticketing/queue/${eventId}`;
+  //       }
+  //       window.open(
+  //         url,
+  //         "_blank", // 새 창 이름
+  //         `width=900,height=600,top=300,left=450,resizable=no,scrollbars=no,toolbar=no,menubar=no,status=no`,
+  //       );
+  //     } else {
+  //       alert("예매 시간이 되지 않았습니다.");
+  //     }
+  //   } else {
+  //     if (event.choiceDate && event.round) {
+  //       navi("/users/login");
+  //     }
+  //   }
+  // };
+  //
+  // const mobileGo = async () => {
+  //   if (user.isLogin) {
+  //     const checkTime = await checkEventTime(event.eventId);
+  //     if (checkTime) {
+  //       let url = "";
+  //       const canEnter = await canEnterTicketingPage(eventId as string);
+  //       if (canEnter) {
+  //         const occupied = await occupySlot(eventId as string);
+  //         if (occupied) {
+  //           url = "/ticketing/select-date";
+  //         } else {
+  //           alert("슬롯 점유 실패. 다시 시도해 주세요.");
+  //           return;
+  //         }
+  //       } else {
+  //         url = `/ticketing/queue/${eventId}`;
+  //       }
+  //       navi(url);
+  //     } else {
+  //       alert("예매 시간이 되지 않았습니다.");
+  //       return;
+  //     }
+  //   } else {
+  //     toast.error("로그인이 필요합니다.", {
+  //       position: "top-center",
+  //       autoClose: 1000, // 3초 후 자동으로 닫힘
+  //       hideProgressBar: false,
+  //       closeOnClick: true,
+  //       pauseOnHover: true,
+  //       draggable: true,
+  //       progress: undefined,
+  //     });
+  //   }
+  // };
 
   return (
     <div>
@@ -403,9 +439,7 @@ const EventDetail: React.FC = () => {
                     (Object.keys(event.scheduleMap).at(-1) || "").replace(
                       /-/g,
                       ".",
-                    )
-
-                  }
+                    )}
                 </p>
               </div>
               <div className="flex mb-[20px]">
@@ -481,10 +515,11 @@ const EventDetail: React.FC = () => {
                       <button
                         key={index}
                         data-key={index}
-                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${selectedButton === index
-                          ? "bg-[#8E43E7] text-white"
-                          : "bg-white"
-                          }`}
+                        className={`flex-shrink-0 flex w-[150px] h-[50px] border border-[#8E43E7] justify-center items-center ${
+                          selectedButton === index
+                            ? "bg-[#8E43E7] text-white"
+                            : "bg-white"
+                        }`}
                         onClick={(e) => roundButtonClick(e)}
                       >
                         <p>{value["round"]}회</p> &nbsp;
@@ -517,19 +552,21 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "performance"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "sales"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -564,8 +601,12 @@ const EventDetail: React.FC = () => {
                             </p>
                             <p className="text-[30px] text-[#5B4DFF]">
                               {(() => {
-                                const total = genderStatisticData[0] + genderStatisticData[1];
-                                return total === 0 ? "0" : `${((genderStatisticData[0] / total) * 100).toFixed(0)}%`;
+                                const total =
+                                  genderStatisticData[0] +
+                                  genderStatisticData[1];
+                                return total === 0
+                                  ? "0"
+                                  : `${((genderStatisticData[0] / total) * 100).toFixed(0)}%`;
                               })()}
                             </p>
                           </div>
@@ -576,8 +617,12 @@ const EventDetail: React.FC = () => {
                             </p>
                             <p className="text-[30px] text-[#5B4DFF]">
                               {(() => {
-                                const total = genderStatisticData[0] + genderStatisticData[1];
-                                return total === 0 ? "0" : `${((genderStatisticData[1] / total) * 100).toFixed(0)}%`;
+                                const total =
+                                  genderStatisticData[0] +
+                                  genderStatisticData[1];
+                                return total === 0
+                                  ? "0"
+                                  : `${((genderStatisticData[1] / total) * 100).toFixed(0)}%`;
                               })()}
                             </p>
                           </div>
@@ -901,19 +946,21 @@ const EventDetail: React.FC = () => {
             {/* Tab Header */}
             <div className="flex border-b border-gray-300 sticky top-0 bg-white">
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "performance"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "performance"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("performance")}
               >
                 공연 정보
               </button>
               <button
-                className={`flex-1 text-center py-2 ${activeTab === "sales"
-                  ? "border-b-2 border-black font-semibold"
-                  : "text-gray-500"
-                  }`}
+                className={`flex-1 text-center py-2 ${
+                  activeTab === "sales"
+                    ? "border-b-2 border-black font-semibold"
+                    : "text-gray-500"
+                }`}
                 onClick={() => setActiveTab("sales")}
               >
                 판매 정보
@@ -952,8 +999,12 @@ const EventDetail: React.FC = () => {
                             </p>
                             <p className="text-[14px] text-[#5B4DFF]">
                               {(() => {
-                                const total = genderStatisticData[0] + genderStatisticData[1];
-                                return total === 0 ? "0" : `${((genderStatisticData[0] / total) * 100).toFixed(0)}%`;
+                                const total =
+                                  genderStatisticData[0] +
+                                  genderStatisticData[1];
+                                return total === 0
+                                  ? "0"
+                                  : `${((genderStatisticData[0] / total) * 100).toFixed(0)}%`;
                               })()}
                             </p>
                           </div>
@@ -965,8 +1016,12 @@ const EventDetail: React.FC = () => {
                             </p>
                             <p className="text-[14px] text-[#5B4DFF]">
                               {(() => {
-                                const total = genderStatisticData[0] + genderStatisticData[1];
-                                return total === 0 ? "0" : `${((genderStatisticData[1] / total) * 100).toFixed(0)}%`;
+                                const total =
+                                  genderStatisticData[0] +
+                                  genderStatisticData[1];
+                                return total === 0
+                                  ? "0"
+                                  : `${((genderStatisticData[1] / total) * 100).toFixed(0)}%`;
                               })()}
                             </p>
                           </div>

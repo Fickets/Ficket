@@ -1,12 +1,8 @@
 import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
-import React, { useEffect, useState } from "react";
-import { releaseSlot } from "../../service/queue/api.ts";
-import { useStore } from "zustand/index";
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import { useStore } from "zustand";
 import { eventDetailStore } from "../../stores/EventStore.tsx";
-import { userStore } from "../../stores/UserStore.tsx";
-import { WorkStatus } from "../../types/queue.ts";
-import { useNavigate } from "react-router-dom";
-import { unLockSeats } from "../../service/selectseat/api.ts";
 import { createOrder } from "../../service/order/api.ts";
 import { CreateOrderRequest } from "../../types/order.ts";
 import PortOne from "@portone/browser-sdk/v2";
@@ -15,21 +11,15 @@ import { Helmet } from "react-helmet-async";
 const STORE_ID: string = import.meta.env.VITE_STORE_ID;
 const CHANNEL_KEY: string = import.meta.env.VITE_CHANNEL_KEY;
 const PORTONE_WEBHOOK_URL: string = import.meta.env.VITE_PORTONE_WEBHOOK_URL;
-const WORK_WEBSOCKET_URL: string = import.meta.env.VITE_WORK_WEBSOCKET_URL;
 const REDIRECT_URL: string = import.meta.env.VITE_REDIRECT_URL;
 
 function Order() {
-  const navigate = useNavigate();
   const event = useStore(eventDetailStore);
-  const user = useStore(userStore);
-
-  const eventId = event.eventId;
+  const navigate = useNavigate();
   const faceId = event.faceId;
   const faceImg = event.faceImg;
   const eventScheduleId = event.scheduleId;
   const selectedSeats = event.selectedSeats;
-  const setFaceImg = event.setFaceImg;
-  const setSelectedSeats = event.setSelectedSeats;
   const eventTitle = event.title;
   const eventStage = event.stageName;
   const eventDate = event.choiceDate;
@@ -38,7 +28,7 @@ function Order() {
   const setPersistFaceImg = event.setFaceImg;
 
   const [isWaitingPayment, setWaitingPayment] = useState<boolean>(false);
-  const SEAT_FEE = 2000; // 수수료 per seat1
+  const SEAT_FEE = 2000; // 수수료 per seat
   const totalAmount =
     selectedSeats.reduce((sum, seat) => sum + seat.price, 0) +
     selectedSeats.length * SEAT_FEE;
@@ -55,18 +45,15 @@ function Order() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setWaitingPayment(true);
-    notifyNavigation("NEXT_STEP");
 
     const paymentId = randomId();
 
     try {
-      console.log("Creating order...");
-
       const createOrderRequest: CreateOrderRequest = {
-        paymentId: paymentId, // 결제 ID
-        eventScheduleId: eventScheduleId, // 이벤트 일정 ID
-        faceId: faceId, // 얼굴 ID
-        faceImgUrl: faceImg, // 얼굴 이미지 URL
+        paymentId: paymentId,
+        eventScheduleId: eventScheduleId,
+        faceId: faceId,
+        faceImgUrl: faceImg,
         selectSeatInfoList: Array.from(
           new Set(
             selectedSeats.map((seat) =>
@@ -82,7 +69,6 @@ function Order() {
 
       await createOrder(createOrderRequest);
 
-      console.log("Sending payment request to PortOne...");
       await PortOne.requestPayment({
         storeId: STORE_ID,
         paymentId: paymentId,
@@ -106,8 +92,6 @@ function Order() {
         },
         noticeUrls: [PORTONE_WEBHOOK_URL],
       });
-
-      console.log("Payment request sent successfully!");
     } catch (error) {
       console.error("Error creating order or requesting payment:", error);
       alert("주문 생성에 실패했습니다. 다시 시도해주세요.");
@@ -115,101 +99,19 @@ function Order() {
     }
   };
 
-  let wsInstance: WebSocket | null = null;
-
-  // 페이지 이동 시 웹소켓 메시지 전송
-  const notifyNavigation = (message: string) => {
-    if (wsInstance?.readyState === WebSocket.OPEN) {
-      wsInstance.send(message);
-    }
-  };
-
   const handleBeforeStep = async () => {
     setPersistFaceId(0);
     setPersistFaceImg("");
 
-    notifyNavigation("BEFORE_STEP");
-
     navigate(`/ticketing/register-face`);
   };
-
-  const connectWebSocket = () => {
-    const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}/${eventScheduleId}?Authorization=${encodedToken}`;
-    const ws = new WebSocket(WEBSOCKET_URL);
-
-    ws.onopen = () => {
-      console.log("WebSocket 연결 성공");
-    };
-
-    ws.onmessage = (event: MessageEvent) => {
-      const handleMessage = async () => {
-        try {
-          if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-            await releaseSlot(eventId);
-            const payload = {
-              eventScheduleId: eventScheduleId,
-              seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
-            };
-            await unLockSeats(payload); // 좌석 선점 해제 API 호출
-            alert("세션이 만료되었습니다. 창을 닫습니다.");
-            ws.close();
-            window.close();
-          } else if (event.data === WorkStatus.SEAT_RESERVATION_RELEASED) {
-            alert("좌석 선점이 만료되었습니다.");
-            setSelectedSeats([]);
-            setFaceImg("");
-            navigate(`/ticketing/select-seat`);
-          } else if (event.data === WorkStatus.ORDER_FAILED) {
-            setWaitingPayment(false);
-            alert("결제에 실패했습니다. 다시 시도해주세요.");
-            ws.close();
-            navigate(`/ticketing/register-face`);
-          } else if (event.data === WorkStatus.ORDER_PAID) {
-            await releaseSlot(eventId);
-            const payload = {
-              eventScheduleId: eventScheduleId,
-              seatMappingIds: selectedSeats.map((seat) => seat.seatMappingId),
-            };
-            await unLockSeats(payload); // 좌석 선점 해제 API 호출
-            setWaitingPayment(false);
-            alert("결제에 성공했습니다.");
-            ws.close();
-            window.close();
-          }
-        } catch (error) {
-          console.error("WebSocket 메시지 처리 중 오류 발생:", error);
-        }
-      };
-
-      handleMessage();
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket 연결 종료");
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket 오류:", error);
-    };
-
-    return ws;
-  };
-
-  useEffect(() => {
-    wsInstance = connectWebSocket();
-
-    return () => {
-      wsInstance?.close();
-    };
-  }, []);
 
   return (
     <div className="relative w-full h-auto min-h-screen bg-[#F0F0F0]">
       <Helmet>
         <title>티켓팅 - 결제</title>
       </Helmet>
-      {/* 헤더 */}
+
       <div className="relative z-10 h-[192px] sm:bg-black">
         <TicketingHeader step={4} />
       </div>
