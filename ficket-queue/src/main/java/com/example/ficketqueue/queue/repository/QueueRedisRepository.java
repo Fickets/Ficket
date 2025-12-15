@@ -41,6 +41,21 @@ public class QueueRedisRepository implements QueueRepository {
         );
     }
 
+    @Override
+    public Long leaveQueue(String userId, String eventId) {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptText(redisLuaScripts.getLeaveQueueScript());
+        script.setResultType(Long.class);
+
+        return redisTemplate.execute(
+                script,
+                List.of(
+                        KeyHelper.waitingZSetKey(eventId)
+                ),
+                userId
+        );
+    }
+
     /**
      * 예매 화면 진입 허용 - currentNumber 증가 + TTL 설정
      * @return 1 = 입장 성공, 0 = 입장 불가

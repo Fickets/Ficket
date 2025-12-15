@@ -17,6 +17,15 @@ public class QueueServiceImpl implements QueueService {
     }
 
     @Override
+    public void leaveQueue(String userId, String eventId) {
+        Long result = queueRepository.leaveQueue(userId, eventId);
+
+        if (result == null || result == 0) {
+            throw new IllegalStateException("대기열에서 나가기 실패");
+        }
+    }
+
+    @Override
     public MyQueueStatusResponse getQueueStatus(String userId, String eventId) {
         return queueRepository.getQueueStatus(userId, eventId);
     }

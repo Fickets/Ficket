@@ -21,28 +21,52 @@ public class RedisLuaScripts {
      * KEYS[2] = waitingZSetKey
      * ARGV[1] = userId
      *
-     * return: 발급된 순번(score)
+     * return 1 = 퇴장 성공 (제거됨)
+     * return 0 = 이미 없는 상태
      */
     public String getEnterQueueScript() {
         return """
-        local nextKey = KEYS[1]
-        local waitingKey = KEYS[2]
-        local userId = ARGV[1]
+    local nextKey = KEYS[1]
+    local waitingKey = KEYS[2]
+    local userId = ARGV[1]
 
-        -- 이미 대기열에 있으면 기존 score 반환
-        local existingScore = redis.call('ZSCORE', waitingKey, userId)
-        if existingScore then
-            return tonumber(existingScore)
-        end
+    -- 이미 대기열에 있으면 실패 반환
+    if redis.call('ZSCORE', waitingKey, userId) then
+        return 0
+    end
 
-        -- 순번 발급
-        local seq = redis.call('INCR', nextKey)
+    -- 순번 발급
+    local seq = redis.call('INCR', nextKey)
 
-        -- 대기열(ZSET)에 추가
-        redis.call('ZADD', waitingKey, seq, userId)
+    -- 대기열(ZSET)에 추가
+    redis.call('ZADD', waitingKey, seq, userId)
 
-        return seq
-        """;
+    return 1
+    """;
+    }
+
+    /**
+     * 대기열에서 나가기
+     * - ZSET에서 사용자 제거
+     *
+     * KEYS[1] = waitingZSetKey
+     * ARGV[1] = userId
+     *
+     * return 1 = 퇴장 성공 (제거됨)
+     * return 0 = 이미 없는 상태
+     */
+    public String getLeaveQueueScript() {
+        return """
+    local waitingKey = KEYS[1]
+    local userId = ARGV[1]
+
+    local removed = redis.call('ZREM', waitingKey, userId)
+    if removed == 1 then
+        return 1
+    else
+        return 0
+    end
+    """;
     }
 
     /**

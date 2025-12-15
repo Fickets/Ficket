@@ -6,6 +6,8 @@ public interface QueueService {
 
     void enterQueue(String userId, String eventId);
 
+    void leaveQueue(String userId, String eventId);
+
     MyQueueStatusResponse getQueueStatus(String userId, String eventId);
 
     boolean enterTicketing(String userId, String eventId);

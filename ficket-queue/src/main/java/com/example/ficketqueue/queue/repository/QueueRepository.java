@@ -9,6 +9,8 @@ public interface QueueRepository {
      */
     Long enterQueue(String userId, String eventId);
 
+    Long leaveQueue(String userId, String eventId);
+
     /**
      * 예매 화면 진입 허용 (currentNumber 증가 + TTL)
      *

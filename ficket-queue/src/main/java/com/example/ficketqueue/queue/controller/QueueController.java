@@ -47,6 +47,23 @@ public class QueueController {
     }
 
     /**
+     * 대기열 퇴장 API
+     *
+     * 작업자: 오형상
+     * 작업 날짜: 2025-12-15
+     * 변경 이력:
+     * - 2025-12-15 오형상: 초기 작성
+     */
+    @PostMapping("/{eventId}/leave-queue")
+    public ResponseEntity<Void> leaveQueue(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String eventId
+    ) {
+        queueService.leaveQueue(userId, eventId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * 예매 화면 입장 시도 API
      * - waitingAhead == 0 이 된 클라이언트가 호출
      * - 실제 입장 가능 여부는 Redis Lua에서 판단
