@@ -42,15 +42,27 @@ export enum Location {
   세종 = "세종특별자치시",
 }
 
+// export interface SearchParams {
+//   genreList?: GenreType[]; // 장르 필터
+//   locationList?: Location[]; // 위치 필터
+//   title: string; // 검색 제목
+//   startDate?: string; // 시작 날짜 (YYYY-MM-DD)
+//   endDate?: string; // 종료 날짜 (YYYY-MM-DD)
+//   saleTypeList?: SaleType[]; // 판매 타입 필터
+//   sortBy?: SortBy; // 정렬 기준
+//   pageNumber?: number; // 페이지 번호
+//   pageSize?: number; // 페이지 크기
+// }
+
 export interface SearchParams {
+  title: string; // 검색 제목
   genreList?: GenreType[]; // 장르 필터
   locationList?: Location[]; // 위치 필터
-  title: string; // 검색 제목
   startDate?: string; // 시작 날짜 (YYYY-MM-DD)
   endDate?: string; // 종료 날짜 (YYYY-MM-DD)
   saleTypeList?: SaleType[]; // 판매 타입 필터
   sortBy?: SortBy; // 정렬 기준
-  pageNumber?: number; // 페이지 번호
+  searchAfter?: SearchAfter;
   pageSize?: number; // 페이지 크기
 }
 
@@ -78,4 +90,12 @@ export interface SearchResult {
   totalSize: number;
   totalPages: number;
   results: Event[];
+}
+
+export type SearchAfter = Array<string | number>;
+
+export interface SearchAfterResult {
+  totalSize: number;
+  events: Event[];
+  nextSearchAfter?: SearchAfter;
 }

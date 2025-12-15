@@ -1,8 +1,9 @@
-import { SearchResult, Schedule, SaleType } from "../../types/search.ts";
+import { SearchAfterResult, Schedule, SaleType } from "../../types/search.ts";
 import { useNavigate } from "react-router-dom";
 
 interface TicketListProps {
-  ticketList: SearchResult;
+  ticketList: SearchAfterResult;
+  hasNext?: boolean;
   onPageChange: () => void;
 }
 
@@ -74,7 +75,7 @@ const getSaleTypeText = (saleType: string) => {
 
 const TicketList = ({ ticketList, onPageChange }: TicketListProps) => {
   const navigate = useNavigate();
-  const allTickets = ticketList.results;
+  const allTickets = ticketList.events;
 
   return (
     <div>
