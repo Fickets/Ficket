@@ -58,38 +58,6 @@ public class SearchController {
      * 2025-08-07 오형상: title, SaleType 조건 없으면 빈 리스트 반환 로직 추가 및 관련 쿼리 조건 수정
      */
     @GetMapping("/detail")
-    public ResponseEntity<SearchResult> searchByFilter(
-            @RequestParam String title,
-            @RequestParam(required = false) List<Genre> genreList,
-            @RequestParam(required = false) List<Location> locationList,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) List<SaleType> saleTypeList,
-            @RequestParam(defaultValue = "SORT_BY_ACCURACY") SortBy sortBy,
-            @RequestParam(defaultValue = "1") int pageNumber,
-            @RequestParam(defaultValue = "20") int pageSize
-    ) {
-        SearchResult searchResult = searchService.searchEventsByFilter(title, genreList, locationList, saleTypeList, startDate, endDate, sortBy, pageNumber, pageSize);
-        return ResponseEntity.ok(searchResult);
-    }
-
-    @GetMapping("/detail2")
-    public ResponseEntity<ScrollSearchResult> searchWithScroll(
-            @RequestParam String title,
-            @RequestParam(required = false) List<Genre> genreList,
-            @RequestParam(required = false) List<Location> locationList,
-            @RequestParam(required = false) List<SaleType> saleTypeList,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam SortBy sortBy,
-            @RequestParam(defaultValue = "20") int scrollSize,
-            @RequestParam(required = false) String scrollId
-    ) {
-        return ResponseEntity.ok(searchService.searchEventsByFilterWithScroll(
-                title, genreList, locationList, saleTypeList, startDate, endDate, sortBy, scrollSize, scrollId));
-    }
-
-    @GetMapping("/detail3")
     public ResponseEntity<SearchAfterResult> searchWithSearchAfter(
             @RequestParam String title,
             @RequestParam(required = false) List<Genre> genreList,
@@ -120,6 +88,39 @@ public class SearchController {
                     .body(new SearchAfterResult(0L, Collections.emptyList(), Collections.emptyList()));
         }
     }
+
+//    @GetMapping("/detail")
+//    public ResponseEntity<SearchResult> searchByFilter(
+//            @RequestParam String title,
+//            @RequestParam(required = false) List<Genre> genreList,
+//            @RequestParam(required = false) List<Location> locationList,
+//            @RequestParam(required = false) String startDate,
+//            @RequestParam(required = false) String endDate,
+//            @RequestParam(required = false) List<SaleType> saleTypeList,
+//            @RequestParam(defaultValue = "SORT_BY_ACCURACY") SortBy sortBy,
+//            @RequestParam(defaultValue = "1") int pageNumber,
+//            @RequestParam(defaultValue = "20") int pageSize
+//    ) {
+//        SearchResult searchResult = searchService.searchEventsByFilter(title, genreList, locationList, saleTypeList, startDate, endDate, sortBy, pageNumber, pageSize);
+//        return ResponseEntity.ok(searchResult);
+//    }
+//
+//    @GetMapping("/detail2")
+//    public ResponseEntity<ScrollSearchResult> searchWithScroll(
+//            @RequestParam String title,
+//            @RequestParam(required = false) List<Genre> genreList,
+//            @RequestParam(required = false) List<Location> locationList,
+//            @RequestParam(required = false) List<SaleType> saleTypeList,
+//            @RequestParam(required = false) String startDate,
+//            @RequestParam(required = false) String endDate,
+//            @RequestParam SortBy sortBy,
+//            @RequestParam(defaultValue = "20") int scrollSize,
+//            @RequestParam(required = false) String scrollId
+//    ) {
+//        return ResponseEntity.ok(searchService.searchEventsByFilterWithScroll(
+//                title, genreList, locationList, saleTypeList, startDate, endDate, sortBy, scrollSize, scrollId));
+//    }
+
 
     /**
      * 스냅샷 복원 API
