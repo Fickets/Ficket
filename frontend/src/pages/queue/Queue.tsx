@@ -1,129 +1,114 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "zustand";
 import { useNavigate, useParams } from "react-router-dom";
 import { eventDetailStore } from "../../stores/EventStore.tsx";
-import { MyQueueStatusResponse, QueueStatus } from "../../types/queue.ts";
-import { userStore } from "../../stores/UserStore.tsx";
-import { enterQueue } from "../../service/queue/api.ts";
+import { MyQueueStatusResponse } from "../../types/queue";
+import {
+  enterQueue,
+  leaveQueue,
+  enterTicketing,
+  getQueueStatus,
+} from "../../service/queue/api.ts";
 
 type Params = {
   eventId: string;
 };
 
-const QUEUE_WEBSOCKET_URL: string = import.meta.env.VITE_QUEUE_WEBSOCKET_URL;
-
 const Queue = () => {
   const { eventId } = useParams<Params>();
+  const navigate = useNavigate();
 
-  if (!eventId) {
-    return <div>No Event ID found</div>;
-  }
+  if (!eventId) return <div>No Event ID found</div>;
 
   const event = useStore(eventDetailStore);
-  const user = useStore(userStore);
-  const navigate = useNavigate();
   const choiceDate: string = event.choiceDate;
 
-  // 상태 관리
   const [message, setMessage] = useState<MyQueueStatusResponse>(
     {} as MyQueueStatusResponse,
   );
   const [initialWaitingNumber, setInitialWaitingNumber] = useState<
     number | null
-  >(null); // 최초 대기 번호 저장
-  const [socket, setSocket] = useState<WebSocket | null>(null); // WebSocket 인스턴스
+  >(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const isInitialSet = useRef<boolean>(false);
 
-  // WebSocket 연결 함수
-  const connectWebSocket = (token: string) => {
-    const encodedToken = encodeURIComponent(token);
-    const WEBSOCKET_URL = `${QUEUE_WEBSOCKET_URL}/${eventId}?Authorization=${encodedToken}`;
-    const ws = new WebSocket(WEBSOCKET_URL);
-
-    ws.onopen = () => {
-      console.log("WebSocket 연결 성공");
-    };
-
-    ws.onmessage = (event: any) => {
-      try {
-        const data: MyQueueStatusResponse = JSON.parse(event.data);
-        // 최초 1회만 setInitialWaitingNumber 호출
-        if (!isInitialSet.current && data.myWaitingNumber !== undefined) {
-          setInitialWaitingNumber(data.myWaitingNumber);
-          isInitialSet.current = true; // 최초 실행 이후 플래그 변경
-        }
-
-        setMessage((prevMessage) => ({
-          ...prevMessage,
-          ...data,
-        }));
-
-        // setMessage(data);
-
-        if (data.queueStatus === QueueStatus.COMPLETED) {
-          navigate(
-            choiceDate ? "/ticketing/select-seat" : "/ticketing/select-date",
-          );
-        }
-      } catch (error) {
-        console.error("WebSocket 메시지 파싱 실패:", error);
-      }
-    };
-
-    ws.onclose = (event: any) => {
-      console.log("WebSocket 연결 종료:", event.reason);
-    };
-
-    ws.onerror = (error: any) => {
-      console.error("WebSocket 오류:", error);
-    };
-
-    setSocket(ws);
-    return ws;
-  };
-
-  const initEnterQueue = async () => {
+  const initQueue = async () => {
     try {
-      await enterQueue(eventId); // 대기열 재진입 API 호출
-
-      // WebSocket 재연결
-      connectWebSocket(user.accessToken);
+      await enterQueue(eventId);
     } catch (error) {
       console.error("대기열 진입 실패:", error);
     }
   };
 
+  const cleanupQueue = async () => {
+    try {
+      await leaveQueue(eventId);
+      console.log("대기열 나가기 성공");
+    } catch (error) {
+      console.error("대기열 나가기 실패:", error);
+    }
+  };
+
+  // 5초 주기 polling
   useEffect(() => {
-    // 대기열 재진입 및 WebSocket 연결
-    initEnterQueue();
+    initQueue();
 
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
+    const interval = setInterval(async () => {
+      try {
+        const status = await getQueueStatus(eventId);
+        setMessage(status);
 
-    // 컴포넌트 언마운트 시 WebSocket 연결 닫기
-    return () => {
-      clearTimeout(timer);
-      if (socket) {
-        socket.close();
-        console.log("WebSocket 연결 해제");
+        if (
+          initialWaitingNumber === null &&
+          status.myWaitingNumber !== undefined
+        ) {
+          setInitialWaitingNumber(status.myWaitingNumber);
+        }
+
+        // myWaitingNumber 0이면 티켓팅 시도
+        if (status.myWaitingNumber === 0) {
+          const entered = await enterTicketing(eventId);
+          if (entered) {
+            navigate(
+              choiceDate ? "/ticketing/select-seat" : "/ticketing/select-date",
+            );
+          }
+        }
+
+        // canEnter true면 바로 이동
+        if (status.canEnter) {
+          navigate(
+            choiceDate ? "/ticketing/select-seat" : "/ticketing/select-date",
+          );
+        }
+      } catch (error) {
+        console.error("대기열 상태 조회 실패:", error);
       }
+    }, 5000);
+
+    setTimeout(() => setIsLoading(false), 1000);
+
+    // cleanup: 컴포넌트 언마운트 + 새로고침 / 브라우저 종료
+    const handleBeforeUnload = async () => {
+      await cleanupQueue();
     };
-  }, []); // 빈 의존성 배열로 새로고침 시 초기화
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      clearInterval(interval);
+      cleanupQueue();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [eventId, navigate, choiceDate, initialWaitingNumber]);
 
   const calculateProgress = (): number => {
-    if (
-      initialWaitingNumber === null ||
-      message.myWaitingNumber === undefined
-    ) {
-      return 0; // 초기값이 없으면 진행률 0%
-    }
+    if (initialWaitingNumber === null || message.myWaitingNumber === undefined)
+      return 0;
     const progress =
       ((initialWaitingNumber - message.myWaitingNumber) /
         initialWaitingNumber) *
       100;
-    return Math.max(0, Math.min(100, progress)); // 0% ~ 100% 사이로 제한
+    return Math.max(0, Math.min(100, progress));
   };
 
   return (
@@ -138,29 +123,14 @@ const Queue = () => {
           </div>
         ) : (
           <>
-            {message.queueStatus === QueueStatus.ALMOST_DONE ? (
-              <div>
-                <h1 className="text-xl font-bold text-black mb-1">
-                  곧 고객님의 순서가 다가옵니다!
-                </h1>
-                <h2 className="text-lg text-red-500 mb-1">
-                  예매를 준비해주세요.
-                </h2>
-              </div>
-            ) : (
-              <div>
-                <h1 className="text-xl font-bold mb-1 text-black">
-                  접속 인원이 많아 대기 중입니다.
-                </h1>
-                <h2 className="text-lg text-purple-500 mb-1">
-                  조금만 기다려주세요.
-                </h2>
-              </div>
-            )}
+            <h1 className="text-xl font-bold mb-1 text-black">
+              접속 인원이 많아 대기 중입니다.
+            </h1>
+            <h2 className="text-lg text-purple-500 mb-1">
+              조금만 기다려주세요.
+            </h2>
 
-            <h3 className="text-sm font-normal text-gray-500 mb-2">
-              {event.title}
-            </h3>
+            <h3 className="text-sm font-normal text-gray-500">{event.title}</h3>
             <img
               src={event.posterPcUrl}
               alt="poster"
@@ -170,19 +140,13 @@ const Queue = () => {
             <div className="border border-gray-300 rounded-lg p-4">
               <h4 className="font-bold mb-2 text-center">나의 대기 순서</h4>
               <h1 className="text-5xl text-center font-bold text-black">
-                {message.myWaitingNumber?.toLocaleString() || "-"}
+                {message.myWaitingNumber?.toLocaleString() ?? "-"}
               </h1>
 
               <div className="relative w-full h-5 bg-gray-200 rounded-full mt-4">
                 <div
-                  className={`absolute top-0 left-0 h-full rounded-full ${
-                    message.queueStatus === QueueStatus.ALMOST_DONE
-                      ? "bg-red-500"
-                      : "bg-purple-500"
-                  }`}
-                  style={{
-                    width: `${calculateProgress()}%`,
-                  }}
+                  className="absolute top-0 left-0 h-full rounded-full bg-purple-500"
+                  style={{ width: `${calculateProgress()}%` }}
                 ></div>
               </div>
 
@@ -191,15 +155,15 @@ const Queue = () => {
               <div className="flex justify-between mt-2 text-sm text-gray-500">
                 <span>현재 대기인원</span>
                 <span className="font-bold">
-                  {message.totalWaitingNumber?.toLocaleString() || "-"}명
+                  {message.totalWaitingNumber?.toLocaleString() ?? "-"}명
                 </span>
               </div>
             </div>
 
             <p className="mt-4 text-xs text-gray-500 leading-relaxed">
-              * 잠시만 기다리시면 예매하기 페이지로 연결됩니다. <br />*
-              새로고침하거나 재접속하시면 대기순서가 초기화되어 더 길어질 수
-              있습니다.
+              * 잠시만 기다리시면 예매하기 페이지로 연결됩니다.
+              <br />* 새로고침하거나 재접속하시면 대기순서가 초기화되어 더
+              길어질 수 있습니다.
             </p>
           </>
         )}
