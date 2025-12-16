@@ -2,6 +2,7 @@ package com.example.ficketticketing.domain.order.controller;
 
 import com.example.ficketticketing.domain.order.dto.client.*;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
+import com.example.ficketticketing.domain.order.dto.response.CreateOrderResponse;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,10 @@ public class OrderController {
      * - 2024-12-08 오형상: 주문 검증 로직 추가
      * - 2024-12-15 오형상: 주문 실패시 상태 원복 로직 및 예매율 랭킹 로직 추가
      * - 2024-12-22 오형상: 얼굴 등록 api 분리 및 얼굴 의존성 추가 로직 추가
+     * - 2025-12-16 오형상: 반환값 수정
      */
     @PostMapping
-    public ResponseEntity<Long> createOrder(@RequestBody CreateOrderRequest createOrderRequest, @RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest createOrderRequest, @RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(orderService.createOrder(createOrderRequest, Long.parseLong(userId)));
     }
 

@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateOrderResponse {
+    private Long orderId;
     private OrderStatus orderStatus;
 }

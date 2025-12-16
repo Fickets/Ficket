@@ -5,6 +5,7 @@ import com.example.ficketticketing.domain.order.dto.client.*;
 import com.example.ficketticketing.domain.order.dto.kafka.OrderDto;
 import com.example.ficketticketing.domain.order.dto.request.CreateOrderRequest;
 import com.example.ficketticketing.domain.order.dto.request.SelectSeatInfo;
+import com.example.ficketticketing.domain.order.dto.response.CreateOrderResponse;
 import com.example.ficketticketing.domain.order.dto.response.OrderStatusResponse;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDto;
 import com.example.ficketticketing.domain.order.dto.response.TicketInfoCreateDtoList;
@@ -64,7 +65,6 @@ public class OrderService {
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final OrderProducer orderProducer;
     private final TicketMapper ticketMapper;
-    private final QueueServiceClient queueServiceClient;
     private final OrderMapper orderMapper;
     private final AdminServiceClient adminServiceClient;
 
@@ -179,9 +179,6 @@ public class OrderService {
                                 () -> adminServiceClient.createSettlement(orderSimpleDto)
                         );
 
-                        log.info("settlement created success");
-
-                        notifyClient(paymentId, "Paid");
                     } catch (Exception e) {
                         portOneApiClient.cancelOrder(paymentId);
                     }
@@ -199,7 +196,6 @@ public class OrderService {
                         "deleteFaceCircuitBreaker",
                         () -> faceServiceClient.deleteFace(ticketIdByPaymentId)
                 );
-                notifyClient(paymentId, "Failed");
                 break;
             default:
                 log.warn("알 수 없는 이벤트 타입: {}", type);
@@ -207,7 +203,7 @@ public class OrderService {
         }
     }
 
-    public Long createOrder(CreateOrderRequest createOrderRequest, Long userId) {
+    public CreateOrderResponse createOrder(CreateOrderRequest createOrderRequest, Long userId) {
         // 유저 조회
         UserSimpleDto userDto = executeWithCircuitBreaker(circuitBreakerRegistry,
                 "getUserCircuitBreaker",
@@ -239,7 +235,7 @@ public class OrderService {
 
         orderProducer.send("order-events", new OrderDto(createOrderRequest.getEventScheduleId(), createdOrder.getOrderId(), seatMappingIds, createdOrder.getTicket().getTicketId()));
 
-        return createdOrder.getOrderId();
+        return new CreateOrderResponse(createdOrder.getOrderId(), createdOrder.getOrderStatus());
     }
 
     @Transactional(readOnly = true)
@@ -287,16 +283,6 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_PRICE));
 
         return ("PAID".equalsIgnoreCase(status) && orderPrice.compareTo(totalPrice) == 0);
-    }
-
-    private void notifyClient(String paymentId, String orderStatus) {
-        Long userId = orderRepository.findUserIdByPaymentId(paymentId);
-
-        executeWithCircuitBreaker(
-                circuitBreakerRegistry,
-                "sendOrderStatusCircuitBreaker",
-                () -> queueServiceClient.sendOrderStatus(userId, orderStatus)
-        );
     }
 
     /**
