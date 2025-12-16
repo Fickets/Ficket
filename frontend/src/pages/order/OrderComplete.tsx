@@ -33,7 +33,7 @@ function OrderComplete() {
           결제가 완료되었습니다! 🎉
         </h2>
         <p className="text-gray-600 mt-3 text-sm sm:text-base">
-          잠시 후 <span className="font-semibold text-red-500">마이티켓</span>{" "}
+          3초 후 <span className="font-semibold text-red-500">마이티켓</span>{" "}
           페이지로 이동합니다.
         </p>
       </motion.div>

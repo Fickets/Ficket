@@ -32,6 +32,16 @@ export const enterTicketing = async (eventId: string): Promise<boolean> => {
   }
 };
 
+export const leaveTicketing = async (eventId: string): Promise<void> => {
+  try {
+    await privateApi.post(`/queues/${eventId}/leave-ticketing`);
+    console.log(`티켓팅 나가기 성공: ${eventId}`);
+  } catch (error) {
+    console.error(`티켓팅 나가기 실패 ${eventId}:`, error);
+    throw error;
+  }
+};
+
 export const getQueueStatus = async (
   eventId: string,
 ): Promise<MyQueueStatusResponse> => {

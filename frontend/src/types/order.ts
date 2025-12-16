@@ -6,6 +6,11 @@ export interface CreateOrderRequest {
   selectSeatInfoList: SelectSeatInfo[];
 }
 
+export interface CreateOrderResponse {
+  orderId: number;
+  orderStatus: OrderStatus;
+}
+
 export interface SelectSeatInfo {
   seatMappingId: number;
   seatPrice: number;
