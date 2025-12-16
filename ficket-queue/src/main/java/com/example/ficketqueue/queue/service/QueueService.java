@@ -13,4 +13,6 @@ public interface QueueService {
     boolean enterTicketing(String userId, String eventId);
 
     void leaveTicketing(String userId, String eventId);
+
+    boolean isInTicketing(String userId, String eventId);
 }

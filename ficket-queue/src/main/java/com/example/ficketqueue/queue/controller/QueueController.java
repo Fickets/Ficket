@@ -48,7 +48,7 @@ public class QueueController {
 
     /**
      * 대기열 퇴장 API
-     *
+     * <p>
      * 작업자: 오형상
      * 작업 날짜: 2025-12-15
      * 변경 이력:
@@ -65,8 +65,6 @@ public class QueueController {
 
     /**
      * 예매 화면 입장 시도 API
-     * - waitingAhead == 0 이 된 클라이언트가 호출
-     * - 실제 입장 가능 여부는 Redis Lua에서 판단
      * <p>
      * 작업자: 오형상
      * 작업 날짜: 2025-12-14
@@ -86,9 +84,7 @@ public class QueueController {
 
     /**
      * 예매 화면 퇴장 API
-     * - 결제 완료 / 실패 / 이탈 시 호출
-     * - 작업 슬롯 해제
-     *
+     * <p>
      * 작업자: 오형상
      * 작업 날짜: 2025-12-14
      * 변경 이력:
@@ -101,6 +97,23 @@ public class QueueController {
     ) {
         queueService.leaveTicketing(userId, eventId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 예매 화면 접속 상태 확인 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2025-12-15
+     * 변경 이력:
+     * - 2025-12-15 오형상: 초기 작성
+     */
+    @GetMapping("/{eventId}/check")
+    public ResponseEntity<Boolean> isInTicketing(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String eventId
+    ) {
+        boolean working = queueService.isInTicketing(userId, eventId);
+        return ResponseEntity.ok(working);
     }
 
     /**
@@ -117,23 +130,5 @@ public class QueueController {
         slotService.setMaxSlot(eventId, maxSlot);
         return ResponseEntity.noContent().build();
     }
-
-//    /**
-//     * 주문 상태 웹 소켓 전송 API
-//     * <p>
-//     * 작업자: 오형상
-//     * 작업 날짜: 2024-12-21
-//     * 변경 이력:
-//     * - 2024-12-21 오형상: 초기 작성
-//     */
-//    @PostMapping("/{userId}/send-order-status")
-//    public Mono<Void> sendOrderStatus(@PathVariable Long userId, @RequestParam("orderStatus") String orderStatus) {
-//        if (orderStatus.equals("Paid")) {
-//            return clientNotificationService.notifyUser(String.valueOf(userId), WorkStatus.ORDER_PAID);
-//        } else if (orderStatus.equals("Failed")) {
-//            return clientNotificationService.notifyUser(String.valueOf(userId), WorkStatus.ORDER_FAILED);
-//        }
-//        return Mono.empty();
-//    }
 
 }

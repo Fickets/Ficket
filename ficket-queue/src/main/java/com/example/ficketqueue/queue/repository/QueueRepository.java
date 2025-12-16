@@ -26,4 +26,8 @@ public interface QueueRepository {
     Long leaveTicketing(String userId, String eventId);
 
     MyQueueStatusResponse getQueueStatus(String userId, String eventId);
+
+    boolean existsWorkingUser(String userId, String eventId);
+
+    void decrementCurrentNumber(String eventId);
 }

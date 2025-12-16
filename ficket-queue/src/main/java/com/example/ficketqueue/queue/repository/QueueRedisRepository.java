@@ -23,7 +23,7 @@ public class QueueRedisRepository implements QueueRepository {
     private static final int TICKETING_TTL_SECONDS = 20 * 60; // 20분
 
     /**
-     * 대기열 진입 - 순번 발급 + ZSET에 추가
+     * 대기열 진입
      */
     @Override
     public Long enterQueue(String userId, String eventId) {
@@ -57,7 +57,7 @@ public class QueueRedisRepository implements QueueRepository {
     }
 
     /**
-     * 예매 화면 진입 허용 - currentNumber 증가 + TTL 설정
+     * 예매 화면 진입 허용
      * @return 1 = 입장 성공, 0 = 입장 불가
      */
     @Override
@@ -100,7 +100,7 @@ public class QueueRedisRepository implements QueueRepository {
     }
 
     /**
-     * 대기열 상태 조회 - 내 앞에 남은 인원 수, 예매 화면 입장 여부
+     * 대기열 상태 조회
      */
     @Override
     public MyQueueStatusResponse getQueueStatus(String userId, String eventId) {
@@ -118,6 +118,19 @@ public class QueueRedisRepository implements QueueRepository {
         Boolean canEnterTicketing = redisTemplate.hasKey(workingUserKey);
 
         return MyQueueStatusResponse.of(waitingAhead, totalWaitingNumber, canEnterTicketing);
+    }
+
+    @Override
+    public boolean existsWorkingUser(String userId, String eventId) {
+        String workingUserKey = KeyHelper.workingUserKey(eventId, userId);
+        Boolean exists = redisTemplate.hasKey(workingUserKey);
+        return Boolean.TRUE.equals(exists);
+    }
+
+    @Override
+    public void decrementCurrentNumber(String eventId) {
+        String currentNumberKey = KeyHelper.currentNumberKey(eventId);
+        redisTemplate.opsForValue().decrement(currentNumberKey);
     }
 
 }

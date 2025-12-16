@@ -38,6 +38,11 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     public void leaveTicketing(String userId, String eventId) {
-        queueRepository.leaveTicketing(eventId, userId);
+        queueRepository.leaveTicketing(userId, eventId);
+    }
+
+    @Override
+    public boolean isInTicketing(String userId, String eventId) {
+        return queueRepository.existsWorkingUser(userId, eventId);
     }
 }
