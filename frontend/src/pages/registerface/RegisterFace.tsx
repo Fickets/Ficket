@@ -8,12 +8,13 @@ import { eventDetailStore } from "../../stores/EventStore.tsx";
 import { useStore } from "zustand";
 import { uploadUserFace } from "../../service/uploadFace/api.ts";
 import { Helmet } from "react-helmet-async";
+import { checkTicketingStatus } from "../../service/queue/api.ts";
 
 function RegisterFace() {
   const navigate = useNavigate();
 
   const event = useStore(eventDetailStore);
-
+  const eventId = event.eventId;
   const setPersistFaceId = event.setFaceId;
   const setPersistFaceImg = event.setFaceImg;
   const selectedSeats = event.selectedSeats;
@@ -36,6 +37,14 @@ function RegisterFace() {
       setPersistFaceId(0);
       setPersistFaceImg("");
 
+      const isInTicketing = await checkTicketingStatus(eventId);
+
+      if (!isInTicketing) {
+        alert("예매 가능 시간이 만료되었습니다. 다시 대기열에 진입해주세요.");
+        navigate(`/queues/${eventId}`);
+        return;
+      }
+
       navigate(`/ticketing/select-seat`);
     } catch (error) {
       console.error("Error unlocking seats:", error);
@@ -52,6 +61,15 @@ function RegisterFace() {
       alert("이미지를 업로드해야 합니다.");
       return;
     }
+
+    const isInTicketing = await checkTicketingStatus(eventId);
+
+    if (!isInTicketing) {
+      alert("예매 가능 시간이 만료되었습니다. 다시 대기열에 진입해주세요.");
+      navigate(`/queues/${eventId}`);
+      return;
+    }
+
     try {
       const response = await uploadUserFace(faceImg, eventScheduleId);
 

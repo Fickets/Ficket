@@ -7,6 +7,7 @@ import { eventDetailStore } from "../../stores/EventStore";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { checkScheduleTime } from "../../service/event/eventApi.ts";
+import { checkTicketingStatus } from "../../service/queue/api";
 import { Helmet } from "react-helmet-async";
 
 const SelectDate: React.FC = () => {
@@ -20,6 +21,14 @@ const SelectDate: React.FC = () => {
   };
 
   const nextClick = async () => {
+    const isInTicketing = await checkTicketingStatus(eventDetail.eventId);
+
+    if (!isInTicketing) {
+      alert("예매 가능 시간이 만료되었습니다. 다시 대기열에 진입해주세요.");
+      navi(`/queues/${eventDetail.eventId}`); // 또는 대기열 페이지
+      return;
+    }
+
     const checkSchedule = await checkScheduleTime(eventDetail.scheduleId);
     if (checkSchedule) {
       navi("/ticketing/select-seat");

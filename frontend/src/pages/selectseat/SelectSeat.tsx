@@ -23,11 +23,13 @@ import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
 import { eventDetailStore } from "../../stores/EventStore.tsx";
 import { useStore } from "zustand";
 import { Helmet } from "react-helmet-async";
+import { checkTicketingStatus } from "../../service/queue/api.ts";
 
 const SelectSeat = () => {
   const navigate = useNavigate();
 
   const event = useStore(eventDetailStore);
+  const eventId = event.eventId;
   const eventScheduleId = event.scheduleId;
   const eventTitle = event.title;
   const eventDate = event.choiceDate;
@@ -126,6 +128,14 @@ const SelectSeat = () => {
   };
 
   const handleNextStep = async () => {
+    const isInTicketing = await checkTicketingStatus(eventId);
+
+    if (!isInTicketing) {
+      alert("예매 가능 시간이 만료되었습니다. 다시 대기열에 진입해주세요.");
+      navigate(`/queues/${eventId}`);
+      return;
+    }
+
     if (selectedSeats.length === 0) {
       alert("좌석을 선택해주세요.");
     } else if (selectedSeats.length > event.reservationLimit) {
@@ -152,7 +162,15 @@ const SelectSeat = () => {
     }
   };
 
-  const handleBeforeStep = () => {
+  const handleBeforeStep = async () => {
+    const isInTicketing = await checkTicketingStatus(eventId);
+
+    if (!isInTicketing) {
+      alert("예매 가능 시간이 만료되었습니다. 다시 대기열에 진입해주세요.");
+      navigate(`/queues/${eventId}`);
+      return;
+    }
+
     navigate("/ticketing/select-date");
   };
 

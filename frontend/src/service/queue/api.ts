@@ -28,7 +28,7 @@ export const enterTicketing = async (eventId: string): Promise<boolean> => {
     return response.data;
   } catch (error) {
     console.error(`티켓팅 진입 실패 ${eventId}:`, error);
-    return false; // 기본적으로 실패 시 false 반환
+    return false;
   }
 };
 
@@ -41,5 +41,17 @@ export const getQueueStatus = async (
   } catch (error) {
     console.error(`나의 대기열 상태 조회 실패 ${eventId}:`, error);
     throw error;
+  }
+};
+
+export const checkTicketingStatus = async (
+  eventId: string,
+): Promise<boolean> => {
+  try {
+    const response = await privateApi.get<boolean>(`/queues/${eventId}/check`);
+    return response.data;
+  } catch (error) {
+    console.error(`예매 화면 접속 상태 확인 실패 ${eventId}:`, error);
+    return false;
   }
 };
