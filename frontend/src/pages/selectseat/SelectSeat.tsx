@@ -22,12 +22,8 @@ import DraggableSeatMap from "../../components/selectseat/DraggableSeatMap";
 import TicketingHeader from "../../components/ticketing/TicketingHeader.tsx";
 import { eventDetailStore } from "../../stores/EventStore.tsx";
 import { useStore } from "zustand";
-import { userStore } from "../../stores/UserStore.tsx";
-import { WorkStatus } from "../../types/queue.ts";
-import { releaseSlot } from "../../service/queue/api.ts";
 import { Helmet } from "react-helmet-async";
-
-const WORK_WEBSOCKET_URL: string = import.meta.env.VITE_WORK_WEBSOCKET_URL;
+import { checkTicketingStatus } from "../../service/queue/api.ts";
 
 const SelectSeat = () => {
   const navigate = useNavigate();
@@ -39,7 +35,6 @@ const SelectSeat = () => {
   const eventDate = event.choiceDate;
   const eventTime = event.choiceTime;
   const eventStage = event.stageName;
-  const user = useStore(userStore);
 
   const setSelectedSeats = event.setSelectedSeats;
 
@@ -63,7 +58,7 @@ const SelectSeat = () => {
     [key: string]: string;
   } | null>(null);
   const [showPricePopup, setShowPricePopup] = useState(false);
-  const [detailsVisible, setDetailsVisible] = useState(true); // 상세 창 보이기 여부
+  const [detailsVisible, setDetailsVisible] = useState(true);
 
   const generateDistinctColors = (totalGrades: number) => {
     const colors: string[] = [];
@@ -76,53 +71,6 @@ const SelectSeat = () => {
     }
 
     return colors;
-  };
-
-  let wsInstance: WebSocket | null = null;
-
-  // 페이지 이동 시 웹소켓 메시지 전송
-  const notifyNavigation = (message: string) => {
-    if (wsInstance?.readyState === WebSocket.OPEN) {
-      wsInstance.send(message);
-      console.log("WebSocket 이동 메시지 전송:", message);
-    }
-  };
-
-  const connectWebSocket = () => {
-    const encodedToken = encodeURIComponent(user.accessToken);
-    const WEBSOCKET_URL = `${WORK_WEBSOCKET_URL}/${eventId}/${eventScheduleId}?Authorization=${encodedToken}`;
-    const ws = new WebSocket(WEBSOCKET_URL);
-
-    ws.onopen = () => {
-      console.log("WebSocket 연결 성공");
-    };
-
-    ws.onmessage = (event: MessageEvent) => {
-      const handleMessage = async () => {
-        try {
-          if (event.data === WorkStatus.ORDER_RIGHT_LOST) {
-            await releaseSlot(eventId);
-            alert("세션이 만료되었습니다. 창을 닫습니다.");
-            ws.close();
-            window.close();
-          }
-        } catch (error) {
-          console.error("WebSocket 메시지 처리 중 오류 발생:", error);
-        }
-      };
-
-      handleMessage();
-    };
-
-    ws.onclose = (event: CloseEvent) => {
-      console.log("WebSocket 연결 종료:", event.reason);
-    };
-
-    ws.onerror = (error: Event) => {
-      console.error("WebSocket 오류:", error);
-    };
-
-    return ws;
   };
 
   const loadEventData = async () => {
@@ -152,12 +100,6 @@ const SelectSeat = () => {
 
   useEffect(() => {
     loadEventData();
-
-    wsInstance = connectWebSocket();
-
-    return () => {
-      wsInstance?.close();
-    };
   }, [eventScheduleId]);
 
   if (!eventSummary || !seatCntGrade || !seatStatusResponse || !gradeColors) {
@@ -186,6 +128,14 @@ const SelectSeat = () => {
   };
 
   const handleNextStep = async () => {
+    const isInTicketing = await checkTicketingStatus(eventId);
+
+    if (!isInTicketing) {
+      alert("예매 가능 시간이 만료되었습니다. 다시 대기열에 진입해주세요.");
+      navigate(`/queues/${eventId}`);
+      return;
+    }
+
     if (selectedSeats.length === 0) {
       alert("좌석을 선택해주세요.");
     } else if (selectedSeats.length > event.reservationLimit) {
@@ -205,8 +155,6 @@ const SelectSeat = () => {
 
         setSelectedSeats(selectedSeats);
 
-        notifyNavigation("NEXT_STEP");
-
         navigate("/ticketing/register-face");
       } catch (error: any) {
         alert(`${error.message}`);
@@ -214,13 +162,16 @@ const SelectSeat = () => {
     }
   };
 
-  const handleBeforeStep = () => {
-    notifyNavigation("BEFORE_STEP");
-    navigate("/ticketing/select-date");
-  };
+  const handleBeforeStep = async () => {
+    const isInTicketing = await checkTicketingStatus(eventId);
 
-  const handleRefresh = async () => {
-    await refreshSeatsAndGrades();
+    if (!isInTicketing) {
+      alert("예매 가능 시간이 만료되었습니다. 다시 대기열에 진입해주세요.");
+      navigate(`/queues/${eventId}`);
+      return;
+    }
+
+    navigate("/ticketing/select-date");
   };
 
   return (
@@ -273,7 +224,7 @@ const SelectSeat = () => {
           )}
 
           <button
-            onClick={handleRefresh}
+            onClick={refreshSeatsAndGrades}
             className="text-white text-lg flex items-center"
           >
             <AiOutlineReload className="text-2xl" />
@@ -323,7 +274,7 @@ const SelectSeat = () => {
                   이전 단계
                 </button>
                 <button
-                  onClick={handleRefresh}
+                  onClick={refreshSeatsAndGrades}
                   className="bg-gray-300 text-black flex-1 py-1 text-center"
                 >
                   새로고침

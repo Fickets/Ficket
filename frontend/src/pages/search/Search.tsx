@@ -1,7 +1,7 @@
 import UserHeader from "../../components/@common/UserHeader.tsx";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { SearchResult, SearchParams, SortBy } from "../../types/search.ts";
+import { SearchAfterResult, SearchParams, SortBy } from "../../types/search.ts";
 import FilterSection from "../../components/search/FilterSection.tsx";
 import TicketList from "../../components/search/TicketList.tsx";
 import { searchByFilter } from "../../service/search/api.ts";
@@ -20,10 +20,10 @@ const Search = () => {
     window.scrollTo(0, 0); // 페이지 이동 후 스크롤을 맨 위로
   }, []);
   // 티켓 데이터 상태
-  const [tickets, setTickets] = useState<SearchResult>({
+  const [tickets, setTickets] = useState<SearchAfterResult>({
     totalSize: 0,
-    totalPages: 0,
-    results: [],
+    events: [],
+    nextSearchAfter: undefined,
   });
 
   // 필터 상태
@@ -34,8 +34,8 @@ const Search = () => {
     endDate: undefined,
     saleTypeList: undefined,
     sortBy: SortBy.SORT_BY_ACCURACY,
-    pageNumber: 1,
     pageSize: 20,
+    searchAfter: undefined, // ⭐ 핵심
   });
 
   // 필터 변경 핸들러
@@ -43,15 +43,17 @@ const Search = () => {
     setFilters((prev) => ({
       ...prev,
       ...newFilters,
-      pageNumber: 1, // 필터 변경 시 페이지 초기화
+      searchAfter: undefined,
     }));
   };
 
   // 페이지 변경 핸들러
   const handlePageChange = () => {
+    if (!tickets.nextSearchAfter) return;
+
     setFilters((prev) => ({
       ...prev,
-      pageNumber: (prev.pageNumber || 1) + 1, // 다음 페이지로 이동
+      searchAfter: tickets.nextSearchAfter,
     }));
   };
 
@@ -65,20 +67,22 @@ const Search = () => {
   useEffect(() => {
     const fetchFilteredTickets = async () => {
       try {
-        const searchParams: SearchParams = {
+        const params: SearchParams = {
           ...filters,
           title: keyword.toLowerCase(),
         };
-        const response = await searchByFilter(searchParams);
 
-        if (filters.pageNumber === 1) {
-          // 첫 페이지일 경우 초기화
+        const response = await searchByFilter(params);
+
+        if (!filters.searchAfter) {
+          // 첫 페이지
           setTickets(response);
         } else {
-          // 다음 페이지일 경우 results 추가
+          // 다음 페이지
           setTickets((prev) => ({
-            ...response,
-            results: [...prev.results, ...response.results],
+            totalSize: response.totalSize,
+            events: [...prev.events, ...response.events],
+            nextSearchAfter: response.nextSearchAfter,
           }));
         }
       } catch (error) {
@@ -132,8 +136,9 @@ const Search = () => {
 
             {/* FilterSection 팝업 */}
             <div
-              className={`fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-opacity ${isFilterOpen ? "opacity-100 visible" : "opacity-0 invisible"
-                }`}
+              className={`fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-opacity ${
+                isFilterOpen ? "opacity-100 visible" : "opacity-0 invisible"
+              }`}
             >
               <div className="bg-white rounded-lg shadow-lg p-6 w-[85%] max-w-md h-[80%] overflow-y-auto relative">
                 {/* 닫기 버튼 */}
@@ -150,7 +155,11 @@ const Search = () => {
           </div>
 
           <div className="mt-7">
-            <TicketList ticketList={tickets} onPageChange={handlePageChange} />
+            <TicketList
+              ticketList={tickets}
+              hasNext={!!tickets.nextSearchAfter}
+              onPageChange={handlePageChange}
+            />
           </div>
 
           {/* 모바일 하단 메뉴 */}
@@ -177,10 +186,11 @@ const Search = () => {
                   </h1>
                   <div className="flex space-x-6">
                     <button
-                      className={`${filters.sortBy === SortBy.SORT_BY_ACCURACY
+                      className={`${
+                        filters.sortBy === SortBy.SORT_BY_ACCURACY
                           ? "text-purple-500 font-bold border-b-2 border-purple-500"
                           : "text-gray-500 hover:text-black"
-                        }`}
+                      }`}
                       onClick={() =>
                         handleFilterChange({ sortBy: SortBy.SORT_BY_ACCURACY })
                       }
@@ -188,10 +198,11 @@ const Search = () => {
                       정확도순
                     </button>
                     <button
-                      className={`${filters.sortBy === SortBy.SORT_BY_PERFORMANCE_IMMINENT
+                      className={`${
+                        filters.sortBy === SortBy.SORT_BY_PERFORMANCE_IMMINENT
                           ? "text-purple-500 font-bold border-b-2 border-purple-500"
                           : "text-gray-500 hover:text-black"
-                        }`}
+                      }`}
                       onClick={() =>
                         handleFilterChange({
                           sortBy: SortBy.SORT_BY_PERFORMANCE_IMMINENT,
@@ -205,9 +216,9 @@ const Search = () => {
 
                 <div className="border-b border-gray-300 mb-6"></div>
 
-                {/* Ticket List */}
                 <TicketList
                   ticketList={tickets}
+                  hasNext={!!tickets.nextSearchAfter}
                   onPageChange={handlePageChange}
                 />
               </main>

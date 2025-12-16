@@ -5,7 +5,8 @@ export interface Event {
   stageName: string;
   companyName: string;
   adminName: string;
-  eventDates: string[];
+  startDate: string;
+  endDate: string;
 }
 
 export interface EventListProps {
@@ -64,6 +65,4 @@ export interface CustomerListProps2 {
   onPageChange: (page: number) => void;
 }
 
-export interface EventDetailType {
-  
-}
+export interface EventDetailType {}
