@@ -1,5 +1,6 @@
 package com.example.ficketsearch.domain.search.controller;
 
+import co.elastic.clients.elasticsearch.snapshot.CreateRepositoryResponse;
 import com.example.ficketsearch.domain.search.dto.AutoCompleteRes;
 import com.example.ficketsearch.domain.search.dto.ScrollSearchResult;
 import com.example.ficketsearch.domain.search.dto.SearchAfterResult;
@@ -137,18 +138,18 @@ public class SearchController {
         return ResponseEntity.noContent().build();
     }
 
-//    /**
-//     * 스냅샷 저장소(S3) 초기 초기화 API
-//     * <p>
-//     * 작업자: 오형상
-//     * 작업 날짜: 2025-01-05
-//     * 변경 이력:
-//     * 2025-01-05 오형상: 초기 작성
-//     */
-//    @PutMapping("/connect-s3-elasticsearch")
-//    public CreateRepositoryResponse connectS3ToElasticsearch() {
-//        return indexingService.registerS3Repository();
-//    }
+    /**
+     * 스냅샷 저장소(S3) 초기 초기화 API
+     * <p>
+     * 작업자: 오형상
+     * 작업 날짜: 2025-01-05
+     * 변경 이력:
+     * 2025-01-05 오형상: 초기 작성
+     */
+    @PostMapping("/connect-s3-elasticsearch")
+    public CreateRepositoryResponse connectS3ToElasticsearch() {
+        return fullIndexingService.registerS3Repository();
+    }
 
 
     private List<Object> parseSearchAfter(String searchAfter) {

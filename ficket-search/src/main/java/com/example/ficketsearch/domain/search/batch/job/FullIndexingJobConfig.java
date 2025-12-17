@@ -1,6 +1,6 @@
 package com.example.ficketsearch.domain.search.batch.job;
 
-import com.example.ficketsearch.domain.search.batch.listener.FullIndexingJobListener;
+import com.example.ficketsearch.domain.search.batch.listener.IndexingJobListener;
 import com.example.ficketsearch.domain.search.batch.tasklet.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,18 +25,16 @@ public class FullIndexingJobConfig {
     private final S3SuccessFileCheckTasklet s3SuccessFileCheckTasklet;
     private final InitializeIndexingTasklet initializeIndexingTasklet;
     private final DownloadAndIndexTasklet downloadAndIndexTasklet;
-    private final IndexUnlockTasklet indexUnlockTasklet;
-    private final FullIndexingJobListener fullIndexingJobListener;
+    private final IndexingJobListener indexingJobListener;
 
     @Bean
     public Job fullIndexingJob() {
         return new JobBuilder("fullIndexingJob", jobRepository)
-                .listener(fullIndexingJobListener)
+                .listener(indexingJobListener)
                 .start(acquireLockStep())
                 .next(checkSuccessFileStep())
                 .next(initializeIndexingStep())
                 .next(downloadAndIndexStep())
-                .next(releaseLockStep())
                 .build();
     }
 
@@ -68,10 +66,4 @@ public class FullIndexingJobConfig {
                 .build();
     }
 
-    @Bean
-    public Step releaseLockStep() {
-        return new StepBuilder("releaseLockStep", jobRepository)
-                .tasklet(indexUnlockTasklet, transactionManager)
-                .build();
-    }
 }

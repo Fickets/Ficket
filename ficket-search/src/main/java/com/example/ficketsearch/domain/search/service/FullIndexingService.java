@@ -9,6 +9,8 @@ import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.*;
 import co.elastic.clients.elasticsearch.snapshot.*;
 import co.elastic.clients.util.ApiTypeHelper;
+import com.example.ficketsearch.global.config.awsS3.S3Constants;
+import com.example.ficketsearch.global.config.elasticsearch.ElasticsearchConstants;
 import com.example.ficketsearch.global.config.utils.CsvToBulkApiConverter;
 import com.example.ficketsearch.global.config.utils.FileUtils;
 import com.example.ficketsearch.global.config.utils.S3Utils;
@@ -30,13 +32,6 @@ public class FullIndexingService {
     private final CsvToBulkApiConverter csvToBulkApiConverter;
     private final ElasticsearchClient elasticsearchClient;
 
-    private static final int BULK_SIZE = 2000;
-    private static final String INDEX_NAME = "event-data";
-    private static final String ALIAS_NAME = "current";
-    private static final String SNAPSHOT_STORAGE_NAME = "snapshot_storage";
-    private static final String SNAPSHOT_S3_BUCKET = "ficket-event-content";
-    private static final String SNAPSHOT_NAME = "snapshot_latest";
-
     /**
      * 인덱스를 생성하는 메서드로, Edge Ngram 설정을 포함한 인덱스를 생성합니다.
      * 인덱스 생성 시 분석기 및 매핑 설정을 사용하여 인덱스를 생성합니다.
@@ -51,8 +46,8 @@ public class FullIndexingService {
                     .build();
 
             CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder()
-                    .index(INDEX_NAME)
-                    .aliases(ALIAS_NAME, new Alias.Builder().isWriteIndex(false).build())
+                    .index(ElasticsearchConstants.INDEX_NAME.toString())
+                    .aliases(ElasticsearchConstants.ALIAS_NAME.toString(), new Alias.Builder().isWriteIndex(false).build())
                     .settings(indexSettings)
                     .mappings(createMappings())
                     .build();
@@ -133,7 +128,7 @@ public class FullIndexingService {
      */
     private void createIndexIfNotExist() {
         try {
-            boolean exists = elasticsearchClient.indices().exists(e -> e.index(INDEX_NAME)).value();
+            boolean exists = elasticsearchClient.indices().exists(e -> e.index(ElasticsearchConstants.INDEX_NAME.toString())).value();
             if (!exists) {
                 createIndexWithEdgeNgram();
             }
@@ -149,11 +144,11 @@ public class FullIndexingService {
      * @param bulkJsonStream - CSV 데이터를 JSON 형태로 변환한 스트림
      */
     private void insertDataToElasticsearch(Stream<Map<String, Object>> bulkJsonStream) {
-        List<Map<String, Object>> currentBatch = new ArrayList<>(BULK_SIZE);
+        List<Map<String, Object>> currentBatch = new ArrayList<>(ElasticsearchConstants.BULK_SIZE.toInt());
 
         bulkJsonStream.forEach(jsonMap -> {
             currentBatch.add(jsonMap);
-            if (currentBatch.size() >= BULK_SIZE) {
+            if (currentBatch.size() >= ElasticsearchConstants.BULK_SIZE.toInt()) {
                 processBatch(currentBatch);
                 currentBatch.clear();
             }
@@ -181,7 +176,7 @@ public class FullIndexingService {
 
                 BulkOperation operation = BulkOperation.of(b -> b
                         .index(i -> i
-                                .index(INDEX_NAME)
+                                .index(ElasticsearchConstants.INDEX_NAME.toString())
                                 .id(id)
                                 .document(document)
                         )
@@ -214,8 +209,8 @@ public class FullIndexingService {
     private void deleteExistingSnapshot() {
         try {
             DeleteSnapshotRequest deleteSnapshotRequest = new DeleteSnapshotRequest.Builder()
-                    .repository(SNAPSHOT_STORAGE_NAME)
-                    .snapshot(SNAPSHOT_NAME)
+                    .repository(ElasticsearchConstants.SNAPSHOT_STORAGE_NAME.toString())
+                    .snapshot(ElasticsearchConstants.SNAPSHOT_NAME.toString())
                     .build();
 
             elasticsearchClient.snapshot().delete(deleteSnapshotRequest);
@@ -235,22 +230,22 @@ public class FullIndexingService {
         try {
             // 백업할 인덱스가 존재하는지 확인
             GetIndexRequest getIndexRequest = new GetIndexRequest.Builder()
-                    .index(INDEX_NAME)  // 확인할 인덱스 이름
+                    .index(ElasticsearchConstants.INDEX_NAME.toString())  // 확인할 인덱스 이름
                     .build();
 
             // 인덱스가 존재하지 않으면 백업하지 않음
             try {
                 elasticsearchClient.indices().get(getIndexRequest);
             } catch (Exception e) {
-                log.error("백업할 인덱스가 존재하지 않습니다: {}", INDEX_NAME);
-                return;  // 인덱스가 존재하지 않으면 백업을 진행하지 않음
+                log.error("백업할 인덱스가 존재하지 않습니다");
+                return;
             }
 
             // 스냅샷을 생성
             CreateSnapshotRequest snapshotRequest = new CreateSnapshotRequest.Builder()
-                    .repository(SNAPSHOT_STORAGE_NAME)  // 저장소 이름
-                    .snapshot(SNAPSHOT_NAME)     // 스냅샷 이름
-                    .indices(INDEX_NAME)            // 백업할 인덱스
+                    .repository(ElasticsearchConstants.SNAPSHOT_STORAGE_NAME.toString())  // 저장소 이름
+                    .snapshot(ElasticsearchConstants.SNAPSHOT_NAME.toString())     // 스냅샷 이름
+                    .indices(ElasticsearchConstants.INDEX_NAME.toString())            // 백업할 인덱스
                     .build();
 
             elasticsearchClient.snapshot().create(snapshotRequest);
@@ -268,15 +263,15 @@ public class FullIndexingService {
     private void deleteExistingData() {
         try {
             // 인덱스 존재 여부 먼저 확인
-            boolean exists = elasticsearchClient.indices().exists(e -> e.index(INDEX_NAME)).value();
+            boolean exists = elasticsearchClient.indices().exists(e -> e.index(ElasticsearchConstants.INDEX_NAME.toString())).value();
             if (!exists) {
-                log.info("삭제할 인덱스가 존재하지 않아 삭제를 생략합니다: {}", INDEX_NAME);
+                log.info("삭제할 인덱스가 존재하지 않아 삭제를 생략합니다");
                 return;
             }
 
             // 인덱스가 존재할 경우 삭제 진행
             DeleteByQueryRequest deleteRequest = new DeleteByQueryRequest.Builder()
-                    .index(INDEX_NAME)
+                    .index(ElasticsearchConstants.INDEX_NAME.toString())
                     .query(q -> q.matchAll(m -> m))
                     .build();
 
@@ -298,11 +293,11 @@ public class FullIndexingService {
 
             // 기존 인덱스를 닫기
             CloseIndexRequest closeIndexRequest = new CloseIndexRequest.Builder()
-                    .index(INDEX_NAME)  // 닫을 인덱스 이름
+                    .index(ElasticsearchConstants.INDEX_NAME.toString())  // 닫을 인덱스 이름
                     .build();
 
             elasticsearchClient.indices().close(closeIndexRequest);
-            log.info("인덱스 {}가 닫혔습니다.", INDEX_NAME);
+            log.info("인덱스가 닫혔습니다.");
 
             // 스냅샷 검증
             verifySnapshot(); // 스냅샷 검증 호출
@@ -310,9 +305,9 @@ public class FullIndexingService {
             // 워크어라운드를 사용하여 복원 요청 (8.15 버전 이하에서 snapshot.restore 요청을 보냈을 때, 서버로부터의 응답을 제대로 디코딩할 수 없다는 문제로 발생)
             try (ApiTypeHelper.DisabledChecksHandle h = ApiTypeHelper.DANGEROUS_disableRequiredPropertiesCheck(true)) {
                 RestoreResponse restoreResponse = elasticsearchClient.snapshot().restore(r -> r
-                        .repository(SNAPSHOT_STORAGE_NAME)
-                        .snapshot(SNAPSHOT_NAME)     // 복원할 스냅샷 이름
-                        .indices(INDEX_NAME)  // 복원할 인덱스 이름
+                        .repository(ElasticsearchConstants.SNAPSHOT_STORAGE_NAME.toString())
+                        .snapshot(ElasticsearchConstants.SNAPSHOT_NAME.toString())     // 복원할 스냅샷 이름
+                        .indices(ElasticsearchConstants.INDEX_NAME.toString())  // 복원할 인덱스 이름
                 );
 
                 if (restoreResponse.snapshot() != null) {
@@ -324,11 +319,11 @@ public class FullIndexingService {
 
             // 복원 후 인덱스 열기
             OpenRequest openIndexRequest = new OpenRequest.Builder()
-                    .index(INDEX_NAME)  // 열 인덱스 이름
+                    .index(ElasticsearchConstants.INDEX_NAME.toString())  // 열 인덱스 이름
                     .build();
 
             elasticsearchClient.indices().open(openIndexRequest);
-            log.info("인덱스 {}가 열렸습니다.", INDEX_NAME);
+            log.info("인덱스가 열렸습니다.");
 
         } catch (Exception e) {
             log.error("스냅샷 복원 중 오류 발생: {}", e.getMessage(), e);
@@ -339,15 +334,15 @@ public class FullIndexingService {
         try {
             // 스냅샷 상태 확인 (복원할 스냅샷이 정상인지 검증)
             GetSnapshotRequest getSnapshotRequest = new GetSnapshotRequest.Builder()
-                    .repository(SNAPSHOT_STORAGE_NAME)
-                    .snapshot(SNAPSHOT_NAME) // 복원하려는 스냅샷 이름
+                    .repository(ElasticsearchConstants.SNAPSHOT_STORAGE_NAME.toString())
+                    .snapshot(ElasticsearchConstants.SNAPSHOT_NAME.toString()) // 복원하려는 스냅샷 이름
                     .build();
 
             GetSnapshotResponse getSnapshotResponse = elasticsearchClient.snapshot().get(getSnapshotRequest);
             if (getSnapshotResponse.snapshots().isEmpty()) {
-                log.error("스냅샷 {}이 존재하지 않거나 복원할 수 없습니다.", SNAPSHOT_NAME);
+                log.error("스냅샷이 존재하지 않거나 복원할 수 없습니다.");
             } else {
-                log.info("스냅샷 {}의 상태를 확인했습니다. 상태: {}", SNAPSHOT_NAME, getSnapshotResponse.snapshots().get(0).state());
+                log.info("스냅샷의 상태를 확인했습니다. 상태: {}", getSnapshotResponse.snapshots().get(0).state());
             }
         } catch (Exception e) {
             log.error("스냅샷 검증 중 오류 발생: {}", e.getMessage(), e);
@@ -355,20 +350,20 @@ public class FullIndexingService {
     }
 
 
-    private CreateRepositoryResponse registerS3Repository() {
+    public CreateRepositoryResponse registerS3Repository() {
         try {
 
             Repository repository = new Repository.Builder()
                     .s3(builder -> builder
                             .settings(settings -> settings
-                                    .bucket(SNAPSHOT_S3_BUCKET)
-                                    .basePath("elasticsearch/snapshot")
+                                    .bucket(S3Constants.BUCKET_NAME.toString())
+                                    .basePath(S3Constants.SNAPSHOT_BASE_PATH.toString())
                             ))
                     .build();
 
             CreateRepositoryRequest repositoryRequest = new CreateRepositoryRequest.Builder()
                     .repository(repository)
-                    .name(SNAPSHOT_STORAGE_NAME)
+                    .name(ElasticsearchConstants.SNAPSHOT_STORAGE_NAME.toString())
                     .build();
 
 

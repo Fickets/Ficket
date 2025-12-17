@@ -16,6 +16,7 @@ import com.example.ficketsearch.domain.search.enums.Genre;
 import com.example.ficketsearch.domain.search.enums.Location;
 import com.example.ficketsearch.domain.search.enums.SaleType;
 import com.example.ficketsearch.domain.search.enums.SortBy;
+import com.example.ficketsearch.global.config.elasticsearch.ElasticsearchConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,6 @@ import java.util.stream.Collectors;
 public class SearchService {
 
     private final ElasticsearchClient elasticsearchClient;
-    private static final String INDEX_NAME = "event-data";
 
     /**
      * 리스트가 null이 아니고 비어있지 않은지 확인합니다.
@@ -101,9 +101,9 @@ public class SearchService {
     public List<AutoCompleteRes> autoComplete(String query) {
         try {
             SearchRequest searchRequest = new SearchRequest.Builder()
-                    .index(INDEX_NAME)
+                    .index(ElasticsearchConstants.INDEX_NAME.toString())
                     .query(q -> q.match(m -> m.field("Title").query(query)))
-                    .size(5)
+                    .size(ElasticsearchConstants.AUTOCOMPLETE_SIZE.toInt())
                     .build();
 
             SearchResponse<AutoCompleteRes> response = elasticsearchClient.search(searchRequest, AutoCompleteRes.class);
@@ -141,11 +141,11 @@ public class SearchService {
         int from = (pageNumber - 1) * pageSize;
 
         SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
-                .index(INDEX_NAME)
+                .index(ElasticsearchConstants.INDEX_NAME.toString())
                 .query(boolQuery)
                 .from(from)
                 .size(pageSize)
-                .trackTotalHits(t -> t.count(500000));
+                .trackTotalHits(t -> t.count(ElasticsearchConstants.TRACK_TOTAL_HITS_LIMIT.toInt()));
 
         applySort(searchRequestBuilder, sortBy);
 
@@ -177,7 +177,7 @@ public class SearchService {
         try {
             if (scrollId == null || scrollId.isEmpty()) {
                 SearchRequest.Builder builder = new SearchRequest.Builder()
-                        .index(INDEX_NAME)
+                        .index(ElasticsearchConstants.INDEX_NAME.toString())
                         .query(boolQuery)
                         .size(scrollSize)
                         .scroll(Time.of(t -> t.time("1m")));
@@ -223,7 +223,7 @@ public class SearchService {
         Query boolQuery = buildBoolQuery(title, genreList, locationList, saleTypeList, startDate, endDate, now);
 
         SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
-                .index(INDEX_NAME)
+                .index(ElasticsearchConstants.INDEX_NAME.toString())
                 .query(boolQuery)
                 .size(pageSize + 1)
                 .trackTotalHits(t -> t.enabled(true));

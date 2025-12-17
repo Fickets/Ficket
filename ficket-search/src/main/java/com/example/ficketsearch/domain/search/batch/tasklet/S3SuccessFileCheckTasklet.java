@@ -2,6 +2,7 @@ package com.example.ficketsearch.domain.search.batch.tasklet;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.example.ficketsearch.global.config.awsS3.S3Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
@@ -11,7 +12,6 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,23 +22,20 @@ public class S3SuccessFileCheckTasklet implements Tasklet {
 
     private final AmazonS3 amazonS3;
 
-    private static final String BUCKET_NAME = "ficket-event-content";
-    private static final String SUCCESS_FILE = "_SUCCESS";
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
         // 오늘 날짜 기준 경로 생성
         LocalDate today = LocalDate.now();
-        String datePath = today.format(DATE_FORMATTER);
-        String s3Prefix = String.format("index/full/%s/", datePath);
-        String successFilePath = s3Prefix + SUCCESS_FILE;
+        String datePath = today.format(S3Constants.DATE_FORMAT.toDateFormatter());
+        String s3Prefix = String.format(S3Constants.FULL_INDEX_PREFIX.toString(), datePath);
+        String successFilePath = s3Prefix + S3Constants.SUCCESS_FILE;
 
         log.info("S3 경로에서 _SUCCESS 파일을 확인합니다: {}", successFilePath);
 
         // _SUCCESS 파일 존재 여부 확인
         try {
-            if (!amazonS3.doesObjectExist(BUCKET_NAME, successFilePath)) {
+            if (!amazonS3.doesObjectExist(S3Constants.BUCKET_NAME.toString(), successFilePath)) {
                 throw new IllegalStateException(
                         String.format("_SUCCESS 파일이 존재하지 않습니다: %s. 데이터 준비가 완료되지 않았습니다.",
                                 successFilePath));
@@ -70,11 +67,11 @@ public class S3SuccessFileCheckTasklet implements Tasklet {
     }
 
     private List<String> listCsvFiles(String prefix) {
-        return amazonS3.listObjectsV2(BUCKET_NAME, prefix)
+        return amazonS3.listObjectsV2(S3Constants.BUCKET_NAME.toString(), prefix)
                 .getObjectSummaries().stream()
                 .map(S3ObjectSummary::getKey)
-                .filter(key -> key.endsWith(".csv"))
-                .map(key -> String.format("s3://%s/%s", BUCKET_NAME, key))
+                .filter(key -> key.endsWith(S3Constants.CSV_EXTENSION.toString()))
+                .map(key -> String.format("s3://%s/%s", S3Constants.BUCKET_NAME, key))
                 .collect(Collectors.toList());
     }
 }
