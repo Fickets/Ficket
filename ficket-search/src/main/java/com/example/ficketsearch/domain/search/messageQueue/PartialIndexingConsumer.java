@@ -32,6 +32,9 @@ public class PartialIndexingConsumer {
         if (KafkaConstants.FULL_INDEXING_FINISHED.toString().equals(message)) {
             kafkaControlService.resumePartialIndexing(KafkaConstants.PARTIAL_INDEXING_LISTENER.toString());
             log.info("전체 색인 완료 이벤트 수신 → Kafka Consumer resume");
+        } else if (KafkaConstants.FULL_INDEXING_STARTED.toString().equals(message)) {
+            kafkaControlService.pausePartialIndexing(KafkaConstants.PARTIAL_INDEXING_LISTENER.toString());
+            log.info("전체 색인 시작 이벤트 수신 → Kafka Consumer pause");
         }
     }
 

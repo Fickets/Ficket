@@ -28,7 +28,9 @@ public class S3SuccessFileCheckTasklet implements Tasklet {
         // 오늘 날짜 기준 경로 생성
         LocalDate today = LocalDate.now();
         String datePath = today.format(S3Constants.DATE_FORMAT.toDateFormatter());
-        String s3Prefix = String.format(S3Constants.FULL_INDEX_PREFIX.toString(), datePath);
+
+        // S3 경로 생성: index/full/2025/12/18/
+        String s3Prefix = S3Constants.buildFullIndexPath(datePath);
         String successFilePath = s3Prefix + S3Constants.SUCCESS_FILE;
 
         log.info("S3 경로에서 _SUCCESS 파일을 확인합니다: {}", successFilePath);
@@ -71,7 +73,7 @@ public class S3SuccessFileCheckTasklet implements Tasklet {
                 .getObjectSummaries().stream()
                 .map(S3ObjectSummary::getKey)
                 .filter(key -> key.endsWith(S3Constants.CSV_EXTENSION.toString()))
-                .map(key -> String.format("s3://%s/%s", S3Constants.BUCKET_NAME, key))
+                .map(S3Constants::buildS3Uri)
                 .collect(Collectors.toList());
     }
 }

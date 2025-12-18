@@ -22,6 +22,7 @@ public enum KafkaConstants {
     PARTIAL_INDEXING_LISTENER("partialIndexingListener", "부분 색인 Listener ID"),
     
     // 메시지
+    FULL_INDEXING_STARTED("FULL_INDEXING_STARTED", "전체 색인 시작 메시지"),
     FULL_INDEXING_FINISHED("FULL_INDEXING_FINISHED", "전체 색인 완료 메시지")
     ;
     

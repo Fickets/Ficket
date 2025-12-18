@@ -2,6 +2,7 @@ package com.example.ficketsearch.domain.search.batch.quartz;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.batch.core.Job;
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@DisallowConcurrentExecution
 public class FullIndexingQuartzJob extends QuartzJobBean {
 
     private final JobLauncher jobLauncher;
@@ -27,9 +29,6 @@ public class FullIndexingQuartzJob extends QuartzJobBean {
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         LocalDateTime now = LocalDateTime.now();
-        log.info("실행 시간: {}", now.format(FORMATTER));
-        log.info("Fire Time: {}", context.getFireTime());
-        log.info("Next Fire Time: {}", context.getNextFireTime());
         
         try {
             // JobParameters에 현재 시간을 포함하여 각 실행을 고유하게 만듦
@@ -40,9 +39,7 @@ public class FullIndexingQuartzJob extends QuartzJobBean {
                     .toJobParameters();
             
             jobLauncher.run(fullIndexingJob, jobParameters);
-            
-            log.info("=== Quartz: 전체 색인 배치 작업 완료 ===");
-            
+
         } catch (Exception e) {
             log.error("Quartz: 전체 색인 배치 작업 실패", e);
             throw new JobExecutionException("전체 색인 배치 작업 실패", e);

@@ -1,23 +1,37 @@
 package com.example.ficketsearch.domain.search.batch.config;
 
+import com.example.ficketsearch.domain.search.batch.quartz.AutowiringSpringBeanJobFactory;
 import com.example.ficketsearch.domain.search.batch.quartz.FullIndexingQuartzJob;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
+import org.springframework.boot.autoconfigure.quartz.SchedulerFactoryBeanCustomizer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.sql.DataSource;
 
 /**
  * Quartz Scheduler 설정
- * 
+ *
  * Job과 Trigger를 정의하여 스케줄링 설정
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class QuartzConfiguration {
+
+    private final ApplicationContext applicationContext;
+    private final DataSource dataSource;
+    private final PlatformTransactionManager transactionManager;
 
     /**
      * 전체 색인 Job 정의
-     * 
+     *
      * JobDetail: Quartz가 실행할 Job의 메타데이터
      * - identity: Job의 고유 식별자 (이름, 그룹)
      * - durability: 트리거가 없어도 Job 정보를 유지할지 여부
@@ -33,7 +47,7 @@ public class QuartzConfiguration {
 
     /**
      * 매일 새벽 2시 실행되는 크론 트리거
-     * 
+     *
      * Cron 표현식 설명: "0 0 2 ? * *"
      * - 초: 0 (0초)
      * - 분: 0 (0분)
@@ -41,7 +55,7 @@ public class QuartzConfiguration {
      * - 일: ? (매일, 요일과 함께 사용할 때는 ? 사용)
      * - 월: * (매월)
      * - 요일: * (모든 요일)
-     * 
+     *
      * 결과: 매일 새벽 02:00:00에 실행 (Asia/Seoul 시간대)
      */
     @Bean
@@ -58,4 +72,21 @@ public class QuartzConfiguration {
                 .build();
     }
 
+    @Bean
+    public SpringBeanJobFactory springBeanJobFactory() {
+        AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory();
+        jobFactory.setApplicationContext(applicationContext);
+        return jobFactory;
+    }
+
+    @Bean
+    public SchedulerFactoryBean schedulerFactoryBean(Trigger trigger, JobDetail jobDetail) {
+        SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
+        schedulerFactory.setDataSource(dataSource);
+        schedulerFactory.setJobFactory(springBeanJobFactory());
+        schedulerFactory.setTransactionManager(transactionManager);
+        schedulerFactory.setJobDetails(jobDetail);
+        schedulerFactory.setTriggers(trigger);
+        return schedulerFactory;
+    }
 }

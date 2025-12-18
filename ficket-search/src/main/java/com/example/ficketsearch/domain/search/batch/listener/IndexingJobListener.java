@@ -1,8 +1,6 @@
 package com.example.ficketsearch.domain.search.batch.listener;
 
 import com.example.ficketsearch.domain.search.service.IndexingLockService;
-import com.example.ficketsearch.domain.search.service.KafkaControlService;
-import com.example.ficketsearch.global.config.kafka.KafkaConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;
@@ -19,7 +17,6 @@ import static com.example.ficketsearch.global.config.kafka.KafkaConstants.INDEXI
 public class IndexingJobListener implements JobExecutionListener {
 
     private final IndexingLockService indexingLockService;
-    private final KafkaControlService kafkaControlService;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
@@ -45,11 +42,7 @@ public class IndexingJobListener implements JobExecutionListener {
                 indexingLockService.releaseFullIndexingLock();
                 log.info("전체 색인 Write Lock 해제 완료");
 
-                // 2. Kafka Consumer resume
-                kafkaControlService.resumePartialIndexing(KafkaConstants.PARTIAL_INDEXING_LISTENER.toString());
-                log.info("Kafka Consumer resume 완료");
-
-                // 3. 전체 색인 완료 이벤트 발행 (성공한 경우에만)
+                // 2. 전체 색인 완료 이벤트 발행 (성공한 경우에만)
                 if (jobExecution.getStatus().isUnsuccessful()) {
                     log.warn("Job이 실패 상태로 종료되어 완료 이벤트 발행하지 않음");
                 } else {
@@ -63,7 +56,7 @@ public class IndexingJobListener implements JobExecutionListener {
             
             // 정리 작업 실패 시에도 최소한 Kafka resume 시도
             try {
-                kafkaControlService.resumePartialIndexing(KafkaConstants.PARTIAL_INDEXING_LISTENER.toString());
+                kafkaTemplate.send(INDEXING_CONTROL_TOPIC.toString(), FULL_INDEXING_FINISHED.toString());
                 log.info("오류 발생 시 Kafka resume 시도 완료");
             } catch (Exception resumeError) {
                 log.error("Kafka resume 중 추가 오류 발생", resumeError);

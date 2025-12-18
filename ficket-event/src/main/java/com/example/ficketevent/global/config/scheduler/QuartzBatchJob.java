@@ -3,8 +3,10 @@ package com.example.ficketevent.global.config.scheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.PersistJobDataAfterExecution;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.batch.core.Job;
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
+@DisallowConcurrentExecution
 public class QuartzBatchJob extends QuartzJobBean {
 
     private final JobLauncher jobLauncher;

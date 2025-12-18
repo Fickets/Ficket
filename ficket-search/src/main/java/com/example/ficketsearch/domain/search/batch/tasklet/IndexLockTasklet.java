@@ -10,7 +10,10 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+
+import static com.example.ficketsearch.global.config.kafka.KafkaConstants.*;
 
 @Slf4j
 @Component
@@ -18,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class IndexLockTasklet implements Tasklet {
 
     private final IndexingLockService indexingLockService;
-    private final KafkaControlService kafkaControlService;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
@@ -26,7 +29,7 @@ public class IndexLockTasklet implements Tasklet {
         log.info("전체 색인 Write Lock 획득 시도 (진행 중인 부분 색인이 있다면 완료될 때까지 대기)...");
 
         // 1. Kafka Consumer pause (새로운 부분 색인 메시지 수신 차단)
-        kafkaControlService.pausePartialIndexing(KafkaConstants.PARTIAL_INDEXING_LISTENER.toString());
+        kafkaTemplate.send(INDEXING_CONTROL_TOPIC.toString(), FULL_INDEXING_STARTED.toString());
         log.info("Kafka Consumer pause 완료 (새로운 부분 색인 차단)");
 
         try {
@@ -35,7 +38,7 @@ public class IndexLockTasklet implements Tasklet {
 
             if (!acquired) {
                 // 락 획득 실패 시 Kafka resume
-                kafkaControlService.resumePartialIndexing(KafkaConstants.PARTIAL_INDEXING_LISTENER.toString());
+                kafkaTemplate.send(INDEXING_CONTROL_TOPIC.toString(), FULL_INDEXING_FINISHED.toString());
                 throw new IllegalStateException("전체 색인 락 획득 실패");
             }
 
@@ -51,7 +54,7 @@ public class IndexLockTasklet implements Tasklet {
 
         } catch (Exception e) {
             // 예외 발생 시 Kafka resume
-            kafkaControlService.resumePartialIndexing(KafkaConstants.PARTIAL_INDEXING_LISTENER.toString());
+            kafkaTemplate.send(INDEXING_CONTROL_TOPIC.toString(), FULL_INDEXING_FINISHED.toString());
             log.error("전체 색인 락 획득 중 오류 발생", e);
             throw e;
         }
