@@ -127,35 +127,30 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
 
     @Override
     public List<SimpleEvent> openSearchTop6Genre(String genre) {
-        BooleanBuilder builder = new BooleanBuilder();
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        LocalDateTime todayMidnight = currentDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0);
-        builder.and(event.ticketingTime.after(todayMidnight));
-        // 조건 추가: genre가 포함되는 경우
-        if (!genre.isEmpty()) {
-            builder.and(event.genre.any().stringValue().eq(genre));
-        }
-
-        List<Event> top6 = queryFactory.selectFrom(event)
-                .where(builder)
-                .orderBy(event.ticketingTime.desc())
+        return queryFactory
+                .selectFrom(event)
+                .join(event.eventImage).fetchJoin()
+                .where(
+                        ticketingTimeAfterToday(),
+                        eqGenre(genre)
+                )
+                .orderBy(event.ticketingTime.asc())
                 .limit(6)
-                .fetch();
-
-        top6.sort(Comparator.comparing(Event::getTicketingTime));
-
-        return top6.stream()
-                .map(event -> {
-                    return SimpleEvent.builder()
-                            .eventId(event.getEventId())
-                            .title(event.getTitle())
-                            .date(event.getTicketingTime().toString())
-                            .pcImg(event.getEventImage().getPosterPcMain2Url())
-                            .mobileImg(event.getEventImage().getPosterPcMain1Url())
-                            .mobileSmallImg(event.getEventImage().getPosterMobileUrl())
-                            .build();
-                })
+                .fetch()
+                .stream()
+                .map(SimpleEvent::from)
                 .toList();
+    }
+
+    private BooleanExpression ticketingTimeAfterToday() {
+        return event.ticketingTime.after(LocalDate.now().atStartOfDay());
+    }
+
+    private BooleanExpression eqGenre(String genre) {
+        if (genre == null || genre.isBlank()) {
+            return null;
+        }
+        return event.genre.any().stringValue().eq(genre);
     }
 
     @Override

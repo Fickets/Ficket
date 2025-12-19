@@ -1057,7 +1057,8 @@ public class EventService {
     }
 
     public List<SimpleEvent> getGenreRank(String genre) {
-        return eventRepository.getGenreRank(genre);
+
+
     }
 
     public List<String> allArea() {
