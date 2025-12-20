@@ -1,10 +1,7 @@
 import { AxiosResponse } from "axios";
 import { ViewRankResponse, SimpleEvent } from "../../types/home";
 import { publicApi } from "../../utils/http-common.ts";
-import {
-  Genre,
-  ReservationRateRankingResponse,
-} from "../../types/ReservationRateRanking.ts";
+import { Genre } from "../../types/ReservationRateRanking.ts";
 
 export const fetchViewRanking = async (
   limit: number,
@@ -31,7 +28,7 @@ export const openRecent = async (genre: string): Promise<SimpleEvent[]> => {
 
 export const getGenreRankTopTen = async (
   genre: Genre,
-): Promise<ReservationRateRankingResponse[]> => {
+): Promise<SimpleEvent[]> => {
   try {
     const genreKey = (Object.keys(Genre) as (keyof typeof Genre)[]).find(
       (key) => Genre[key] === genre,
@@ -39,14 +36,9 @@ export const getGenreRankTopTen = async (
 
     const params = {
       genre: genreKey || genre,
-      period: "DAILY",
-      topN: 10,
     };
 
-    const response = await publicApi.get(
-      "/events/detail/reservation-rate-rank",
-      { params },
-    );
+    const response = await publicApi.get("/events/genre-rank", { params });
     return response.data;
   } catch (error) {
     console.error("Error fetching ranking:", error);

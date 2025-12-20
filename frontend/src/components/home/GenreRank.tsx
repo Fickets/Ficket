@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; // useNavigate import
 import NoContent from "../../assets/nocontent.png";
-import {
-  Genre,
-  ReservationRateRankingResponse,
-} from "../../types/ReservationRateRanking.ts";
+import { Genre } from "../../types/ReservationRateRanking.ts";
 import { getGenreRankTopTen } from "../../service/home/api.ts";
+import { SimpleEvent } from "../../types/home.ts";
 
 const GenreRank = () => {
   const navi = useNavigate();
-  const [rankGenre, setRankGenre] = useState<ReservationRateRankingResponse[]>(
-    [],
-  );
+  const [rankGenre, setRankGenre] = useState<SimpleEvent[]>([]);
   const [genre, setGenre] = useState<Genre>(Genre.뮤지컬);
 
   const genres = Object.values(Genre);
@@ -67,7 +63,7 @@ const GenreRank = () => {
                 >
                   {/* 이미지 */}
                   <img
-                    src={event.eventPcPosterUrl}
+                    src={event.pcImg}
                     alt=""
                     className="rounded-lg object-cover h-min-[321px] w-min-[244px]"
                   />
@@ -77,7 +73,7 @@ const GenreRank = () => {
                       {index + 1}
                     </p>
                     <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap w-[240px]">
-                      {event.eventTitle}
+                      {event.title}
                     </p>
                   </div>
                 </div>
@@ -129,7 +125,7 @@ const GenreRank = () => {
                 >
                   {/* 이미지 */}
                   <img
-                    src={event.eventMobilePosterUrl}
+                    src={event.mobileImg}
                     alt=""
                     className="rounded-lg object-cover"
                   />
@@ -139,7 +135,7 @@ const GenreRank = () => {
                       {index + 1}
                     </p>
                     <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap">
-                      {event.eventTitle}
+                      {event.title}
                     </p>
                   </div>
                 </div>
