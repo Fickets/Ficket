@@ -145,5 +145,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             nativeQuery = true)
     List<Map<String, Object>> findEventIndexingInfoRawBulk(@Param("eventIds") List<Long> eventIds);
 
+    @Query("select e from Event e join fetch e.eventImage where e.eventId in :ids")
+    List<Event> findAllByEventIdIn(@Param("ids") List<Long> ids);
+
 
 }

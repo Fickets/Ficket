@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface EventCustomRepository {
-//    List<EventSearchRes> searchEventByCond(EventSearchCond eventSearchCond, Pageable pageable);
 
     List<Long> getEventScheduleByEventId(Long eventId);
 
@@ -24,8 +23,6 @@ public interface EventCustomRepository {
     Page<EventScheduledOpenResponse> searchEventScheduledOpen(EventScheduledOpenSearchCond cond, Pageable pageable);
 
     List<SimpleEvent> openSearchTop6Genre(String genre);
-
-    List<SimpleEvent> getGenreRank(String genre);
 
     Page<Event> findExcludingIds(List<Long> ids, Genre genre, String area, Pageable pageable);
 

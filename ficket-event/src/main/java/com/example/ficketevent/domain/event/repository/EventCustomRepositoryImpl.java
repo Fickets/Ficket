@@ -138,7 +138,14 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
                 .limit(6)
                 .fetch()
                 .stream()
-                .map(SimpleEvent::from)
+                .map(event -> SimpleEvent.builder()
+                        .eventId(event.getEventId())
+                        .title(event.getTitle())
+                        .date(event.getTicketingTime().toString())
+                        .pcImg(event.getEventImage().getPosterPcMain2Url())
+                        .mobileImg(event.getEventImage().getPosterPcMain1Url())
+                        .mobileSmallImg(event.getEventImage().getPosterMobileUrl())
+                        .build())
                 .toList();
     }
 
@@ -151,36 +158,6 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
             return null;
         }
         return event.genre.any().stringValue().eq(genre);
-    }
-
-    @Override
-    public List<SimpleEvent> getGenreRank(String genre) {
-        BooleanBuilder builder = new BooleanBuilder();
-        // 상위 10개만 가져오기
-        List<Event> genreRank = queryFactory.select(event)
-                .from(event)
-                .leftJoin(event.eventSchedules, eventSchedule)
-                .leftJoin(eventSchedule.seatMappingList, seatMapping)
-                .where(
-                        seatMapping.ticketId.isNotNull(),  // ticketId가 null이 아닌 것만
-                        genre != null ? event.genre.any().stringValue().eq(genre) : null // genre 조건
-                )
-                .groupBy(event.eventId) // event 기준으로 그룹화
-                .orderBy(seatMapping.ticketId.count().desc()) // ticketId 개수로 정렬
-                .limit(10)
-                .fetch();
-
-        return genreRank.stream()
-                .map(event -> {
-                    return SimpleEvent.builder()
-                            .eventId(event.getEventId())
-                            .title(event.getTitle())
-                            .date(event.getTicketingTime().toString())
-                            .pcImg(event.getEventImage().getPosterPcMain1Url())
-                            .mobileImg(event.getEventImage().getPosterPcMain2Url())
-                            .build();
-                })
-                .toList();
     }
 
     @Override

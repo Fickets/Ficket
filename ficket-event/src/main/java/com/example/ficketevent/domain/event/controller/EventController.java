@@ -325,6 +325,21 @@ public class EventController {
         return ResponseEntity.ok(res);
     }
 
+    /**
+     * 장르별 일일 예매율 top10 조회 API
+     * <p>
+     * 작업자: 최용수
+     * 작업 날짜: 2024-12-30
+     * 변경 이력:
+     * - 2024-12-30 최용수: 초기 작성
+     * - 2024-12-28 최용수: 장르선택 적용
+     * - 2025-12-20 오형상: Rids 랭킹을 재활용, 파라미터 Enum 사용
+     */
+    @GetMapping("/genre-rank")
+    public ResponseEntity<List<SimpleEvent>> getGenreRankTopTen(@RequestParam(defaultValue = "뮤지컬") Genre genre) {
+        return ResponseEntity.ok(eventService.getGenreRankTopTen(genre));
+    }
+
     @GetMapping("/area")
     public ResponseEntity<List<String>> getAllArea() {
         List<String> res = eventService.allArea();

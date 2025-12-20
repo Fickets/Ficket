@@ -1056,9 +1056,33 @@ public class EventService {
         return eventRepository.openSearchTop6Genre(genre);
     }
 
-    public List<SimpleEvent> getGenreRank(String genre) {
+    public List<SimpleEvent> getGenreRankTopTen(Genre genre) {
 
+        List<Pair<Long, BigDecimal>> eventIdWithScores = getTopEventsFromRedis(genre, DAILY, 10);
+        if (eventIdWithScores.isEmpty()) {
+            return Collections.emptyList();
+        }
 
+        List<Long> eventIds = eventIdWithScores.stream()
+                .map(Pair::getKey)
+                .toList();
+
+        List<Event> events = eventRepository.findAllByEventIdIn(eventIds);
+
+        return eventIds.stream()
+                .map(id -> events.stream()
+                        .filter(e -> e.getEventId().equals(id))
+                        .findFirst()
+                        .map((event -> SimpleEvent.builder()
+                                .eventId(event.getEventId())
+                                .title(event.getTitle())
+                                .date(event.getTicketingTime().toString())
+                                .pcImg(event.getEventImage().getPosterPcMain1Url())
+                                .mobileImg(event.getEventImage().getPosterPcMain2Url())
+                                .build()))
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public List<String> allArea() {
