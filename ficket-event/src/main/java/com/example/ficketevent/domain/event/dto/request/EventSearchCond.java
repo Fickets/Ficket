@@ -2,9 +2,9 @@ package com.example.ficketevent.domain.event.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 public class EventSearchCond {
@@ -23,9 +23,11 @@ public class EventSearchCond {
     @Schema(description = "공연장 ID", example = "202")
     private Long eventStageId;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @Schema(description = "검색 시작 날짜", example = "2024-12-16")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @Schema(description = "검색 종료 날짜", example = "2024-12-31")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 }
