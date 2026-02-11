@@ -64,7 +64,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
                 deleted_at IS NULL
             GROUP BY
                 event_id
-            LIMIT :limit OFFSET :offset
         ) esc ON e.event_id = esc.event_id
         WHERE
             e.deleted_at IS NULL
@@ -73,8 +72,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             AND (:companyId IS NULL OR e.company_id = :companyId)
             AND (:adminId IS NULL OR e.admin_id = :adminId)
             AND (:eventStageId IS NULL OR e.stage_id = :eventStageId)
-            AND (:startDate IS NULL OR esc.min_event_date >= :startDate)
-            AND (:endDate IS NULL OR esc.max_event_date <= :endDate)
+            AND (:startDate IS NULL OR DATE(esc.min_event_date) >= :startDate)
+            AND (:endDate IS NULL OR DATE(esc.max_event_date) <= :endDate)
+        ORDER BY e.event_id DESC
+        LIMIT :limit OFFSET :offset
         """,
             nativeQuery = true)
     List<EventSummaryProjection> searchEventByCond(
@@ -83,25 +84,30 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             @Param("companyId") Long companyId,
             @Param("adminId") Long adminId,
             @Param("eventStageId") Long eventStageId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
             @Param("limit") int limit,
             @Param("offset") long offset
     );
 
     @Query(value = """
-    SELECT COUNT(DISTINCT e.event_id)
+    SELECT COUNT(*)
     FROM event e
     JOIN event_stage es ON e.stage_id = es.stage_id
-    JOIN event_schedule esc ON e.event_id = esc.event_id AND esc.deleted_at IS NULL
+    JOIN (
+        SELECT event_id, MIN(event_date) AS min_event_date, MAX(event_date) AS max_event_date
+        FROM event_schedule
+        WHERE deleted_at IS NULL
+        GROUP BY event_id
+    ) esc ON e.event_id = esc.event_id
     WHERE e.deleted_at IS NULL
       AND (:eventId IS NULL OR e.event_id = :eventId)
       AND (:eventTitle IS NULL OR e.title LIKE CONCAT('%', :eventTitle, '%'))
       AND (:companyId IS NULL OR e.company_id = :companyId)
       AND (:adminId IS NULL OR e.admin_id = :adminId)
       AND (:eventStageId IS NULL OR e.stage_id = :eventStageId)
-      AND (:startDate IS NULL OR esc.event_date >= :startDate)
-      AND (:endDate IS NULL OR esc.event_date <= :endDate)
+      AND (:startDate IS NULL OR DATE(esc.min_event_date) >= :startDate)
+      AND (:endDate IS NULL OR DATE(esc.max_event_date) <= :endDate)
     """, nativeQuery = true)
     long countEventsByCond(
             @Param("eventId") Long eventId,
@@ -109,8 +115,8 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventCustom
             @Param("companyId") Long companyId,
             @Param("adminId") Long adminId,
             @Param("eventStageId") Long eventStageId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
 
     // spring batch
